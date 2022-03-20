@@ -14,7 +14,9 @@ export default class GameCanvas {
   #touchdownX
   #touchdownY
   #touchmoved
+  #touchhovering
   #scale
+  #highlightedTile
 
   constructor(canvas, game, gameAssets) {
     this.game = game
@@ -34,7 +36,9 @@ export default class GameCanvas {
     this.#touchdownX = 0
     this.#touchdownY = 0
     this.#touchmoved = false
+    this.#touchhovering = false
     this.#scale = 1.0
+    this.#highlightedTile = [-1, -1]
     window.addEventListener('resize', () => this.recalculateCanvasSize())
     this.#initMouseEvents()
   }
@@ -58,6 +62,7 @@ export default class GameCanvas {
     this.#drawMap()
     this.#drawUnits()
     this.#drawGrid()
+    this.#drawHighlight()
   
     this.#ctx.scale(1.0/this.#scale, 1.0/this.#scale)
     this.#ctx.translate(-this.#translateX, -this.#translateY)
@@ -106,6 +111,11 @@ export default class GameCanvas {
   
   }
 
+  #drawHighlight() {
+    this.#ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+    this.#ctx.fillRect(this.#highlightedTile[0] * this.#tileSize, this.#highlightedTile[1] * this.#tileSize, this.#tileSize, this.#tileSize)
+  }
+
   
 
 
@@ -132,12 +142,25 @@ export default class GameCanvas {
 
   //mouse events
 
-  #canvasClick (x, y) {
+  #getFieldAtCoordinates (x, y) {
     const bounds = this.canvas.getBoundingClientRect()
     const realX = Math.floor((x - bounds.left - this.#translateX) / this.#scale / this.#tileSize)
     const realY = Math.floor((y - bounds.top - this.#translateY) / this.#scale / this.#tileSize)
+    return {realX, realY}
+  }
+
+  #canvasClick (x, y) {
+    const {realX, realY} = this.#getFieldAtCoordinates(x, y)
     const event = new CustomEvent('fieldClicked', {detail:{x: realX, y: realY}})
     this.canvas.dispatchEvent(event)
+  }
+
+  #canvasHover (x, y) {
+    const {realX, realY} = this.#getFieldAtCoordinates(x, y)
+    if (realX == this.#highlightedTile[0] && realY == this.#highlightedTile[1]) return
+    this.#highlightedTile[0] = realX
+    this.#highlightedTile[1] = realY
+    this.drawGame()
   }
 
   #initMouseEvents () {
@@ -152,6 +175,8 @@ export default class GameCanvas {
         this.#translateX = this.#previousTranslateX + e.clientX - this.#mousedownX
         this.#translateY = this.#previousTranslateY + e.clientY - this.#mousedownY
         this.drawGame()
+      } else { //highlight field
+        this.#canvasHover(e.clientX, e.clientY)
       }
     }, {passive: false})
     window.addEventListener("mouseup", e => {
@@ -170,6 +195,11 @@ export default class GameCanvas {
         this.#touchdownX = e.touches[0].clientX
         this.#touchdownY = e.touches[0].clientY
         this.#touchdown = true
+        if (this.#touchhovering) {
+          const {realX, realY} = this.#getFieldAtCoordinates(e.touches[0].clientX, e.touches[0].clientY)
+          if (realX != this.#highlightedTile[0] || realY != this.#highlightedTile[1])
+            this.#touchhovering = false
+        }
       }
     }, {passive: false})
     this.canvas.addEventListener("touchmove", e => {
@@ -177,6 +207,7 @@ export default class GameCanvas {
       if (this.#touchdown) {
         if (Math.abs(e.touches[0].clientX - this.#touchdownX) > 10 || Math.abs(e.touches[0].clientY - this.#touchdownY) > 10) {
           this.#touchmoved = true
+          this.#touchhovering = false
           this.#translateX = this.#previousTranslateX + e.touches[0].clientX - this.#touchdownX
           this.#translateY = this.#previousTranslateY + e.touches[0].clientY - this.#touchdownY
         }
@@ -187,7 +218,12 @@ export default class GameCanvas {
       e.preventDefault()
       if (this.#touchdown) {
         if (!this.#touchmoved)
-          this.canvasClick(this.#touchdownX, this.#touchdownY)
+          if (this.#touchhovering)
+            this.#canvasClick(this.#touchdownX, this.#touchdownY)
+          else {
+            this.#canvasHover(this.#touchdownX, this.#touchdownY)
+            this.#touchhovering = true
+          }
         this.#touchdown = false
         this.#touchmoved = false
         this.#previousTranslateX = this.#translateX
