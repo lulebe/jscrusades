@@ -42,7 +42,7 @@ export default class GameCanvas {
     this.#touchhovering = false
     this.#scale = 1.0
     this.#highlightedTile = [-1, -1]
-    this.#animationsRunning = false
+    this.#animationsRunning = 0
     this.#previousAnimationTimestamp = 0
     this.#animStep = 0
     window.addEventListener('resize', () => this.recalculateCanvasSize())
@@ -73,13 +73,16 @@ export default class GameCanvas {
   
     this.#drawMap()
     this.#drawUnits()
+    this.#drawUnitAnimations()
     this.#drawGrid()
     this.#drawHighlight()
   
     this.#ctx.scale(1.0/this.#scale, 1.0/this.#scale)
     this.#ctx.translate(-this.#translateX, -this.#translateY)
     if (this.#animationsRunning)
-      window.requestAnimationFrame(() => this.drawGame())
+      window.requestAnimationFrame(t => this.drawGame(t))
+    else
+      this.#previousAnimationTimestamp = 0
   }
 
   #drawGrid () {
@@ -122,13 +125,14 @@ export default class GameCanvas {
   }
   
   #drawUnits () {
-    this.game.crusaderPlayer.units.forEach(unit => this.#drawUnit(unit, 1))
-    this.game.saracenPlayer.units.forEach(unit => this.#drawUnit(unit, 2))
+    this.game.crusaderPlayer.units.forEach(unit => this.#drawUnit(unit))
+    this.game.saracenPlayer.units.forEach(unit => this.#drawUnit(unit))
   }
 
-  #drawUnit (unit, faction) {
+  #drawUnit (unit) {
+    if (unit.animation) return
     this.#ctx.drawImage(
-      this.assets.units[faction][unit.type],
+      this.assets.units[unit.faction][unit.type],
       unit.posX * this.#tileSize,
       unit.posY * this.#tileSize,
       this.#tileSize,
@@ -148,6 +152,50 @@ export default class GameCanvas {
       String(unit.hp).padStart(2, '0'),
       (unit.posX + 1) * this.#tileSize - this.#tileSize * 0.24,
       (unit.posY + 1) * this.#tileSize - this.#tileSize * 0.035
+    )
+  }
+
+  #drawUnitAnimations () {
+    this.game.crusaderPlayer.units.filter(unit => unit.animation)
+    .concat(this.game.saracenPlayer.units.filter(unit => unit.animation))
+    .forEach(unit => {
+      if (!unit.animation.started) {
+        unit.animation.started = true
+        this.#animationsRunning++
+      } else if (!unit.animation.fieldsToGoTo.length) {
+        unit.animation = null
+        this.#animationsRunning--
+        this.#drawUnit(unit)
+      } else {
+        this.#drawUnitAnimation(unit)
+      }
+    })
+  }
+
+  #drawUnitAnimation (unit) {
+    const nextField = unit.animation.fieldsToGoTo[0]
+    let newX
+    let newY
+    if (nextField.x > unit.animation.curX) { //positive X
+      newX = Math.min(unit.animation.curX + this.#animStep/250, nextField.x)
+    } else { //negative X
+      newX = Math.max(unit.animation.curX - this.#animStep/250, nextField.x)
+    }
+    if (nextField.y > unit.animation.curY) { //positive Y
+      newY = Math.min(unit.animation.curY + this.#animStep/250, nextField.y)
+    } else { //negative Y
+      newY = Math.max(unit.animation.curY - this.#animStep/250, nextField.y)
+    }
+    unit.animation.curX = newX
+    unit.animation.curY = newY
+    if (newX === nextField.x && newY === nextField.y)
+      unit.animation.fieldsToGoTo.shift()
+    this.#ctx.drawImage(
+      this.assets.units[unit.faction][unit.type],
+      newX * this.#tileSize,
+      newY * this.#tileSize,
+      this.#tileSize,
+      this.#tileSize
     )
   }
 

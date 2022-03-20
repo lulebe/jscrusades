@@ -21,6 +21,7 @@
         money: 50,
         units: [{
           type: 2,
+          faction: 1,
           hp: 6,
           food: 3,
           ammo: 3,
@@ -37,6 +38,7 @@
     gameLoader(gameData)
     .then(({game, gameAssets}) => {
       console.log(game)
+      game.crusaderPlayer.units[0].animation = {started: false, curX: 4, curY: 1, fieldsToGoTo: [{x:4,y:0},{x:7,y:0},{x:7,y:2},{x:6,y:2}]}
       const canvasEl = document.getElementById('game-canvas')
       const gamecanvas = new GameCanvas(canvasEl, game, gameAssets)
       document.getElementById('zoom-in').addEventListener('click', () => gamecanvas.zoomIn())
