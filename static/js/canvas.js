@@ -17,6 +17,9 @@ export default class GameCanvas {
   #touchhovering
   #scale
   #highlightedTile
+  #animationsRunning
+  #previousAnimationTimestamp
+  #animStep
 
   constructor(canvas, game, gameAssets) {
     this.game = game
@@ -39,6 +42,9 @@ export default class GameCanvas {
     this.#touchhovering = false
     this.#scale = 1.0
     this.#highlightedTile = [-1, -1]
+    this.#animationsRunning = false
+    this.#previousAnimationTimestamp = 0
+    this.#animStep = 0
     window.addEventListener('resize', () => this.recalculateCanvasSize())
     this.#initMouseEvents()
   }
@@ -54,10 +60,16 @@ export default class GameCanvas {
     this.recalculateCanvasSize()
   }
   
-  drawGame () {
+  drawGame (animTimestamp=null) {
     this.#ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     this.#ctx.translate(this.#translateX, this.#translateY)
     this.#ctx.scale(this.#scale, this.#scale)
+
+    if (this.#animationsRunning) {
+      if (this.#previousAnimationTimestamp == 0) this.#previousAnimationTimestamp = animTimestamp
+      this.#animStep = animTimestamp - this.#previousAnimationTimestamp
+      this.#previousAnimationTimestamp = animTimestamp
+    }
   
     this.#drawMap()
     this.#drawUnits()
@@ -66,6 +78,8 @@ export default class GameCanvas {
   
     this.#ctx.scale(1.0/this.#scale, 1.0/this.#scale)
     this.#ctx.translate(-this.#translateX, -this.#translateY)
+    if (this.#animationsRunning)
+      window.requestAnimationFrame(() => this.drawGame())
   }
 
   #drawGrid () {
@@ -107,11 +121,37 @@ export default class GameCanvas {
     })
   }
   
-  #drawUnits() {
-  
+  #drawUnits () {
+    this.game.crusaderPlayer.units.forEach(unit => this.#drawUnit(unit, 1))
+    this.game.saracenPlayer.units.forEach(unit => this.#drawUnit(unit, 2))
   }
 
-  #drawHighlight() {
+  #drawUnit (unit, faction) {
+    this.#ctx.drawImage(
+      this.assets.units[faction][unit.type],
+      unit.posX * this.#tileSize,
+      unit.posY * this.#tileSize,
+      this.#tileSize,
+      this.#tileSize
+    )
+    this.#ctx.fillStyle = '#ffffff'
+    this.#ctx.fillRect(
+      (unit.posX + 1) * this.#tileSize - this.#tileSize * 0.25,
+      (unit.posY + 1) * this.#tileSize - this.#tileSize * 0.2,
+      this.#tileSize * 0.25,
+      this.#tileSize * 0.2
+    )
+    this.#ctx.fillStyle = '#ffffff'
+    this.#ctx.font = (this.#tileSize*0.2) + 'px monospace'
+    this.#ctx.textAlign = 'left'
+    this.#ctx.fillText(
+      String(unit.hp).padStart(2, '0'),
+      (unit.posX + 1) * this.#tileSize - this.#tileSize * 0.24,
+      (unit.posY + 1) * this.#tileSize - this.#tileSize * 0.035
+    )
+  }
+
+  #drawHighlight () {
     this.#ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
     this.#ctx.fillRect(this.#highlightedTile[0] * this.#tileSize, this.#highlightedTile[1] * this.#tileSize, this.#tileSize, this.#tileSize)
   }

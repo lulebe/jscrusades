@@ -6,8 +6,10 @@ export default class Game {
     ONLINE_MP: 3
   }
 
-  constructor(map, type) {
+  constructor(map, crusader, saracen, type) {
     this.map = map
+    this.crusaderPlayer = crusader
+    this.saracenPlayer = saracen
   }
 
 }

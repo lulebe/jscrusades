@@ -15,7 +15,26 @@
     import GameCanvas from './js/canvas.js'
     import gameLoader from './js/gamedata/gameLoader.js'
 
-    gameLoader({mapNum: window.location.hash ? parseInt(window.location.hash.substring(1, 3)) : 1})
+    const gameData = {
+      mapNum: window.location.hash ? parseInt(window.location.hash.substring(1, 3)) : 1,
+      crusaderPlayer: {
+        money: 50,
+        units: [{
+          type: 2,
+          hp: 6,
+          food: 3,
+          ammo: 3,
+          posX: 6,
+          posY: 2
+        }]
+      },
+      saracenPlayer: {
+        money: 30,
+        units: []
+      }
+    }
+
+    gameLoader(gameData)
     .then(({game, gameAssets}) => {
       console.log(game)
       const canvasEl = document.getElementById('game-canvas')
