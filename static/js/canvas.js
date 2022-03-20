@@ -141,7 +141,7 @@ export default class GameCanvas {
       this.#tileSize * 0.25,
       this.#tileSize * 0.2
     )
-    this.#ctx.fillStyle = '#ffffff'
+    this.#ctx.fillStyle = '#000000'
     this.#ctx.font = (this.#tileSize*0.2) + 'px monospace'
     this.#ctx.textAlign = 'left'
     this.#ctx.fillText(
