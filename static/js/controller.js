@@ -78,6 +78,10 @@ function fieldClick (location) {
 }
 
 function endTurn () {
+  gameCanvas.moveOptionsDisplay = null
+  gameCanvas.fightOptionsDisplay = []
+  moveOptions = null
+  fightOptions = []
   gameCanvas.selectedPos = null
   game.endTurn()
   gameCanvas.drawGame()
