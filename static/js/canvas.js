@@ -13,6 +13,10 @@ export default class GameCanvas {
   #touchdown
   #touchdownX
   #touchdownY
+  #touch2down
+  #touch2downX
+  #touch2downY
+  #pinchStartScale
   #touchmoved
   #touchhovering
   #scale
@@ -38,6 +42,10 @@ export default class GameCanvas {
     this.#touchdown = false
     this.#touchdownX = 0
     this.#touchdownY = 0
+    this.#touch2down = false
+    this.#touch2downX = 0
+    this.#touch2downY = 0
+    this.#pinchStartScale = 1.0
     this.#touchmoved = false
     this.#touchhovering = false
     this.#scale = 1.0
@@ -55,7 +63,7 @@ export default class GameCanvas {
     this.canvas.height = this.canvas.parentElement.clientHeight
     //set scale to 0.1 steps between 0.5 and 1 to fit whole game on canvas
     let newScale = Math.min(this.canvas.width / (this.#tileSize * this.game.map.sizeX), this.canvas.height / (this.#tileSize * this.game.map.sizeY))
-    this.#scale = Math.max(Math.min(Math.floor(newScale * 10) / 10, 1.5), 0.5)
+    this.#scale = Math.max(Math.min(newScale, 1.5), 0.5)
     //center map
     this.#translateX = this.#previousTranslateX = (this.canvas.width - this.#tileSize * this.#scale * this.game.map.sizeX) / 2
     this.#translateY = this.#previousTranslateY =(this.canvas.height - this.#tileSize * this.#scale * this.game.map.sizeY) / 2
@@ -259,6 +267,26 @@ export default class GameCanvas {
     this.drawGame()
   }
 
+  #pinchZoom (touches) {
+    if (touches.length < 2) return
+    const startDistance = Math.sqrt(Math.pow((this.#touchdownX - this.#touch2downX), 2) + Math.pow((this.#touchdownY - this.#touch2downY), 2))
+    const currentDistance = Math.sqrt(Math.pow((touches[0].clientX - touches[1].clientX), 2) + Math.pow((touches[0].clientY - touches[1].clientY), 2))
+    //keep position
+    const centerX = (touches[0].clientX + touches[1].clientX) / 2
+    const centerY = (touches[0].clientY + touches[1].clientY) / 2
+    const bounds = this.canvas.getBoundingClientRect()
+    const realX = (centerX - bounds.left - this.#translateX) / this.#scale / this.#tileSize
+    const realY = (centerY - bounds.top - this.#translateY) / this.#scale / this.#tileSize
+    //execute scale
+    this.#scale = Math.min(Math.max(this.#pinchStartScale * (currentDistance / startDistance),0.5), 1.5)
+    //translate to keep position
+    const newCenterX = realX * this.#tileSize * this.#scale + this.#translateX + bounds.left
+    const newCenterY = realY * this.#tileSize * this.#scale + this.#translateY + bounds.top
+    this.#translateX += centerX - newCenterX
+    this.#translateY += centerY - newCenterY
+    this.drawGame()
+  }
+
   #initMouseEvents () {
     this.canvas.addEventListener("mousedown", e => {
       this.#mousedownX = e.clientX
@@ -296,12 +324,23 @@ export default class GameCanvas {
           if (realX != this.#highlightedTile[0] || realY != this.#highlightedTile[1])
             this.#touchhovering = false
         }
+      } else if (!this.#touch2down) {
+        this.#previousTranslateX = this.#translateX
+        this.#previousTranslateY = this.#translateY
+        this.#touchdownX = e.touches[0].clientX
+        this.#touchdownY = e.touches[0].clientY
+        this.#pinchStartScale = this.#scale
+        this.#touch2downX = e.touches[1].clientX
+        this.#touch2downY = e.touches[1].clientY
+        this.#touch2down = true
       }
     }, {passive: false})
     this.canvas.addEventListener("touchmove", e => {
       e.preventDefault()
       if (this.#touchdown) {
-        if (Math.abs(e.touches[0].clientX - this.#touchdownX) > 10 || Math.abs(e.touches[0].clientY - this.#touchdownY) > 10) {
+        if (this.#touch2down) {
+          this.#pinchZoom(e.touches)
+        } else if (Math.abs(e.touches[0].clientX - this.#touchdownX) > 10 || Math.abs(e.touches[0].clientY - this.#touchdownY) > 10) {
           this.#touchmoved = true
           this.#touchhovering = false
           this.#translateX = this.#previousTranslateX + e.touches[0].clientX - this.#touchdownX
@@ -312,7 +351,14 @@ export default class GameCanvas {
     }, {passive: false})
     this.canvas.addEventListener("touchend", e => {
       e.preventDefault()
-      if (this.#touchdown) {
+      if (this.#touch2down) {
+        this.#previousTranslateX = this.#translateX
+        this.#previousTranslateY = this.#translateY
+        this.#touchdownX = e.touches[0].clientX
+        this.#touchdownY = e.touches[0].clientY
+      }
+      this.#touch2down = false
+      if (!e.touches.length && this.#touchdown) {
         if (!this.#touchmoved)
           if (this.#touchhovering)
             this.#canvasClick(this.#touchdownX, this.#touchdownY)
