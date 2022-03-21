@@ -103,6 +103,10 @@ export default class Unit {
 
   changeHP (val, game) {
     this.hp = Math.min(this.hp + val, UNIT_DATA[this.type].hp)
+    this.removeIfDead(game)
+  }
+
+  removeIfDead (game) {
     if (this.hp < 1) game.players[this.faction].units.splice(game.players[this.faction].units.indexOf(this), 1)
   }
 

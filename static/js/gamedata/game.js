@@ -60,7 +60,7 @@ export default class Game {
       defenderDamage = this.#computeDamage(attacker,defender)
       if (attacker.ammo > 0)
           attacker.ammo--
-      defender.changeHP(-defenderDamage)
+      defender.changeHP(-defenderDamage, this)
     } else { // close combat, both may get hurt
       if(HBONUSES[this.map.fields[defender.posY][defender.posX].terrain] > 0)
           defenderInitiative--
