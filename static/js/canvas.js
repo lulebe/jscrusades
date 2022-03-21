@@ -51,8 +51,11 @@ export default class GameCanvas {
 
 
   recalculateCanvasSize () {
-    this.canvas.width = document.body.clientWidth
-    this.canvas.height = window.innerHeight - 64
+    this.canvas.width = this.canvas.parentElement.clientWidth
+    this.canvas.height = this.canvas.parentElement.clientHeight
+    //center map
+    this.#translateX = this.#previousTranslateX = (this.canvas.width - this.#tileSize * this.game.map.sizeX) / 2
+    this.#translateY = this.#previousTranslateY =(this.canvas.height - this.#tileSize * this.game.map.sizeY) / 2
     this.drawGame()
   }
 
@@ -248,6 +251,8 @@ export default class GameCanvas {
     if (realX == this.#highlightedTile[0] && realY == this.#highlightedTile[1]) return
     this.#highlightedTile[0] = realX
     this.#highlightedTile[1] = realY
+    const event = new CustomEvent('fieldHovered', {detail:{x: realX, y: realY}})
+    this.canvas.dispatchEvent(event)
     this.drawGame()
   }
 
