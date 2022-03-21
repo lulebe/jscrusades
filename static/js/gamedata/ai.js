@@ -1,4 +1,4 @@
-import { BUILDING_INFO } from "./mapInfo.js"
+import { BUILDING, BUILDING_INFO } from "./mapInfo.js"
 import { UNIT_DATA, UNIT_TYPES } from "./unitInfo.js"
 
 export default async function (game, gameCanvas) {
@@ -39,7 +39,7 @@ async function captureBuildings (game, gameCanvas) {
   game.currentPlayer.units.filter(u => u.isInfantry && u.canMove).find(u => {
     option = u.pathfind(game).find(f => {
       const field = game.map.fields[f.y][f.x]
-      if (field.owner !== game.currentTurn && field.building)
+      if ((field.owner === game.currentTurn && field.building === BUILDING.HQ) || (field.owner !== game.currentTurn && field.building))
         return true
       return false
     })
@@ -79,7 +79,7 @@ async function moveAround (game, gameCanvas) {
   game.currentPlayer.units.filter(u => u.canMove).find(u => {
     const allOptions = u.pathfind(game)
     if (!allOptions.length) return false
-    option = shuffle(allOptions).pop()
+    option = shuffle(allOptions.sort((a, b) => b.path.length - a.path.length).slice(-3)).pop()
     unit = u
     return true
   })
