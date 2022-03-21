@@ -42,6 +42,8 @@ export default class Game {
   #endOfTurnCalculations () {
     //conquer buildings & heal/resupply units
     this.currentPlayer.units.forEach(unit => {
+      unit.didMove = false
+      unit.didFight = false
       const unitField = this.map.fields[unit.posY][unit.posX]
       if (!unitField.building) return
       if (unit.isInfantry && unitField.owner !== this.#currentTurn) { //conquer

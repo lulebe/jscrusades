@@ -157,17 +157,17 @@ export default class GameCanvas {
     )
     this.#ctx.fillStyle = '#ffffff'
     this.#ctx.fillRect(
-      (unit.posX + 1) * this.#tileSize - this.#tileSize * 0.25,
-      (unit.posY + 1) * this.#tileSize - this.#tileSize * 0.2,
-      this.#tileSize * 0.25,
-      this.#tileSize * 0.2
+      (unit.posX + 1) * this.#tileSize - this.#tileSize * 0.35,
+      (unit.posY + 1) * this.#tileSize - this.#tileSize * 0.26,
+      this.#tileSize * 0.35,
+      this.#tileSize * 0.26
     )
     this.#ctx.fillStyle = '#000000'
-    this.#ctx.font = (this.#tileSize*0.2) + 'px monospace'
+    this.#ctx.font = `600 ${this.#tileSize*0.3}px Source Code Pro`
     this.#ctx.textAlign = 'left'
     this.#ctx.fillText(
       String(unit.hp).padStart(2, '0'),
-      (unit.posX + 1) * this.#tileSize - this.#tileSize * 0.24,
+      (unit.posX + 1) * this.#tileSize - this.#tileSize * 0.35,
       (unit.posY + 1) * this.#tileSize - this.#tileSize * 0.035
     )
   }

@@ -41,7 +41,7 @@ function fieldClick (location) {
   if (moveOptions) {
     const moveOption = moveOptions.find(move => move.x === location.x && move.y === location.y)
     if (moveOption) {
-      // TODO move there
+      focusedUnit.move(moveOption.x, moveOption.y, moveOption.path)
     }
   }
   focusedUnit = null

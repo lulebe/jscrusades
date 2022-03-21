@@ -32,10 +32,13 @@ export default class Unit {
   }
 
   pathfind (game) {
+    if (this.didMove) return null
     const fieldsToCalculate = [Math.round(this.posX + this.posY*game.map.sizeX)]
     const pathFindMap = [...Array(game.map.sizeY)].map(x=>Array(game.map.sizeX))
     pathFindMap[this.posY][this.posX] = {left: UNIT_DATA[this.type].movementPoints, path: [], canStop: false}
-    while (fieldsToCalculate.length) {
+    let firstCheck = true
+    while (fieldsToCalculate.length && (firstCheck || this.food)) {
+      firstCheck = false
       const intField = fieldsToCalculate.pop()
       const fieldY = Math.floor(intField / game.map.sizeX)
       const fieldX = intField % game.map.sizeX
@@ -69,6 +72,14 @@ export default class Unit {
     if (movementPointsLeft <= pathFieldTo.left) return
     pathFindMap[toY][toX] = {left: movementPointsLeft, path: pathFieldCurrent.path.concat([{x: fromX, y: fromY}]), canStop}
     fieldsToCalculate.push(Math.round(toX + toY*game.map.sizeX))
+  }
+
+  move (x, y, path) {
+    this.food && this.food--
+    this.didMove = true
+    this.animationMove = {started: false, curX: this.posX, curY: this.posY, fieldsToGoTo: path.concat([{x,y}])}
+    this.posX = x
+    this.posY = y
   }
 
   static create (type, faction, posX, posY, hp, food, ammo, animationMove) {

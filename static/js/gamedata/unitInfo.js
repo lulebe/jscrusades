@@ -40,7 +40,7 @@ export const UNIT_DATA = {
     attackNumberOfFights: [0, 3, 3, 3, 3, 5, 5, 5, 1, 1, 1, 3, 0, 0],
     defenseNumberOfFights: [0, 3, 3, 3, 3, 5, 5, 5, 1, 1, 1, 3, 1, 2],
     moveAndFight: true,
-    movementPoints: 5,
+    movementPoints: 15,
     movementCosts: [0,-1, 2, 2, 3, 3, 1, -1, 3]
   },
   3: {
