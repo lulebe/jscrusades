@@ -50,6 +50,14 @@ button, .btn, input[type=submit], input[type=button] {
   }
 }
 
+#recruitment {
+  text-align: center;
+  button {
+    width: 12rem;
+    margin: 4px;
+  }
+}
+
 @media (max-width: 900px) {
   body {
     flex-direction: column;

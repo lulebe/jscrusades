@@ -51,6 +51,14 @@ button:hover, .btn:hover, input[type=submit]:hover, input[type=button]:hover {
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
 }
 
+#recruitment {
+  text-align: center;
+}
+#recruitment button {
+  width: 12rem;
+  margin: 4px;
+}
+
 @media (max-width: 900px) {
   body {
     flex-direction: column;

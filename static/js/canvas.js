@@ -30,7 +30,8 @@ export default class GameCanvas {
     this.assets = gameAssets
     this.canvas = canvas
     this.moveOptionsDisplay = null
-    this.fightOptionsDisplay = null
+    this.fightOptionsDisplay = []
+    this.selectedPos = null
     this.#ctx = this.canvas.getContext('2d')
     this.#tileSize = 80
     this.#translateX = 0
@@ -88,6 +89,8 @@ export default class GameCanvas {
     }
   
     this.#drawMap()
+    this.#drawFightFinding()
+    this.#drawSelectedUnit()
     this.#drawUnits()
     this.#drawUnitAnimations()
     this.#drawPathfinding()
@@ -162,7 +165,7 @@ export default class GameCanvas {
       this.#tileSize * 0.35,
       this.#tileSize * 0.26
     )
-    this.#ctx.fillStyle = '#000000'
+    this.#ctx.fillStyle = getHpColor(unit, this.game.currentTurn)
     this.#ctx.font = `600 ${this.#tileSize*0.3}px Source Code Pro`
     this.#ctx.textAlign = 'left'
     this.#ctx.fillText(
@@ -194,14 +197,14 @@ export default class GameCanvas {
     let newX
     let newY
     if (nextField.x > unit.animationMove.curX) { //positive X
-      newX = Math.min(unit.animationMove.curX + this.#animStep/250, nextField.x)
+      newX = Math.min(unit.animationMove.curX + this.#animStep/150, nextField.x)
     } else { //negative X
-      newX = Math.max(unit.animationMove.curX - this.#animStep/250, nextField.x)
+      newX = Math.max(unit.animationMove.curX - this.#animStep/150, nextField.x)
     }
     if (nextField.y > unit.animationMove.curY) { //positive Y
-      newY = Math.min(unit.animationMove.curY + this.#animStep/250, nextField.y)
+      newY = Math.min(unit.animationMove.curY + this.#animStep/150, nextField.y)
     } else { //negative Y
-      newY = Math.max(unit.animationMove.curY - this.#animStep/250, nextField.y)
+      newY = Math.max(unit.animationMove.curY - this.#animStep/150, nextField.y)
     }
     unit.animationMove.curX = newX
     unit.animationMove.curY = newY
@@ -222,6 +225,21 @@ export default class GameCanvas {
     this.moveOptionsDisplay.forEach(pathField => {
       this.#ctx.fillRect(pathField.x * this.#tileSize, pathField.y * this.#tileSize, this.#tileSize, this.#tileSize)
     })
+  }
+
+  #drawFightFinding () {
+    this.#ctx.strokeStyle = 'rgb(180, 0, 0)'
+    this.#ctx.lineWidth = 5
+    this.fightOptionsDisplay.forEach(unit => {
+      this.#ctx.strokeRect(unit.posX * this.#tileSize + 2.5, unit.posY * this.#tileSize + 2.5, this.#tileSize - 5, this.#tileSize - 5)
+    })
+  }
+
+  #drawSelectedUnit () {
+    if (!this.selectedPos) return
+    this.#ctx.strokeStyle = '#ffffff'
+    this.#ctx.lineWidth = 3
+    this.#ctx.strokeRect(this.selectedPos.x * this.#tileSize + 2.5, this.selectedPos.y * this.#tileSize + 2.5, this.#tileSize - 5, this.#tileSize - 5)
   }
 
   #drawHighlight () {
@@ -385,4 +403,11 @@ export default class GameCanvas {
     }, {passive: false})
   }
 
+}
+
+function getHpColor (unit, turn) {
+  if (unit.faction !== turn) return '#000000'
+  if (!unit.didMove) return '#00aa00'
+  if (unit.hasFightOptions) return '#aa0000'
+  return '#000000'
 }

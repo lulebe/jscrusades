@@ -1,4 +1,4 @@
-import { buildingInfo } from "./mapInfo.js"
+import { BUILDING_INFO } from "./mapInfo.js"
 
 export default class Field {
 
@@ -11,7 +11,7 @@ export default class Field {
 
   get earnings () {
     if (!this.building) return 0
-    return buildingInfo[this.building].earnings
+    return BUILDING_INFO[this.building].earnings
   }
 
   static fromText (text) {

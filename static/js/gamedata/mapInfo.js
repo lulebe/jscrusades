@@ -1,6 +1,6 @@
 import { UNIT_TYPES as U } from "./unitInfo.js"
 
-export const mapInfo = {
+export const MAP_INFO = {
   1: {mapNum: 1, sizeX: 10, sizeY: 10},
   2: {mapNum: 2, sizeX: 10, sizeY: 10},
   3: {mapNum: 3, sizeX: 20, sizeY: 10},
@@ -24,7 +24,30 @@ export const BUILDING = {
   AIRPORT: 8
 }
 
-export const buildingInfo = {
+export const FIELD = {
+  SEA: 1,
+  SOIL: 2,
+  HEDGES: 3,
+  FOREST: 4,
+  HILLS: 5,
+  ROAD: 6,
+  RIVER: 7,
+  SWAMP: 8
+}
+
+export const HBONUSES = [
+  0,
+  0,
+  1,
+  2,
+  2,
+  3,
+  0,
+  0,
+  0
+]
+
+export const BUILDING_INFO = {
   1: {
     recruitable: [],
     supports: [],

@@ -1,4 +1,6 @@
 import { UNIT_DATA } from "./unitInfo.js"
+import GameMap from './map.js'
+import { FACTION } from './gameConstants.js'
 
 export default class Unit {
 
@@ -11,9 +13,10 @@ export default class Unit {
     this.food = food
     this.ammo = ammo
     this.animationMove = null
-    this.animationRefill = null
+    this.animationEffect = null
     this.didMove = false
     this.didFight = false
+    this.hasFightOptions = false
   }
 
   get isInfantry () {
@@ -23,12 +26,18 @@ export default class Unit {
   heal () {
     if (this.hp == UNIT_DATA[this.type].hp) return
     this.hp++
-    this.animationRefill = {started: false, progress: 0}
+    this.startEffectAnimation()
   }
 
   resupply () {
-    //TODO
-    this.animationRefill = {started: false, progress: 0}
+    //TODO how does this work? refill all at once or one per round?
+    this.ammo = UNIT_DATA[this.type].ammo
+    this.food = UNIT_DATA[this.type].food
+    this.startEffectAnimation()
+  }
+
+  startEffectAnimation () {
+    this.animationEffect = {started: false, progress: 0}
   }
 
   pathfind (game) {
@@ -74,16 +83,35 @@ export default class Unit {
     fieldsToCalculate.push(Math.round(toX + toY*game.map.sizeX))
   }
 
-  move (x, y, path) {
+  fightfind (game) {
+    //TODO check if that's how ammo works or if it just lowers damage when running out
+    if (this.didFight || (!UNIT_DATA[this.type].moveAndFight && this.didMove) || this.ammo === 0) return []
+    return game.otherPlayer(this.faction).units.filter(u => {
+      const d = GameMap.getDistance(this.posX, this.posY, u.posX, u.posY)
+      return d >= UNIT_DATA[this.type].minAttackDistance && d <= UNIT_DATA[this.type].maxAttackDistance
+    })
+  }
+
+  move (x, y, path, game) {
     this.food && this.food--
     this.didMove = true
     this.animationMove = {started: false, curX: this.posX, curY: this.posY, fieldsToGoTo: path.concat([{x,y}])}
     this.posX = x
     this.posY = y
+    if (this.fightfind(game).length) this.hasFightOptions = true
   }
 
-  static create (type, faction, posX, posY, hp, food, ammo, animationMove) {
+  changeHP (val, game) {
+    this.hp = Math.min(this.hp + val, UNIT_DATA[this.type].hp)
+    if (this.hp < 1) game.players[this.faction].units.splice(game.players[this.faction].units.indexOf(this), 1)
+  }
+
+  static create (type, faction, posX, posY, inactive, hp, food, ammo, animationMove) {
     const u = new Unit(type, faction, posX, posY, hp || UNIT_DATA[type].hp, food || UNIT_DATA[type].food, ammo || UNIT_DATA[type].ammo)
+    if (inactive){
+      u.didFight = true
+      u.didMove = true
+    }
     if (animationMove) {
       u.animationMove = animationMove
       u.animationMove.started = false
@@ -92,7 +120,7 @@ export default class Unit {
   }
 
   static createFromSave ({type, faction, posX, posY, hp, food, ammo, animationMove}) {
-    return this.create(type, faction, posX, posY, hp, food, ammo, animationMove)
+    return this.create(type, faction, posX, posY, false, hp, food, ammo, animationMove)
   }
 
 }

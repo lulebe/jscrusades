@@ -1,4 +1,8 @@
 import { FACTION } from './gameConstants.js'
+import { BUILDING, BUILDING_INFO, HBONUSES } from './mapInfo.js'
+import { UNIT_DATA } from './unitInfo.js'
+import Unit from './unit.js'
+import GameMap from './map.js'
 
 export default class Game {
 
@@ -12,6 +16,7 @@ export default class Game {
 
   constructor(map, crusader, saracen, type) {
     this.map = map
+    this.players = [null, crusader, saracen]
     this.crusaderPlayer = crusader
     this.saracenPlayer = saracen
     this.#currentTurn = FACTION.CRUSADER
@@ -22,7 +27,13 @@ export default class Game {
   }
 
   get currentPlayer () {
-    return this.#currentTurn === FACTION.CRUSADER ? this.crusaderPlayer : this.saracenPlayer
+    return this.players[this.#currentTurn]
+  }
+
+  otherPlayer (p) {
+    if (!p) return this.otherPlayer(this.currentPlayer)
+    if (typeof p === "number") return this.otherPlayer(this.players[p])
+    return p === this.crusaderPlayer ? this.saracenPlayer : this.crusaderPlayer
   }
 
   findUnitAt (x, y) {
@@ -33,6 +44,124 @@ export default class Game {
     return null
   }
 
+  recruit (unitType, x, y) {
+    if (UNIT_DATA[unitType].price > this.currentPlayer.money) return false
+    this.currentPlayer.money -= UNIT_DATA[unitType].price
+    this.currentPlayer.units.push(Unit.create(unitType, this.currentTurn, x, y, true))
+    return true
+  }
+
+  attack (attacker, defender) {
+    let defenderDamage = 0
+    let attackerDamage = 0
+    let attackerInitiative = UNIT_DATA[attacker.type].initiative
+    let defenderInitiative = UNIT_DATA[defender.type].initiative
+    if(GameMap.getDistance(attacker.posX, attacker.posY, defender.posX, defender.posY) > 1) { //Distance attack, attacker will not get hurt
+      defenderDamage = this.#computeDamage(attacker,defender)
+      if (attacker.ammo > 0)
+          attacker.ammo--
+      defender.changeHP(-defenderDamage)
+    } else { // close combat, both may get hurt
+      if(HBONUSES[this.map.fields[defender.posY][defender.posX].terrain] > 0)
+          defenderInitiative--
+      attackerInitiative--
+      //depending on initiative, one starts the fight first or both at the same time
+      //lower initiative starts the fight (what?!)
+      if(attackerInitiative === defenderInitiative) {
+        defenderDamage = this.#computeDamage(attacker,defender)
+        attackerDamage = this.#computeDamage(defender,attacker)
+        if (attacker.ammo > 0)
+          attacker.ammo--
+        if (defender.ammo > 0)
+          defender.ammo--
+        defender.changeHP(-defenderDamage, this)
+        attacker.changeHP(-attackerDamage, this)
+      } else if(attackerInitiative < defenderInitiative) {
+        defenderDamage = this.#computeDamage(attacker,defender)
+        if (attacker.ammo > 0)
+          attacker.ammo--
+        defender.changeHP(-defenderDamage, this)
+        if(defender.hp > 0) {
+          attackerDamage = this.#computeDamage(defender,attacker)
+          if (defender.ammo > 0)
+            defender.ammo--
+          attacker.changeHP(-attackerDamage, this)
+        }
+      } else if(attackerInitiative > defenderInitiative) {
+        attackerDamage = this.#computeDamage(defender,attacker)
+        if (defender.ammo > 0)
+          defender.ammo--
+        attacker.changeHP(-attackerDamage, this)
+        if(attacker.hp > 0) {
+          defenderDamage = this.#computeDamage(attacker,defender)
+          if (attacker.ammo > 0)
+            attacker.ammo--
+          defender.changeHP(-defenderDamage, this)
+        }
+      }
+    }
+    attacker.didFight = true
+    attacker.didMove = true
+    attacker.hasFightOptions = false
+  }
+
+  #computeDamage (attacker, defender) {
+    let damage = 0
+    const distance = GameMap.getDistance(attacker.posX, attacker.posY, defender.posX, defender.posY)
+    for (let i = 0; i < 6; i++) {
+        let attackerNumberOfFights = UNIT_DATA[attacker.type].attackNumberOfFights[defender.type]
+        let defenderNumberOfFights = UNIT_DATA[defender.type].defenseNumberOfFights[attacker.type]
+        if(distance < UNIT_DATA[attacker.type].minAttackDistance) {
+            attackerNumberOfFights = 0
+        }
+        if(distance < UNIT_DATA[defender.type].minAttackDistance) {
+            defenderNumberOfFights = 0
+        }
+        const defenderCity = this.map.fields[defender.posY][defender.posX].building
+        if(defenderCity) {
+            defenderNumberOfFights += BUILDING_INFO[defenderCity].battleBonus
+            defenderNumberOfFights += HBONUSES[this.map.fields[defender.posY][defender.posX].terrain]
+        }
+        const attackerCity = this.map.fields[attacker.posY][attacker.posX].building
+        if(attackerCity) {
+            attackerNumberOfFights += Math.ceil(BUILDING_INFO[attackerCity].battleBonus / 2)
+            attackerNumberOfFights += Math.ceil(HBONUSES[this.map.fields[defender.posY][defender.posX].terrain] / 2)
+        }
+        const attackerHitpoints = attacker.hp
+        let diceResult = 0 //1-6
+        let damageAdd = 0
+        for (let j = 0; j < attackerHitpoints-1; j++) {
+            var highestAttackerDiceResult = 0
+            var highestDefenderDiceResult = 0
+            for (let k = 0; k < attackerNumberOfFights; k++) {
+
+                diceResult = Math.floor(Math.random() * 6) + 1
+                if(diceResult > highestAttackerDiceResult) {
+                    highestAttackerDiceResult = diceResult
+                }
+            }
+            for (let l = 0; l < defenderNumberOfFights; l++) {
+                diceResult = Math.floor(Math.random() * 6) + 1
+                if(diceResult > highestDefenderDiceResult) {
+                    highestDefenderDiceResult = diceResult
+                }
+            }
+            if(highestDefenderDiceResult < highestAttackerDiceResult) {
+                damageAdd += 1
+            }
+        }
+        damage += damageAdd
+    }
+    damage = Math.floor(damage / 6) // TODO check if Math.floor correct
+    if(damage > defender.hp) {
+        damage = defender.hp
+    }
+    if(damage > 8) {
+        damage = 8
+    }
+    return damage
+  }
+
   endTurn () {
     this.#endOfTurnCalculations()
     this.#currentTurn = this.#currentTurn === FACTION.CRUSADER ? FACTION.SARACEN : FACTION.CRUSADER
@@ -40,6 +169,9 @@ export default class Game {
   }
 
   #endOfTurnCalculations () {
+  }
+
+  #startOfTurnCalculations () {
     //conquer buildings & heal/resupply units
     this.currentPlayer.units.forEach(unit => {
       unit.didMove = false
@@ -48,15 +180,20 @@ export default class Game {
       if (!unitField.building) return
       if (unit.isInfantry && unitField.owner !== this.#currentTurn) { //conquer
         if (unitField.owner === null) unitField.owner = this.#currentTurn
-        else unitField.owner = null
-      } else if (unitField.owner === this.#currentTurn) { //heal & resupply
+        else {
+          unitField.owner = null
+          unit.changeHP(-1, this)
+          if (unitField.building === BUILDING.HQ) {
+            //TODO
+            alert('GAME OVER!')
+          }
+        }
+      } else if (unitField.owner === this.#currentTurn && BUILDING_INFO[unitField.building].supports.includes(unit.type)) { //heal & resupply
         unit.heal()
         unit.resupply()
       }
     })
-  }
-
-  #startOfTurnCalculations () {
+    //earn money
     let earnings = this.map.fields.reduce((rowsSum, row) => {
       return rowsSum + row.reduce((sum, field) => {
         if (field.owner !== this.#currentTurn) return sum

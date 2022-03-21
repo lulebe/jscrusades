@@ -9,6 +9,12 @@ export default class GameMap {
     this.sizeY = sizeY
   }
 
+  static getDistance (x1, y1, x2, y2) {
+    const distx = Math.abs(x1 - x2)
+    const disty = Math.abs(y1 - y2)
+    return distx + disty
+  }
+
   static fromText (text, mapNum, sizeX, sizeY) {
     const fields = []
     const decoded = text.split(';').map(textField => Field.fromText(textField))
