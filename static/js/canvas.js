@@ -53,9 +53,12 @@ export default class GameCanvas {
   recalculateCanvasSize () {
     this.canvas.width = this.canvas.parentElement.clientWidth
     this.canvas.height = this.canvas.parentElement.clientHeight
+    //set scale to 0.1 steps between 0.5 and 1 to fit whole game on canvas
+    let newScale = Math.min(this.canvas.width / (this.#tileSize * this.game.map.sizeX), this.canvas.height / (this.#tileSize * this.game.map.sizeY))
+    this.#scale = Math.max(Math.min(Math.floor(newScale * 10) / 10, 1.5), 0.5)
     //center map
-    this.#translateX = this.#previousTranslateX = (this.canvas.width - this.#tileSize * this.game.map.sizeX) / 2
-    this.#translateY = this.#previousTranslateY =(this.canvas.height - this.#tileSize * this.game.map.sizeY) / 2
+    this.#translateX = this.#previousTranslateX = (this.canvas.width - this.#tileSize * this.#scale * this.game.map.sizeX) / 2
+    this.#translateY = this.#previousTranslateY =(this.canvas.height - this.#tileSize * this.#scale * this.game.map.sizeY) / 2
     this.drawGame()
   }
 
@@ -89,7 +92,7 @@ export default class GameCanvas {
   }
 
   #drawGrid () {
-    this.#ctx.strokeStyle = "#ffffff"
+    this.#ctx.strokeStyle = "rgba(255,255,255,0.3)"
     this.#ctx.lineWidth = 1
     this.#ctx.beginPath()
     for (let row = 0; row<21; row++) {
