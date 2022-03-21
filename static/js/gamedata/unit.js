@@ -1,6 +1,7 @@
 import { UNIT_DATA } from "./unitInfo.js"
 import GameMap from './map.js'
 import { FACTION } from './gameConstants.js'
+import { BUILDING_INFO, BUILDING, FIELD } from "./mapInfo.js"
 
 export default class Unit {
 
@@ -77,7 +78,8 @@ export default class Unit {
   }
 
   #pathfindToField (fromX, fromY, toX, toY, game, pathFindMap, fieldsToCalculate) {
-    const cost = UNIT_DATA[this.type].movementCosts[game.map.fields[toY][toX].terrain]
+    let cost = UNIT_DATA[this.type].movementCosts[game.map.fields[toY][toX].terrain]
+    if (game.map.fields[toY][toX].building === BUILDING.HARBOUR) cost = UNIT_DATA[this.type].movementCosts[FIELD.SOIL]
     if (cost === -1) return
     const pathFieldCurrent = pathFindMap[fromY][fromX]
     const movementPointsLeft = pathFieldCurrent.left - cost
