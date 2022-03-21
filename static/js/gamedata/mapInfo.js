@@ -8,5 +8,5 @@ export default {
   7: {mapNum: 7, sizeX: 10, sizeY: 20},
   8: {mapNum: 8, sizeX: 15, sizeY: 15},
   9: {mapNum: 9, sizeX: 15, sizeY: 15},
-  10: {mapNum: 10, sizeX: 20, sizeY: 10}
+  10: {mapNum: 10, sizeX: 20, sizeY: 20}
 }
