@@ -17,6 +17,7 @@ body {
 #canvas-container {
   width: 70%;
   height: 100vh;
+  background: #a08665;
 }
 
 #game-canvas {

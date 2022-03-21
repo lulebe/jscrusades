@@ -100,16 +100,16 @@ export default class GameCanvas {
   }
 
   #drawGrid () {
-    this.#ctx.strokeStyle = "rgba(255,255,255,0.3)"
+    this.#ctx.strokeStyle = "rgba(77,73,62,0.3)"
     this.#ctx.lineWidth = 1
     this.#ctx.beginPath()
-    for (let row = 0; row<21; row++) {
+    for (let row = 0; row<this.game.map.sizeY+1; row++) {
       this.#ctx.moveTo(0, this.#tileSize*row)
-      this.#ctx.lineTo(this.#tileSize*20, this.#tileSize*row)
+      this.#ctx.lineTo(this.#tileSize*this.game.map.sizeX, this.#tileSize*row)
     }
-    for (let column = 0; column<21; column++) {
+    for (let column = 0; column<this.game.map.sizeX+1; column++) {
       this.#ctx.moveTo(this.#tileSize*column, 0)
-      this.#ctx.lineTo(this.#tileSize*column, this.#tileSize*20)
+      this.#ctx.lineTo(this.#tileSize*column, this.#tileSize*this.game.map.sizeY)
     }
     this.#ctx.stroke()
   }
