@@ -1,4 +1,6 @@
-export default {
+import { UNIT_TYPES as U } from "./unitInfo.js"
+
+export const mapInfo = {
   1: {mapNum: 1, sizeX: 10, sizeY: 10},
   2: {mapNum: 2, sizeX: 10, sizeY: 10},
   3: {mapNum: 3, sizeX: 20, sizeY: 10},
@@ -9,4 +11,66 @@ export default {
   8: {mapNum: 8, sizeX: 15, sizeY: 15},
   9: {mapNum: 9, sizeX: 15, sizeY: 15},
   10: {mapNum: 10, sizeX: 20, sizeY: 20}
+}
+
+export const BUILDING = {
+  VILLAGE: 1,
+  CITY: 2,
+  HQ: 3,
+  BARRACKS: 4,
+  STABLE: 5,
+  FACTORY: 6,
+  HARBOUR: 7,
+  AIRPORT: 8
+}
+
+export const buildingInfo = {
+  1: {
+    recruitable: [],
+    supports: [],
+    earnings: 1,
+    battleBonus: 1
+  },
+  2: {
+    recruitable: [],
+    supports: [U.GUARD, U.SPEAR, U.SWORD, U.ARCHER, U.LIGHT_KAV, U.ARCHER_KAV, U.HEAVY_KAV, U.CATAPULT, U.BALLISTA, U.TREBUCHET, U.TOWER],
+    earnings: 4,
+    battleBonus: 3
+  },
+  3: {
+    recruitable: [],
+    supports: [U.GUARD, U.SPEAR, U.SWORD, U.ARCHER, U.LIGHT_KAV, U.ARCHER_KAV, U.HEAVY_KAV, U.CATAPULT, U.BALLISTA, U.TREBUCHET, U.TOWER, U.AIR],
+    earnings: 2,
+    battleBonus: 1
+  },
+  4: {
+    recruitable: [U.GUARD, U.SPEAR, U.SWORD, U.ARCHER],
+    supports: [],
+    earnings: 0,
+    battleBonus: 2
+  },
+  5: {
+    recruitable: [U.LIGHT_KAV, U.ARCHER_KAV, U.HEAVY_KAV],
+    supports: [],
+    earnings: 0,
+    battleBonus: 2
+  },
+  6: {
+    recruitable: [U.CATAPULT, U.BALLISTA, U.TREBUCHET, U.TOWER],
+    supports: [],
+    earnings: 0,
+    battleBonus: 2
+  },
+  7: {
+    recruitable: [U.SHIP],
+    supports: [U.SHIP],
+    earnings: 0,
+    battleBonus: 2
+  },
+  8: {
+    recruitable: [U.AIR],
+    supports: [U.AIR],
+    earnings: 0,
+    battleBonus: 2
+  }
 }

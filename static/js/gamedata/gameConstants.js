@@ -1,4 +1,4 @@
-export const FACTIONS = {
-  CRUSADERS: 1,
-  SARACENS: 2
+export const FACTION = {
+  CRUSADER: 1,
+  SARACEN: 2
 }

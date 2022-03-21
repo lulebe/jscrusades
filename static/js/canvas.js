@@ -29,6 +29,8 @@ export default class GameCanvas {
     this.game = game
     this.assets = gameAssets
     this.canvas = canvas
+    this.moveOptionsDisplay = null
+    this.fightOptionsDisplay = null
     this.#ctx = this.canvas.getContext('2d')
     this.#tileSize = 80
     this.#translateX = 0
@@ -88,6 +90,7 @@ export default class GameCanvas {
     this.#drawMap()
     this.#drawUnits()
     this.#drawUnitAnimations()
+    this.#drawPathfinding()
     this.#drawGrid()
     this.#drawHighlight()
   
@@ -144,7 +147,7 @@ export default class GameCanvas {
   }
 
   #drawUnit (unit) {
-    if (unit.animation) return
+    if (unit.animationMove) return
     this.#ctx.drawImage(
       this.assets.units[unit.faction][unit.type],
       unit.posX * this.#tileSize,
@@ -170,14 +173,14 @@ export default class GameCanvas {
   }
 
   #drawUnitAnimations () {
-    this.game.crusaderPlayer.units.filter(unit => unit.animation)
-    .concat(this.game.saracenPlayer.units.filter(unit => unit.animation))
+    this.game.crusaderPlayer.units.filter(unit => unit.animationMove)
+    .concat(this.game.saracenPlayer.units.filter(unit => unit.animationMove))
     .forEach(unit => {
-      if (!unit.animation.started) {
-        unit.animation.started = true
+      if (!unit.animationMove.started) {
+        unit.animationMove.started = true
         this.#animationsRunning++
-      } else if (!unit.animation.fieldsToGoTo.length) {
-        unit.animation = null
+      } else if (!unit.animationMove.fieldsToGoTo.length) {
+        unit.animationMove = null
         this.#animationsRunning--
         this.#drawUnit(unit)
       } else {
@@ -187,23 +190,23 @@ export default class GameCanvas {
   }
 
   #drawUnitAnimation (unit) {
-    const nextField = unit.animation.fieldsToGoTo[0]
+    const nextField = unit.animationMove.fieldsToGoTo[0]
     let newX
     let newY
-    if (nextField.x > unit.animation.curX) { //positive X
-      newX = Math.min(unit.animation.curX + this.#animStep/250, nextField.x)
+    if (nextField.x > unit.animationMove.curX) { //positive X
+      newX = Math.min(unit.animationMove.curX + this.#animStep/250, nextField.x)
     } else { //negative X
-      newX = Math.max(unit.animation.curX - this.#animStep/250, nextField.x)
+      newX = Math.max(unit.animationMove.curX - this.#animStep/250, nextField.x)
     }
-    if (nextField.y > unit.animation.curY) { //positive Y
-      newY = Math.min(unit.animation.curY + this.#animStep/250, nextField.y)
+    if (nextField.y > unit.animationMove.curY) { //positive Y
+      newY = Math.min(unit.animationMove.curY + this.#animStep/250, nextField.y)
     } else { //negative Y
-      newY = Math.max(unit.animation.curY - this.#animStep/250, nextField.y)
+      newY = Math.max(unit.animationMove.curY - this.#animStep/250, nextField.y)
     }
-    unit.animation.curX = newX
-    unit.animation.curY = newY
+    unit.animationMove.curX = newX
+    unit.animationMove.curY = newY
     if (newX === nextField.x && newY === nextField.y)
-      unit.animation.fieldsToGoTo.shift()
+      unit.animationMove.fieldsToGoTo.shift()
     this.#ctx.drawImage(
       this.assets.units[unit.faction][unit.type],
       newX * this.#tileSize,
@@ -211,6 +214,14 @@ export default class GameCanvas {
       this.#tileSize,
       this.#tileSize
     )
+  }
+
+  #drawPathfinding () {
+    if (!this.moveOptionsDisplay) return
+    this.#ctx.fillStyle = 'rgba(170, 255, 170, 0.3)'
+    this.moveOptionsDisplay.forEach(pathField => {
+      this.#ctx.fillRect(pathField.x * this.#tileSize, pathField.y * this.#tileSize, this.#tileSize, this.#tileSize)
+    })
   }
 
   #drawHighlight () {

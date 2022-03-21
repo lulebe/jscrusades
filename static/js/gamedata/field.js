@@ -1,3 +1,5 @@
+import { buildingInfo } from "./mapInfo.js"
+
 export default class Field {
 
   constructor(terrain, building, buildingFaction, owner) {
@@ -5,6 +7,11 @@ export default class Field {
     this.building = building || null
     this.buildingFaction = buildingFaction || null
     this.owner = owner || null
+  }
+
+  get earnings () {
+    if (!this.building) return 0
+    return buildingInfo[this.building].earnings
   }
 
   static fromText (text) {
