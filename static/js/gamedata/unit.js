@@ -23,6 +23,14 @@ export default class Unit {
     return this.type < 5
   }
 
+  get canMove () {
+    return !this.didMove && !this.didFight
+  }
+
+  get canFight () {
+    return !this.didFight && (!this.didMove || UNIT_DATA[this.type].moveAndFight)
+  }
+
   heal () {
     if (this.hp == UNIT_DATA[this.type].hp) return
     this.hp++
@@ -41,7 +49,7 @@ export default class Unit {
   }
 
   pathfind (game) {
-    if (this.didMove) return null
+    if (this.didMove) return []
     const fieldsToCalculate = [Math.round(this.posX + this.posY*game.map.sizeX)]
     const pathFindMap = [...Array(game.map.sizeY)].map(x=>Array(game.map.sizeX))
     pathFindMap[this.posY][this.posX] = {left: UNIT_DATA[this.type].movementPoints, path: [], canStop: false}

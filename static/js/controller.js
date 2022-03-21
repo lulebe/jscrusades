@@ -1,5 +1,7 @@
 import GameCanvas from './canvas.js'
+import Game from './gamedata/game.js'
 import { FACTION } from './gamedata/gameConstants.js'
+import makeAITurn from './gamedata/ai.js'
 
 import { displayHoverInfo, buildingActions } from './ui.js'
 
@@ -8,7 +10,7 @@ let gameAssets
 let gameCanvas
 let focusedUnit = null
 let selectedLocation = null
-let moveOptions = null
+let moveOptions = []
 let fightOptions = []
 
 export default function (g, ga) {
@@ -19,6 +21,7 @@ export default function (g, ga) {
   gameCanvas = new GameCanvas(canvasEl, game, gameAssets)
   initUiHandlers()
   renderUi()
+  makeAITurnIfNecessary()
 }
 
 function initUiHandlers () {
@@ -39,7 +42,15 @@ function initUiHandlers () {
   })
 }
 
+async function makeAITurnIfNecessary () {
+  if (game.type !== Game.GAME_TYPE.LOCAL_SP || game.myTurn) return
+  await makeAITurn(game, gameCanvas)
+  renderUi()
+  gameCanvas.drawGame()
+}
+
 function fieldClick (location) {
+  if (!game.myTurn) return
   selectedLocation = gameCanvas.selectedPos = location
   //is fight option
   if (fightOptions.length) {
@@ -50,14 +61,14 @@ function fieldClick (location) {
     }
   }
   //is move option
-  if (moveOptions) {
+  if (moveOptions.length) {
     const moveOption = moveOptions.find(move => move.x === location.x && move.y === location.y)
     if (moveOption) {
       focusedUnit.move(moveOption.x, moveOption.y, moveOption.path, game)
     }
   }
   focusedUnit = null
-  moveOptions = null
+  moveOptions = []
   fightOptions = []
   gameCanvas.moveOptionsDisplay = null
   gameCanvas.fightOptionsDisplay = []
@@ -78,14 +89,16 @@ function fieldClick (location) {
 }
 
 function endTurn () {
+  if (!game.myTurn) return
   gameCanvas.moveOptionsDisplay = null
   gameCanvas.fightOptionsDisplay = []
-  moveOptions = null
+  moveOptions = []
   fightOptions = []
   gameCanvas.selectedPos = null
   game.endTurn()
   gameCanvas.drawGame()
   renderUi()
+  makeAITurnIfNecessary()
 }
 
 function renderUi() {

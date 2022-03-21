@@ -13,13 +13,20 @@ export default class Game {
   }
 
   #currentTurn
+  #me
 
-  constructor(map, crusader, saracen, type) {
+  constructor(map, crusader, saracen, type, myFaction) {
     this.map = map
+    this.type = type
+    this.#me = type === Game.GAME_TYPE.LOCAL_MP ? null : myFaction
     this.players = [null, crusader, saracen]
     this.crusaderPlayer = crusader
     this.saracenPlayer = saracen
     this.#currentTurn = FACTION.CRUSADER
+  }
+
+  get myTurn () {
+    return this.type === Game.GAME_TYPE.LOCAL_MP ? true : this.#currentTurn === this.#me
   }
 
   get currentTurn () {
