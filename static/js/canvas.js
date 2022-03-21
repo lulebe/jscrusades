@@ -90,7 +90,7 @@ export default class GameCanvas {
   
     this.#drawMap()
     this.#drawFightFinding()
-    this.#drawSelectedUnit()
+    this.#drawSelectedPos()
     this.#drawUnits()
     this.#drawUnitAnimations()
     this.#drawPathfinding()
@@ -235,14 +235,15 @@ export default class GameCanvas {
     })
   }
 
-  #drawSelectedUnit () {
-    if (!this.selectedPos) return
+  #drawSelectedPos () {
+    if (!this.selectedPos || !isOnMap(this.selectedPos.x, this.selectedPos.y, this.game.map.sizeX, this.game.map.sizeY)) return
     this.#ctx.strokeStyle = '#ffffff'
     this.#ctx.lineWidth = 3
     this.#ctx.strokeRect(this.selectedPos.x * this.#tileSize + 2.5, this.selectedPos.y * this.#tileSize + 2.5, this.#tileSize - 5, this.#tileSize - 5)
   }
 
   #drawHighlight () {
+    if (!isOnMap(this.#highlightedTile[0], this.#highlightedTile[1], this.game.map.sizeX, this.game.map.sizeY)) return
     this.#ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
     this.#ctx.fillRect(this.#highlightedTile[0] * this.#tileSize, this.#highlightedTile[1] * this.#tileSize, this.#tileSize, this.#tileSize)
   }
@@ -410,4 +411,9 @@ function getHpColor (unit, turn) {
   if (!unit.didMove) return '#00aa00'
   if (unit.hasFightOptions) return '#aa0000'
   return '#000000'
+}
+
+function isOnMap (x, y, sizeX, sizeY) {
+  if (x < 0 || y < 0 || x >= sizeX || y >= sizeY) return false
+  return true
 }
