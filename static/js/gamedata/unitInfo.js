@@ -181,7 +181,7 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
     moveAndFight: true,
     movementPoints: 8,
-    movementCosts: [0, 1, -1, -1, -1, -1, 1, -1, -1]
+    movementCosts: [0, 1, -1, -1, -1, -1, -1, -1, -1]
   },
   13: {
     price: 50,
