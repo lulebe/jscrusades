@@ -9,6 +9,9 @@ html, body {
 body {
   font-family: sans-serif;
   font-size: 16px;
+}
+
+#gamebody {
   display: flex;
   flex-direction: row;
 }
@@ -59,7 +62,7 @@ button, .btn, input[type=submit], input[type=button] {
 }
 
 @media (max-width: 900px) {
-  body {
+  #gamebody {
     flex-direction: column;
   }
   #canvas-container {

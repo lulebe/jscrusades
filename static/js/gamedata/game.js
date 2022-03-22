@@ -14,15 +14,18 @@ export default class Game {
 
   #currentTurn
   #me
+  #saveNum
 
-  constructor(map, crusader, saracen, type, myFaction) {
+  constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum) {
     this.map = map
     this.type = type
     this.#me = type === Game.GAME_TYPE.LOCAL_MP ? null : myFaction
     this.players = [null, crusader, saracen]
     this.crusaderPlayer = crusader
     this.saracenPlayer = saracen
-    this.#currentTurn = FACTION.CRUSADER
+    this.#saveNum = saveNum
+    this.finished = false
+    this.#currentTurn = typeof currentTurn === 'number' ? currentTurn : FACTION.CRUSADER
   }
 
   get myTurn () {
@@ -173,6 +176,7 @@ export default class Game {
     this.#endOfTurnCalculations()
     this.#currentTurn = this.#currentTurn === FACTION.CRUSADER ? FACTION.SARACEN : FACTION.CRUSADER
     this.#startOfTurnCalculations()
+    this.#saveGame()
   }
 
   #endOfTurnCalculations () {
@@ -193,6 +197,7 @@ export default class Game {
           if (unitField.building === BUILDING.HQ) {
             //TODO
             alert('GAME OVER!')
+            this.finished = true
           }
         }
       } else if (unitField.owner === this.#currentTurn && BUILDING_INFO[unitField.building].supports.includes(unit.type)) { //heal & resupply
@@ -208,6 +213,65 @@ export default class Game {
       }, 0)
     }, 0)
     this.currentPlayer.money += earnings
+  }
+
+  #saveGame () {
+    const buildingOwners = []
+    this.map.fields.forEach((row, y) => {
+      row.forEach((field, x) => {
+        if (!field.building) return
+        buildingOwners.push({x, y, owner: field.owner})
+      })
+    })
+    const data = {
+      version: 2,
+      mapNum: this.map.mapNum,
+      currentTurn: this.#currentTurn,
+      me: this.#me,
+      buildingOwners,
+      crusaderPlayer: {
+        money: this.crusaderPlayer.money,
+        units: this.crusaderPlayer.units.map(u => ({
+          type: u.type,
+          faction: u.faction,
+          hp: u.hp,
+          food: u.food,
+          ammo: u.ammo,
+          posX: u.posX,
+          posY: u.posY
+        }))
+      },
+      saracenPlayer: {
+        money: this.saracenPlayer.money,
+        units: this.saracenPlayer.units.map(u => ({
+          type: u.type,
+          faction: u.faction,
+          hp: u.hp,
+          food: u.food,
+          ammo: u.ammo,
+          posX: u.posX,
+          posY: u.posY
+        }))
+      }
+    }
+    if (window.localStorage.saves) {
+      const saves = JSON.parse(window.localStorage.saves).filter(save => save.version === 1)
+      if (this.finished) {
+        saves.splice(this.#saveNum, 1)
+        window.localStorage.saves = JSON.stringify(saves)
+        return
+      }
+      if (typeof this.#saveNum === 'number')
+        saves[this.#saveNum] = data
+      else {
+        this.#saveNum = saves.length
+        saves.push(data)
+      }
+      window.localStorage.saves = JSON.stringify(saves)
+    } else {
+      this.#saveNum = 0
+      window.localStorage.saves = JSON.stringify([data])
+    }
   }
 
 }

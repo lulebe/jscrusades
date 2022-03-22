@@ -65,7 +65,7 @@ async function attackEnemies (game, gameCanvas) {
     console.log(f)
     if (f.length) fights.push({unit: u, enemy: f.pop()})
   })
-  fights = shuffle(fights).filter(f => Math.random() > 0.5)
+  fights = shuffle(fights).filter(f => Math.random() > 0.25)
   for (let i = 0; i < fights.length; i++) {
     game.attack(fights[i].unit, fights[i].enemy)
     await timeout(1000)

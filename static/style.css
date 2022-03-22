@@ -10,6 +10,9 @@ html, body {
 body {
   font-family: sans-serif;
   font-size: 16px;
+}
+
+#gamebody {
   display: flex;
   flex-direction: row;
 }
@@ -60,7 +63,7 @@ button:hover, .btn:hover, input[type=submit]:hover, input[type=button]:hover {
 }
 
 @media (max-width: 900px) {
-  body {
+  #gamebody {
     flex-direction: column;
   }
 
