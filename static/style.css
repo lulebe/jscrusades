@@ -12,6 +12,82 @@ body {
   font-size: 16px;
 }
 
+#menu-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+
+.card {
+  background-color: #3c3225;
+  color: white;
+  padding: 16px;
+  border-radius: 4px;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.5);
+  max-width: 100%;
+  width: 600px;
+  margin: 16px;
+}
+
+a {
+  text-decoration: none;
+  color: white;
+}
+a:not(.disabled):not([disabled]):hover {
+  text-decoration: underline;
+}
+
+#save-list {
+  list-style: none;
+  padding: 0;
+}
+#save-list li {
+  border-bottom: 1px solid grey;
+  padding: 6px 0;
+  position: relative;
+}
+#save-list li.selected {
+  box-shadow: 0 0 35px white inset;
+}
+#save-list li img {
+  height: 48px;
+}
+#save-list li a {
+  position: absolute;
+  padding: 16px 4px;
+  left: 150px;
+  display: inline-block;
+}
+#save-list li button {
+  margin-top: 10px;
+}
+
+.map-pick-grid {
+  display: grid;
+  column-gap: 16px;
+  row-gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  align-items: center;
+  justify-items: center;
+}
+.map-pick-grid img {
+  max-width: 100%;
+  border: 2px solid black;
+}
+.map-pick-grid img.selected {
+  border: 2px solid red;
+}
+.map-pick-grid img:hover {
+  box-shadow: 0 0 5px white;
+  transform: scale(1.1);
+}
+
 #gamebody {
   display: flex;
   flex-direction: row;
@@ -44,15 +120,33 @@ body {
 }
 
 button, .btn, input[type=submit], input[type=button] {
+  display: inline-block;
   padding: 6px 12px;
+  margin: 4px;
   font-size: 1rem;
   border: none;
   border-radius: 4px;
   background: #eee;
+  color: black;
+  text-decoration: none;
 }
 button:hover, .btn:hover, input[type=submit]:hover, input[type=button]:hover {
   transform: scale(1.05);
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
+}
+button[disabled], button.disabled, .btn[disabled], .btn.disabled, input[type=submit][disabled], input[type=submit].disabled, input[type=button][disabled], input[type=button].disabled {
+  cursor: default;
+  color: grey;
+}
+button[disabled]:hover, button.disabled:hover, .btn[disabled]:hover, .btn.disabled:hover, input[type=submit][disabled]:hover, input[type=submit].disabled:hover, input[type=button][disabled]:hover, input[type=button].disabled:hover {
+  transform: initial;
+}
+
+input[type=text] {
+  border-radius: 4px;
+  border: 1px solid black;
+  padding: 6px;
+  font-size: 1rem;
 }
 
 #recruitment {

@@ -235,6 +235,7 @@ export default class Game {
     })
     const data = {
       version: 2,
+      time: (new Date()).toJSON(),
       mapNum: this.map.mapNum,
       currentTurn: this.#currentTurn,
       me: this.#me,
@@ -267,7 +268,7 @@ export default class Game {
       }
     }
     if (window.localStorage.saves) {
-      const saves = JSON.parse(window.localStorage.saves).filter(save => save.version === 1)
+      const saves = JSON.parse(window.localStorage.saves)
       if (this.finished) {
         saves.splice(this.#saveNum, 1)
         window.localStorage.saves = JSON.stringify(saves)

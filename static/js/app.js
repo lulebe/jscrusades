@@ -16,7 +16,7 @@ export default function () {
     }
   } else { //load game
     gameData = JSON.parse(window.localStorage.saves)[gameToLoad.save]
-    gameData.type = 2
+    gameData.type = gameToLoad.mode
     gameData.saveNum = gameToLoad.save
   }
   loadGame(gameData)
