@@ -5,7 +5,6 @@ module.exports =  {
     io.on('connection', client => {
       client.on('host-name', gameName => {
         const game = games.getGame(gameName)
-        console.log('host', gameName)
         if (game) {
           game.host = client
           client.game = game
@@ -14,7 +13,6 @@ module.exports =  {
       })
       client.on('remote-name', gameName => {
         const game = games.getGame(gameName)
-        console.log('remote', gameName)
         if (game) {
           if (game.remote) game.remote.game = null
           game.remote = client
@@ -23,7 +21,6 @@ module.exports =  {
         }
       })
       client.on('game-data', data => {
-        console.log(data)
         if (client.game) {
           if (client.game.host === client) client.game.remote.emit('game-data', data)
           if (client.game.remote === client) client.game.host.emit('game-data', data)

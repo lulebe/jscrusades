@@ -21,7 +21,6 @@ export function UIController (g, ga, mp) {
   game = g
   gameAssets = ga
   mpName = mp
-  console.log(game)
   const canvasEl = document.getElementById('game-canvas')
   gameCanvas = new GameCanvas(canvasEl, game, gameAssets)
   initUiHandlers()
@@ -33,7 +32,6 @@ export function updateGame(g) {
   if (game) game.onFight = null
   game = g
   game.onFight = onFight
-  console.log(game)
   gameCanvas.moveOptionsDisplay = moveOptions = []
   gameCanvas.fightOptionsDisplay = fightOptions = []
   gameCanvas.selectedPos = null
@@ -156,11 +154,11 @@ function endTurn () {
   game.endTurn()
   gameCanvas.drawGame()
   renderUi()
+  if (game.type === Game.GAME_TYPE.ONLINE_MP)
+    sendGame()
   if (game.finished) return gameOver()
   makeAITurnIfNecessary()
   playTurnMusic()
-  if (game.type === Game.GAME_TYPE.ONLINE_MP)
-    sendGame()
 }
 
 function renderUi () {

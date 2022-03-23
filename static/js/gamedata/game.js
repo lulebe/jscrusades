@@ -195,14 +195,10 @@ export default class Game {
   }
 
   endTurn () {
-    this.#endOfTurnCalculations()
     this.#currentTurn = this.#currentTurn === FACTION.CRUSADER ? FACTION.SARACEN : FACTION.CRUSADER
     this.#startOfTurnCalculations()
     this.actionCount++
     this.#saveGame()
-  }
-
-  #endOfTurnCalculations () {
   }
 
   #startOfTurnCalculations () {

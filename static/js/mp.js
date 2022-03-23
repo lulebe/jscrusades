@@ -14,7 +14,6 @@ let game
 let socket
 
 function receivePackage (data) {
-  console.log('data', data)
   data.gameData.me = !(data.gameData.me - 1) + 1 // switch who is "me"
   data.gameData.type = Game.GAME_TYPE.ONLINE_MP
   const newGame = data.gameData
