@@ -46,6 +46,11 @@
   <a href="/mpsession#save=-1;map=8;mode=3;me=1">Map 8</a>
   <a href="/mpsession#save=-1;map=9;mode=3;me=1">Map 9</a>
   <a href="/mpsession#save=-1;map=10;mode=3;me=1">Map 10</a>
+  <h1>Join Online Multiplayer</h1>
+  <form method="GET" action="" id="join-form">
+    <input type="text" placeholder="game code" id="game-name-inp" />
+    <input type="submit" value="join" />
+  </form>
   <script type="module">
     if (window.localStorage.saves) {
       const saves = JSON.parse(window.localStorage.saves).filter(save => save.version === 2)
@@ -53,6 +58,9 @@
       document.getElementById('save-list').innerHTML = saves.reduce((str, save, i) =>
         str + `<a href="/game#save=${i};mode=2">Game ${i}</a>`, '')
     }
+    document.getElementById('game-name-inp').addEventListener('change', e => {
+      document.getElementById('join-form').action = '/game#mode=3;me=2;join=' + e.target.value
+    })
   </script>
 </body>
 </html>
