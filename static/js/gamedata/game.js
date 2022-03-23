@@ -14,19 +14,19 @@ export default class Game {
 
   #currentTurn
   #me
-  #saveNum
   #fightListener
 
-  constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum) {
+  constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum, actionCount=0) {
     this.map = map
     this.type = type
     this.#me = type === Game.GAME_TYPE.LOCAL_MP ? null : (myFaction || FACTION.CRUSADER)
     this.players = [null, crusader, saracen]
     this.crusaderPlayer = crusader
     this.saracenPlayer = saracen
-    this.#saveNum = saveNum
+    this.saveNum = saveNum
     this.finished = false
     this.#fightListener = null
+    this.actionCount = actionCount
     this.#currentTurn = typeof currentTurn === 'number' ? currentTurn : FACTION.CRUSADER
   }
 
@@ -76,10 +76,12 @@ export default class Game {
     if (UNIT_DATA[unitType].price > this.currentPlayer.money) return false
     this.currentPlayer.money -= UNIT_DATA[unitType].price
     this.currentPlayer.units.push(Unit.create(unitType, this.currentTurn, x, y, true))
+    this.actionCount++
     return true
   }
 
   attack (attacker, defender) {
+    this.actionCount++
     let defenderDamage = 0
     let attackerDamage = 0
     let attackerInitiative = UNIT_DATA[attacker.type].initiative
@@ -196,6 +198,7 @@ export default class Game {
     this.#endOfTurnCalculations()
     this.#currentTurn = this.#currentTurn === FACTION.CRUSADER ? FACTION.SARACEN : FACTION.CRUSADER
     this.#startOfTurnCalculations()
+    this.actionCount++
     this.#saveGame()
   }
 
@@ -233,7 +236,7 @@ export default class Game {
     this.currentPlayer.money += earnings
   }
 
-  #saveGame () {
+  serialize () {
     const buildingOwners = []
     this.map.fields.forEach((row, y) => {
       row.forEach((field, x) => {
@@ -243,6 +246,7 @@ export default class Game {
     })
     const data = {
       version: 2,
+      actionCount: this.actionCount,
       time: (new Date()).toJSON(),
       mapNum: this.map.mapNum,
       currentTurn: this.#currentTurn,
@@ -258,6 +262,9 @@ export default class Game {
           ammo: u.ammo,
           posX: u.posX,
           posY: u.posY,
+          didMove: u.didMove,
+          didFight: u.didFight,
+          hasFightOptions: u.hasFightOptions,
           animationMove: u.animationMove
         }))
       },
@@ -271,26 +278,34 @@ export default class Game {
           ammo: u.ammo,
           posX: u.posX,
           posY: u.posY,
+          didMove: u.didMove,
+          didFight: u.didFight,
+          hasFightOptions: u.hasFightOptions,
           animationMove: u.animationMove
         }))
       }
     }
+    return data
+  }
+
+  #saveGame () {
+    const data = this.serialize()
     if (window.localStorage.saves) {
       const saves = JSON.parse(window.localStorage.saves)
       if (this.finished) {
-        saves.splice(this.#saveNum, 1)
+        saves.splice(this.saveNum, 1)
         window.localStorage.saves = JSON.stringify(saves)
         return
       }
-      if (typeof this.#saveNum === 'number')
-        saves[this.#saveNum] = data
+      if (typeof this.saveNum === 'number')
+        saves[this.saveNum] = data
       else {
-        this.#saveNum = saves.length
+        this.saveNum = saves.length
         saves.push(data)
       }
       window.localStorage.saves = JSON.stringify(saves)
     } else {
-      this.#saveNum = 0
+      this.saveNum = 0
       window.localStorage.saves = JSON.stringify([data])
     }
   }

@@ -96,7 +96,7 @@
             e.target.parentElement.classList.add('selected')
             document.getElementById('load-sp').href = `/game#save=${e.target.dataset.save};mode=2`
             document.getElementById('load-lmp').href = `/game#save=${e.target.dataset.save};mode=1`
-            document.getElementById('load-omp').href = `/mpsession#save=${e.target.dataset.save};mode=3`
+            document.getElementById('load-omp').href = `/game?mp=1#save=${e.target.dataset.save};mode=3`
             document.getElementById('load-sp').classList.remove('disabled')
             document.getElementById('load-lmp').classList.remove('disabled')
             document.getElementById('load-omp').classList.remove('disabled')
@@ -109,7 +109,7 @@
     renderSavesList()
 
     document.getElementById('game-name-inp').addEventListener('change', e => {
-      document.getElementById('join-form').action = '/game#mode=3;me=2;join=' + e.target.value
+      document.getElementById('join-form').action = '/game#mode=3;remote=' + e.target.value
     })
     document.getElementById('map-picker').addEventListener('click', e => {
       const previous = document.getElementById('map-picker').querySelector('.selected')
@@ -118,7 +118,7 @@
       const mapnum = e.target.dataset.mapnum
       document.getElementById('start-sp').href = `/game#save=-1;map=${mapnum};mode=2`
       document.getElementById('start-lmp').href = `/game#save=-1;map=${mapnum};mode=1`
-      document.getElementById('start-omp').href = `/mpsession#save=-1;map=${mapnum};mode=3`
+      document.getElementById('start-omp').href = `/game?mp=1#save=-1;map=${mapnum};mode=3`
       document.getElementById('start-sp').classList.remove('disabled')
       document.getElementById('start-lmp').classList.remove('disabled')
       document.getElementById('start-omp').classList.remove('disabled')

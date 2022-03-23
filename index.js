@@ -17,13 +17,11 @@ app.get('/', (req, res) => {
   twing.render('index.twig').then(rendered => res.end(rendered))
 })
 
-app.get('/mpsession', (req, res) => {
-  const game = mp.makeGame()
-  twing.render('mpsetup.twig', {gameName: game.name}).then(rendered => res.end(rendered))
-})
-
 app.get('/game', (req, res) => {
-  twing.render('game.twig').then(rendered => res.end(rendered))
+  let game
+  if (req.query.mp)
+    game = mp.makeGame()
+  twing.render('game.twig', {gameName: game ? game.name : null}).then(rendered => res.end(rendered))
 })
 
 app.use('/static', express.static('./static'))

@@ -108,6 +108,7 @@ export default class Unit {
     this.posX = x
     this.posY = y
     if (this.fightfind(game).length) this.hasFightOptions = true
+    game.actionCount++
   }
 
   changeHP (val, game) {
@@ -119,12 +120,15 @@ export default class Unit {
     if (this.hp < 1) game.players[this.faction].units.splice(game.players[this.faction].units.indexOf(this), 1)
   }
 
-  static create (type, faction, posX, posY, inactive, hp, food, ammo, animationMove, animationEffect) {
+  static create (type, faction, posX, posY, inactive, hp, food, ammo, didMove, didFight, hasFightOptions, animationMove, animationEffect) {
     const u = new Unit(type, faction, posX, posY, hp || UNIT_DATA[type].hp, food || UNIT_DATA[type].food, ammo || UNIT_DATA[type].ammo)
     if (inactive){
       u.didFight = true
       u.didMove = true
     }
+    if (didMove) u.didMove = true
+    if (didFight) u.didFight = true
+    if (hasFightOptions) u.hasFightOptions = true
     if (animationMove) {
       u.animationMove = animationMove
       u.animationMove.started = false
@@ -136,8 +140,8 @@ export default class Unit {
     return u
   }
 
-  static createFromSave ({type, faction, posX, posY, hp, food, ammo, animationMove, animationEffect}) {
-    return this.create(type, faction, posX, posY, false, hp, food, ammo, animationMove, animationEffect)
+  static createFromSave ({type, faction, posX, posY, hp, food, ammo, didMove, didFight, hasFightOptions, animationMove, animationEffect}) {
+    return this.create(type, faction, posX, posY, false, hp, food, ammo, didMove, didFight, hasFightOptions, animationMove, animationEffect)
   }
 
 }

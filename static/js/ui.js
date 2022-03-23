@@ -107,7 +107,6 @@ export function turnInfo (game) {
 }
 
 export function buildingActions (location, game) {
-  console.log(location)
   if (location.x < 0 || location.y < 0 || location.x >= game.map.sizeX || location.y >= game.map.sizeY)
     return ''
   if (game.findUnitAt(location.x, location.y)) return ''

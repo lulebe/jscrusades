@@ -60,15 +60,13 @@ async function attackEnemies (game, gameCanvas) {
   if (game.myTurn) return
   let fights = []
   game.currentPlayer.units.filter(u => u.canFight).forEach(u => {
-    console.log(u)
     const f = shuffle(u.fightfind(game))
-    console.log(f)
     if (f.length) fights.push({unit: u, enemy: f.pop()})
   })
   fights = shuffle(fights).filter(f => Math.random() > 0.25)
   for (let i = 0; i < fights.length; i++) {
     game.attack(fights[i].unit, fights[i].enemy)
-    await timeout(1000)
+    await timeout(2500)
   }
   gameCanvas.drawGame()
 }

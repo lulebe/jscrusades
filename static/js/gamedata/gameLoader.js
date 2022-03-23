@@ -12,7 +12,7 @@ export async function loadGame (gameData) {
   const map = GameMap.fromText(await res.text(), mapNum, MAP_INFO[mapNum].sizeX, MAP_INFO[mapNum].sizeY)
   const crusaderPlayer = Player.createFromSave(gameData.crusaderPlayer, 1)
   const saracenPlayer = Player.createFromSave(gameData.saracenPlayer, 2)
-  const game = new Game(map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, gameData.saveNum)
+  const game = new Game(map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, gameData.saveNum, gameData.actionCount)
   if (gameData.buildingOwners)
     gameData.buildingOwners.forEach(b => {
       game.map.fields[b.y][b.x].owner = b.owner
@@ -22,12 +22,12 @@ export async function loadGame (gameData) {
   return {game, gameAssets}
 }
 
-export async function updateGame (oldGame, gameData) {
+export function updateGame (oldGame, gameData) {
   if (oldGame.map.mapNum !== gameData.mapNum) throw new Error('can only update on same Map!')
-  if (!res.ok) throw Error(response.status)
+  if (oldGame.actionCount >= gameData.actionCount) return oldGame //don't overwrite with older game
   const crusaderPlayer = Player.createFromSave(gameData.crusaderPlayer, 1)
   const saracenPlayer = Player.createFromSave(gameData.saracenPlayer, 2)
-  const game = new Game(oldGame.map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, gameData.saveNum)
+  const game = new Game(oldGame.map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, oldGame.saveNum, gameData.actionCount)
   gameData.buildingOwners.forEach(b => {
     game.map.fields[b.y][b.x].owner = b.owner
   })

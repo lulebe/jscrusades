@@ -243,7 +243,7 @@ input[type=text] {
   flex-direction: row;
 }
 .info-table :first-child {
-  width: 40%;
+  width: 50%;
 }
 .info-table :nth-child(2) {
   width: 20%;

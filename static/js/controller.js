@@ -6,18 +6,21 @@ import { BUILDING } from './gamedata/mapInfo.js'
 import { playTurnMusic, playFightSound, toggleAudio } from './audio.js'
 
 import { displayHoverInfo, buildingActions, turnInfo, winInfo } from './ui.js'
+import { sendGame, sendFight } from './mp.js'
 
 let game
 let gameAssets
+let mpName
 let gameCanvas
 let focusedUnit = null
 let selectedLocation = null
 let moveOptions = []
 let fightOptions = []
 
-export function UIController (g, ga) {
+export function UIController (g, ga, mp) {
   game = g
   gameAssets = ga
+  mpName = mp
   console.log(game)
   const canvasEl = document.getElementById('game-canvas')
   gameCanvas = new GameCanvas(canvasEl, game, gameAssets)
@@ -27,12 +30,15 @@ export function UIController (g, ga) {
 }
 
 export function updateGame(g) {
+  if (game) game.onFight = null
   game = g
+  game.onFight = onFight
   console.log(game)
   gameCanvas.moveOptionsDisplay = moveOptions = []
   gameCanvas.fightOptionsDisplay = fightOptions = []
   gameCanvas.selectedPos = null
   gameCanvas.loadGame(game, gameAssets)
+  if (game.finished) gameOver()
   renderUi()
 }
 
@@ -49,6 +55,8 @@ function initUiHandlers () {
   document.getElementById('recruitment').addEventListener('click', e => {
     if (e.target.nodeName !== 'BUTTON') return
     if (game.recruit(parseInt(e.target.dataset.recruit), selectedLocation.x, selectedLocation.y)) {
+      if (game.type === Game.GAME_TYPE.ONLINE_MP)
+        sendGame()
       document.getElementById('recruitment').innerHTML = ''
       renderUi()
       gameCanvas.drawGame()
@@ -56,7 +64,8 @@ function initUiHandlers () {
   })
 }
 
-function onFight (attacker, defender, attackerDamage, defenderDamage) {
+export function onFight (attacker, defender, attackerDamage, defenderDamage) {
+  if (game.type === Game.GAME_TYPE.ONLINE_MP && game.myTurn) sendFight(attacker, defender, attackerDamage, defenderDamage)
   const bga = findUnitBackground(attacker.type, game.map.fields[attacker.posY][attacker.posX])
   const bgd = findUnitBackground(defender.type, game.map.fields[defender.posY][defender.posX])
   document.getElementById('fight-attacker-health').innerHTML = ('' + attacker.hp + attackerDamage).padStart(2, '0')
@@ -66,7 +75,7 @@ function onFight (attacker, defender, attackerDamage, defenderDamage) {
   document.getElementById('fight-attacker-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bga}.png"`
   document.getElementById('fight-defender-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bgd}.png"`
   document.getElementById('fight').classList.add('visible')
-  animateFight(attacker.hp + attackerDamage, attackerDamage, defender.hp + defenderDamage, defenderDamage, 10)
+  animateFight(attacker.hp + attackerDamage, attackerDamage, defender.hp + defenderDamage, defenderDamage, 8)
   playFightSound(attacker.type)
 }
 
@@ -82,7 +91,7 @@ function animateFight (attackerHPnow, attackerDamage, defenderHPnow, defenderDam
   document.getElementById('fight-defender-health').innerHTML = ('' + defenderHPnow).padStart(2, '0')
   let nextAhp = attackerDamage > 0 ? attackerHPnow - 1 : attackerHPnow
   let nextDhp = defenderDamage > 0 ? defenderHPnow - 1 : defenderHPnow
-  if (cyclesLeft) setTimeout(() => animateFight(nextAhp, attackerDamage-1, nextDhp, defenderDamage-1, cyclesLeft-1), 400)
+  if (cyclesLeft) setTimeout(() => animateFight(nextAhp, attackerDamage-1, nextDhp, defenderDamage-1, cyclesLeft-1), 300)
   else {
     document.getElementById('fight').classList.remove('visible')
   }
@@ -93,6 +102,7 @@ async function makeAITurnIfNecessary () {
   await makeAITurn(game, gameCanvas)
   renderUi()
   gameCanvas.drawGame()
+  if (game.finished) gameOver()
 }
 
 function fieldClick (location) {
@@ -111,6 +121,10 @@ function fieldClick (location) {
     const moveOption = moveOptions.find(move => move.x === location.x && move.y === location.y)
     if (moveOption) {
       focusedUnit.move(moveOption.x, moveOption.y, moveOption.path, game)
+      //MP
+      if (game.type === Game.GAME_TYPE.ONLINE_MP) {
+        sendGame()
+      }
     }
   }
   focusedUnit = null
@@ -145,10 +159,13 @@ function endTurn () {
   if (game.finished) return gameOver()
   makeAITurnIfNecessary()
   playTurnMusic()
+  if (game.type === Game.GAME_TYPE.ONLINE_MP)
+    sendGame()
 }
 
 function renderUi () {
   document.getElementById('turn-info').innerHTML = turnInfo(game)
+  document.getElementById('mp-name').innerHTML = mpName ? ("Mutiplayer ID: " + mpName) : ''
 }
 
 function gameOver () {

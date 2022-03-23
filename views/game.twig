@@ -37,6 +37,8 @@
       <button id="zoom-out">-</button>
       <button id="toggle-audio"><span class="iconify" data-icon="bxs:volume-mute"></span></button>
       <button id="end-turn">End Turn</button>
+      <br>
+      <span id="mp-name"></span>
       <br><br>
       <div id="field-info"></div>
       <div id="recruitment"></div>
@@ -44,7 +46,7 @@
   </div>
   <script type="module">
     import App from '/static/js/app.js'
-    App()
+    App('{{gameName}}')
   </script>
 </body>
 </html>
