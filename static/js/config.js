@@ -1,3 +1,3 @@
 export default {
-  STATIC_URL: ''
+  STATIC_URL: '/static'
 }

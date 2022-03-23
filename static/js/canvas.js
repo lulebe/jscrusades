@@ -60,6 +60,12 @@ export default class GameCanvas {
     this.#initMouseEvents()
   }
 
+  loadGame (game, gameAssets) {
+    this.game = game
+    this.assets = gameAssets
+    this.initCanvas()
+  }
+
 
   recalculateCanvasSize () {
     this.canvas.width = this.canvas.parentElement.clientWidth

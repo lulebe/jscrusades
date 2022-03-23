@@ -94,8 +94,7 @@ export default class Unit {
   }
 
   fightfind (game) {
-    //TODO check if that's how ammo works or if it just lowers damage when running out
-    if (this.didFight || (!UNIT_DATA[this.type].moveAndFight && this.didMove) || this.ammo === 0) return []
+    if (this.didFight || (!UNIT_DATA[this.type].moveAndFight && this.didMove)) return []
     return game.otherPlayer(this.faction).units.filter(u => {
       const d = GameMap.getDistance(this.posX, this.posY, u.posX, u.posY)
       return d >= UNIT_DATA[this.type].minAttackDistance && d <= UNIT_DATA[this.type].maxAttackDistance
@@ -120,7 +119,7 @@ export default class Unit {
     if (this.hp < 1) game.players[this.faction].units.splice(game.players[this.faction].units.indexOf(this), 1)
   }
 
-  static create (type, faction, posX, posY, inactive, hp, food, ammo, animationMove) {
+  static create (type, faction, posX, posY, inactive, hp, food, ammo, animationMove, animationEffect) {
     const u = new Unit(type, faction, posX, posY, hp || UNIT_DATA[type].hp, food || UNIT_DATA[type].food, ammo || UNIT_DATA[type].ammo)
     if (inactive){
       u.didFight = true
@@ -130,11 +129,15 @@ export default class Unit {
       u.animationMove = animationMove
       u.animationMove.started = false
     }
+    if (animationEffect) {
+      u.animationMove = animationEffect
+      u.animationMove.started = false
+    }
     return u
   }
 
-  static createFromSave ({type, faction, posX, posY, hp, food, ammo, animationMove}) {
-    return this.create(type, faction, posX, posY, false, hp, food, ammo, animationMove)
+  static createFromSave ({type, faction, posX, posY, hp, food, ammo, animationMove, animationEffect}) {
+    return this.create(type, faction, posX, posY, false, hp, food, ammo, animationMove, animationEffect)
   }
 
 }

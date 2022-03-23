@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kreuzzüge</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@600&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/2/2.2.0/iconify.min.js"></script>
+  <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+</head>
+<body>
+  <div id="game-over"></div>
+  <div id="gamebody">
+    <section id="canvas-container">
+      <canvas id="game-canvas"></canvas>
+    </section>
+    <aside id="infobar">
+      <div style="font-family: Source Code Pro; font-weight: 600;"> <!-- load font! --></div>
+      <div id="logo"><img src="/static/imgs/coverart.png" /></div>
+      <div id="turn-info"></div>
+      <br>
+      <button id="zoom-in">+</button>
+      <button id="zoom-out">-</button>
+      <button id="end-turn">End Turn</button>
+      <br><br>
+      <div id="field-info"></div>
+      <div id="recruitment"></div>
+    </aside>
+  </div>
+  <script type="module">
+    import App from '/static/js/app.js'
+    App()
+  </script>
+</body>
+</html>

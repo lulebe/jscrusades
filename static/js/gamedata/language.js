@@ -1,4 +1,4 @@
-export const UNIT_NAMES_DE = [
+const UNIT_NAMES = {de:[
   "Keine Einheit",
   "Wache",
   "Lanzenträger",
@@ -13,9 +13,9 @@ export const UNIT_NAMES_DE = [
   "Belagerungsturm",
   "Kriegsschiff",
   "Greif"
-]
+]}
 
-export const BUILDING_NAMES_DE = [
+const BUILDING_NAMES = {de:[
   "Kein Gebäude",
   "Dorf",
   "Stadt",
@@ -25,8 +25,55 @@ export const BUILDING_NAMES_DE = [
   "Fabrik",
   "Hafen",
   "Tempel"
-]
+]}
 
-export const PHRASES_DE = {
-  RECRUITABLE: "Verfügbare Einheiten:"
+const FIELD_NAMES = {de:[
+  "Kein Feld",
+  "Meer",
+  "Erdboden",
+  "Hecken",
+  "Wald",
+  "Berge",
+  "Straße",
+  "Fluss",
+  "Sumpf"
+]}
+
+const FACTION_NAMES = {de: [
+  "keine Fraktion",
+  "Kreuzritter",
+  "Sarazenen"
+]}
+
+const WORDS = {de:{
+  BUILDING: "Gebäude",
+  GROUND: "Untergrund",
+  RECRUITABLE: "Verfügbare Einheiten:",
+  AMMO: "Munition",
+  FOOD: "Proviant",
+  MOVEMENT_POINTS: "Reichweite",
+  ATTACK_DISTANCE: "Kampfreichweite",
+  WINS: " gewinnen! 🥇🎉",
+  HBONUS: "Kampfbonus",
+  BUILDING_BONUS: "Gebäudebonus",
+  EARNINGS: "Einnahmen"
+}}
+
+export default {
+  locale: 'de',
+  get UNIT_NAMES () {
+    return UNIT_NAMES[this.locale]
+  },
+  get BUILDING_NAMES () {
+    return BUILDING_NAMES[this.locale]
+  },
+  get FIELD_NAMES () {
+    return FIELD_NAMES[this.locale]
+  },
+  get FACTION_NAMES () {
+    return FACTION_NAMES[this.locale]
+  },
+  get WORDS () {
+    return WORDS[this.locale]
+  }
 }

@@ -29,9 +29,10 @@ body {
 
 #infobar {
   flex-grow: 1;
-  background-color: #927550;
+  background-color: #3c3225;
   padding: 24px;
   box-shadow: 0 0 20px rgba(65, 48, 48, 0.7);
+  color: #eee;
 }
 
 #logo {
@@ -58,8 +59,12 @@ button:hover, .btn:hover, input[type=submit]:hover, input[type=button]:hover {
   text-align: center;
 }
 #recruitment button {
-  width: 12rem;
+  width: 13rem;
   margin: 4px;
+  text-align: left;
+}
+#recruitment button .pricetag {
+  float: right;
 }
 
 @media (max-width: 900px) {
@@ -82,6 +87,45 @@ button:hover, .btn:hover, input[type=submit]:hover, input[type=button]:hover {
   #logo img {
     max-width: 50%;
   }
+}
+.info-table {
+  font-size: 1.2rem;
+  margin: 4px 0;
+  display: flex;
+  flex-direction: row;
+}
+.info-table :first-child {
+  width: 40%;
+}
+.info-table :nth-child(2) {
+  width: 20%;
+}
+
+#field-info {
+  font-size: 1.2rem;
+}
+
+.center-inside {
+  text-align: center;
+}
+
+.unit-preview {
+  max-height: 25vh;
+  max-width: 100%;
+}
+
+#game-over {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  font-size: 3rem;
+  color: white;
 }
 
 

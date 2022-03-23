@@ -9,8 +9,9 @@ export default class Player {
   }
 
   static createFromSave (playerObject, faction) {
-    const p = new Player(faction, playerObject.money)
-    playerObject.units.forEach(u => p.units.push(Unit.createFromSave(u)))
+    const p = new Player(faction, playerObject ? playerObject.money : 20)
+    if (playerObject)
+      playerObject.units.forEach(u => p.units.push(Unit.createFromSave(u)))
     return p
   }
 

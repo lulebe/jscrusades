@@ -3,7 +3,7 @@ import Game from './gamedata/game.js'
 import { FACTION } from './gamedata/gameConstants.js'
 import makeAITurn from './gamedata/ai.js'
 
-import { displayHoverInfo, buildingActions } from './ui.js'
+import { displayHoverInfo, buildingActions, turnInfo, winInfo } from './ui.js'
 
 let game
 let gameAssets
@@ -13,7 +13,7 @@ let selectedLocation = null
 let moveOptions = []
 let fightOptions = []
 
-export default function (g, ga) {
+export function UIController (g, ga) {
   game = g
   gameAssets = ga
   console.log(game)
@@ -22,6 +22,16 @@ export default function (g, ga) {
   initUiHandlers()
   renderUi()
   makeAITurnIfNecessary()
+}
+
+export function updateGame(g) {
+  game = g
+  console.log(game)
+  gameCanvas.moveOptionsDisplay = moveOptions = []
+  gameCanvas.fightOptionsDisplay = fightOptions = []
+  gameCanvas.selectedPos = null
+  gameCanvas.loadGame(game, gameAssets)
+  renderUi()
 }
 
 function initUiHandlers () {
@@ -90,18 +100,21 @@ function fieldClick (location) {
 
 function endTurn () {
   if (!game.myTurn) return
-  gameCanvas.moveOptionsDisplay = null
-  gameCanvas.fightOptionsDisplay = []
-  moveOptions = []
-  fightOptions = []
+  gameCanvas.moveOptionsDisplay = moveOptions = []
+  gameCanvas.fightOptionsDisplay = fightOptions = []
   gameCanvas.selectedPos = null
   game.endTurn()
   gameCanvas.drawGame()
   renderUi()
+  if (game.finished) return gameOver()
   makeAITurnIfNecessary()
 }
 
-function renderUi() {
-  const currentPlayer = game.currentTurn == FACTION.CRUSADER ? game.crusaderPlayer : game.saracenPlayer
-  document.getElementById('turn-info').innerHTML = `${game.currentTurn == FACTION.CRUSADER ? "Kreuzritter" : "Sarazenen"}: ${currentPlayer.money}`
+function renderUi () {
+  document.getElementById('turn-info').innerHTML = turnInfo(game)
+}
+
+function gameOver () {
+  document.getElementById('game-over').innerHTML = winInfo(game)
+  document.getElementById('game-over').style.display = 'flex'
 }

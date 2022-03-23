@@ -19,7 +19,7 @@ export default class Game {
   constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum) {
     this.map = map
     this.type = type
-    this.#me = type === Game.GAME_TYPE.LOCAL_MP ? null : myFaction
+    this.#me = type === Game.GAME_TYPE.LOCAL_MP ? null : (myFaction || FACTION.CRUSADER)
     this.players = [null, crusader, saracen]
     this.crusaderPlayer = crusader
     this.saracenPlayer = saracen
@@ -38,6 +38,18 @@ export default class Game {
 
   get currentPlayer () {
     return this.players[this.#currentTurn]
+  }
+
+  get winner () {
+    let winner = null
+    this.map.fields.find(row => {
+      return row.find(field => {
+        if (field.building !== BUILDING.HQ || field.owner === field.buildingFaction) return false
+        winner = this.otherPlayer(field.buildingFaction)
+        return true
+      })
+    })
+    return winner
   }
 
   otherPlayer (p) {
@@ -195,8 +207,6 @@ export default class Game {
           unitField.owner = null
           unit.changeHP(-1, this)
           if (unitField.building === BUILDING.HQ) {
-            //TODO
-            alert('GAME OVER!')
             this.finished = true
           }
         }
@@ -238,7 +248,8 @@ export default class Game {
           food: u.food,
           ammo: u.ammo,
           posX: u.posX,
-          posY: u.posY
+          posY: u.posY,
+          animationMove: u.animationMove
         }))
       },
       saracenPlayer: {
@@ -250,7 +261,8 @@ export default class Game {
           food: u.food,
           ammo: u.ammo,
           posX: u.posX,
-          posY: u.posY
+          posY: u.posY,
+          animationMove: u.animationMove
         }))
       }
     }
