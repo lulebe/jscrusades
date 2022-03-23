@@ -15,6 +15,7 @@ export default class Game {
   #currentTurn
   #me
   #saveNum
+  #fightListener
 
   constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum) {
     this.map = map
@@ -25,6 +26,7 @@ export default class Game {
     this.saracenPlayer = saracen
     this.#saveNum = saveNum
     this.finished = false
+    this.#fightListener = null
     this.#currentTurn = typeof currentTurn === 'number' ? currentTurn : FACTION.CRUSADER
   }
 
@@ -50,6 +52,10 @@ export default class Game {
       })
     })
     return winner
+  }
+
+  set onFight (listener) {
+    this.#fightListener = listener
   }
 
   otherPlayer (p) {
@@ -125,6 +131,8 @@ export default class Game {
     attacker.didFight = true
     attacker.didMove = true
     attacker.hasFightOptions = false
+    if (this.#fightListener)
+      this.#fightListener(attacker, defender, attackerDamage, defenderDamage)
   }
 
   #computeDamage (attacker, defender) {

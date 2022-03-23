@@ -14,6 +14,16 @@
 </head>
 <body>
   <div id="game-over"></div>
+  <div id="fight">
+    <div id="fight-attacker-background" class="unit">
+      <img id="fight-attacker-img" src="/static/imgs/unitThumbs/8_2.png" />
+      <span id="fight-attacker-health">05</span>
+    </div>
+    <div id="fight-defender-background" class="unit">
+      <img id="fight-defender-img" src="/static/imgs/unitThumbs/2_1.png" />
+      <span id="fight-defender-health">05</span>
+    </div>
+  </div>
   <div id="gamebody">
     <section id="canvas-container">
       <canvas id="game-canvas"></canvas>
@@ -25,6 +35,7 @@
       <br>
       <button id="zoom-in">+</button>
       <button id="zoom-out">-</button>
+      <button id="toggle-audio"><span class="iconify" data-icon="bxs:volume-mute"></span></button>
       <button id="end-turn">End Turn</button>
       <br><br>
       <div id="field-info"></div>

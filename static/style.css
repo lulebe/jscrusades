@@ -119,6 +119,60 @@ a:not(.disabled):not([disabled]):hover {
   max-width: 70%;
 }
 
+#fight {
+  display: none;
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.8);
+}
+#fight.visible {
+  display: flex;
+}
+#fight .unit {
+  position: relative;
+  border: 1px solid red;
+  max-width: 50vw;
+  max-height: 100vh;
+  background-repeat: no-repeat;
+  background-size: 250%;
+  background-position: 20% 50%;
+  overflow: hidden;
+}
+@media (max-width: 900px) {
+  #fight .unit {
+    background-position: 20% 40%;
+  }
+}
+#fight .unit img {
+  max-width: 50vw;
+  margin-bottom: -50px;
+  margin-top: -50px;
+  margin-left: -50px;
+  margin-left: -50px;
+}
+@media (max-width: 900px) {
+  #fight .unit img {
+    margin-bottom: 0;
+  }
+}
+#fight .unit #fight-attacker-health, #fight .unit #fight-defender-health {
+  position: absolute;
+  top: 0;
+  font-size: 3rem;
+  background: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+#fight .unit #fight-attacker-health {
+  left: 0;
+}
+#fight .unit #fight-defender-health {
+  right: 0;
+}
+
 button, .btn, input[type=submit], input[type=button] {
   display: inline-block;
   padding: 6px 12px;
@@ -132,7 +186,7 @@ button, .btn, input[type=submit], input[type=button] {
 }
 button:hover, .btn:hover, input[type=submit]:hover, input[type=button]:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 3px rgba(255, 255, 255, 0.4);
 }
 button[disabled], button.disabled, .btn[disabled], .btn.disabled, input[type=submit][disabled], input[type=submit].disabled, input[type=button][disabled], input[type=button].disabled {
   cursor: default;

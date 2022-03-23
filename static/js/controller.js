@@ -1,7 +1,9 @@
 import GameCanvas from './canvas.js'
 import Game from './gamedata/game.js'
-import { FACTION } from './gamedata/gameConstants.js'
 import makeAITurn from './gamedata/ai.js'
+import { UNIT_TYPES } from './gamedata/unitInfo.js'
+import { BUILDING } from './gamedata/mapInfo.js'
+import { playTurnMusic, playFightSound, toggleAudio } from './audio.js'
 
 import { displayHoverInfo, buildingActions, turnInfo, winInfo } from './ui.js'
 
@@ -35,9 +37,11 @@ export function updateGame(g) {
 }
 
 function initUiHandlers () {
+  game.onFight = onFight
   const canvasEl = document.getElementById('game-canvas')
   document.getElementById('zoom-in').addEventListener('click', () => gameCanvas.zoomIn())
   document.getElementById('zoom-out').addEventListener('click', () => gameCanvas.zoomOut())
+  document.getElementById('toggle-audio').addEventListener('click', () => toggleAudio())
   document.getElementById('end-turn').addEventListener('click', endTurn)
   gameCanvas.initCanvas()
   canvasEl.addEventListener('fieldClicked', e => fieldClick(e.detail))
@@ -50,6 +54,38 @@ function initUiHandlers () {
       gameCanvas.drawGame()
     }
   })
+}
+
+function onFight (attacker, defender, attackerDamage, defenderDamage) {
+  const bga = findUnitBackground(attacker.type, game.map.fields[attacker.posY][attacker.posX])
+  const bgd = findUnitBackground(defender.type, game.map.fields[defender.posY][defender.posX])
+  document.getElementById('fight-attacker-health').innerHTML = ('' + attacker.hp + attackerDamage).padStart(2, '0')
+  document.getElementById('fight-defender-health').innerHTML = ('' + defender.hp + defenderDamage).padStart(2, '0')
+  document.getElementById('fight-defender-img').src = `/static/imgs/unitThumbs/${defender.type}_${defender.faction}.png`
+  document.getElementById('fight-attacker-img').src = `/static/imgs/unitThumbs/${attacker.type}_${attacker.faction}.png`
+  document.getElementById('fight-attacker-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bga}.png"`
+  document.getElementById('fight-defender-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bgd}.png"`
+  document.getElementById('fight').classList.add('visible')
+  animateFight(attacker.hp + attackerDamage, attackerDamage, defender.hp + defenderDamage, defenderDamage, 10)
+  playFightSound(attacker.type)
+}
+
+function findUnitBackground (unitType, field) {
+  if (unitType === UNIT_TYPES.AIR) return 'u13'
+  if (field.building === BUILDING.HARBOUR) return 'b7'
+  if (field.building) return 'b'
+  return 't' + field.terrain
+}
+
+function animateFight (attackerHPnow, attackerDamage, defenderHPnow, defenderDamage, cyclesLeft) {
+  document.getElementById('fight-attacker-health').innerHTML = ('' + attackerHPnow).padStart(2, '0')
+  document.getElementById('fight-defender-health').innerHTML = ('' + defenderHPnow).padStart(2, '0')
+  let nextAhp = attackerDamage > 0 ? attackerHPnow - 1 : attackerHPnow
+  let nextDhp = defenderDamage > 0 ? defenderHPnow - 1 : defenderHPnow
+  if (cyclesLeft) setTimeout(() => animateFight(nextAhp, attackerDamage-1, nextDhp, defenderDamage-1, cyclesLeft-1), 400)
+  else {
+    document.getElementById('fight').classList.remove('visible')
+  }
 }
 
 async function makeAITurnIfNecessary () {
@@ -108,6 +144,7 @@ function endTurn () {
   renderUi()
   if (game.finished) return gameOver()
   makeAITurnIfNecessary()
+  playTurnMusic()
 }
 
 function renderUi () {
