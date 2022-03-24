@@ -19,6 +19,7 @@ let fightOptions = []
 
 export function UIController (g, ga, mp) {
   game = g
+  console.log(g)
   gameAssets = ga
   mpName = mp
   const canvasEl = document.getElementById('game-canvas')
@@ -31,6 +32,7 @@ export function UIController (g, ga, mp) {
 export function updateGame(g) {
   if (game) game.onFight = null
   game = g
+  console.log(g)
   game.onFight = onFight
   gameCanvas.moveOptionsDisplay = moveOptions = []
   gameCanvas.fightOptionsDisplay = fightOptions = []

@@ -209,6 +209,7 @@ export default class Game {
       const unitField = this.map.fields[unit.posY][unit.posX]
       if (!unitField.building) return
       if (unit.isInfantry && unitField.owner !== this.#currentTurn) { //conquer
+        unit.startEffectAnimation()
         if (unitField.owner === null) unitField.owner = this.#currentTurn
         else {
           unitField.owner = null
@@ -261,7 +262,8 @@ export default class Game {
           didMove: u.didMove,
           didFight: u.didFight,
           hasFightOptions: u.hasFightOptions,
-          animationMove: u.animationMove
+          animationMove: u.animationMove,
+          animationEffect: u.animationEffect
         }))
       },
       saracenPlayer: {
@@ -277,7 +279,8 @@ export default class Game {
           didMove: u.didMove,
           didFight: u.didFight,
           hasFightOptions: u.hasFightOptions,
-          animationMove: u.animationMove
+          animationMove: u.animationMove,
+          animationEffect: u.animationEffect
         }))
       }
     }

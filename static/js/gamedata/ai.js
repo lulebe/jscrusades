@@ -2,6 +2,7 @@ import { BUILDING, BUILDING_INFO } from "./mapInfo.js"
 import { UNIT_DATA, UNIT_TYPES } from "./unitInfo.js"
 
 export default async function (game, gameCanvas) {
+  await timeout(500)
   //buy unit!
   buyUnit(game)
   gameCanvas.drawGame()

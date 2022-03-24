@@ -179,6 +179,18 @@ export default class GameCanvas {
       (unit.posX + 1) * this.#tileSize - this.#tileSize * 0.35,
       (unit.posY + 1) * this.#tileSize - this.#tileSize * 0.035
     )
+    if (unit.animationEffect) {
+      if (!unit.animationEffect.started) {
+        unit.animationEffect.started = true
+        unit.animationEffect.progress = 0
+        this.#animationsRunning++
+      } else if (unit.animationEffect.progress >= 1) {
+        unit.animationEffect = null
+        this.#animationsRunning--
+      } else {
+        this.#drawEffect(unit)
+      }
+    }
   }
 
   #drawUnitAnimations () {
@@ -222,6 +234,28 @@ export default class GameCanvas {
       newY * this.#tileSize,
       this.#tileSize,
       this.#tileSize
+    )
+  }
+
+  #drawEffect (unit) {
+    unit.animationEffect.progress = Math.min(unit.animationEffect.progress + this.#animStep/500, 1.0)
+    this.#ctx.fillStyle = '#55ff55'
+    this.#ctx.font = `600 ${this.#tileSize*0.3}px Source Code Pro`
+    this.#ctx.textAlign = 'center'
+    this.#ctx.fillText(
+      "+",
+      (unit.posX + 0.5) * this.#tileSize,
+      (unit.posY + 0.8 - unit.animationEffect.progress) * this.#tileSize - this.#tileSize*0.3
+    )
+    this.#ctx.fillText(
+      "+++",
+      (unit.posX + 0.5) * this.#tileSize,
+      (unit.posY + 0.8 - unit.animationEffect.progress) * this.#tileSize
+    )
+    this.#ctx.fillText(
+      "+",
+      (unit.posX + 0.5) * this.#tileSize,
+      (unit.posY + 0.8 - unit.animationEffect.progress) * this.#tileSize + this.#tileSize*0.3
     )
   }
 

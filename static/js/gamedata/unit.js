@@ -134,8 +134,8 @@ export default class Unit {
       u.animationMove.started = false
     }
     if (animationEffect) {
-      u.animationMove = animationEffect
-      u.animationMove.started = false
+      u.animationEffect = animationEffect
+      u.animationEffect.started = false
     }
     return u
   }
