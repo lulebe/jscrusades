@@ -58,9 +58,11 @@ export default class GameCanvas {
     this.#animStep = 0
     window.addEventListener('resize', () => this.recalculateCanvasSize())
     this.#initMouseEvents()
+    setInterval(() => this.#fixAnimations(), 10000)
   }
 
   loadGame (game, gameAssets) {
+    this.#animationsRunning = 0
     this.game = game
     this.assets = gameAssets
     this.initCanvas()
@@ -286,6 +288,35 @@ export default class GameCanvas {
     if (!isOnMap(this.#highlightedTile[0], this.#highlightedTile[1], this.game.map.sizeX, this.game.map.sizeY)) return
     this.#ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
     this.#ctx.fillRect(this.#highlightedTile[0] * this.#tileSize, this.#highlightedTile[1] * this.#tileSize, this.#tileSize, this.#tileSize)
+  }
+
+  #fixAnimations () {
+    if (!this.game) return
+    const before = this.#animationsRunning
+    this.#animationsRunning = 0
+    for (let i = 1; i <= 2; i++) {
+      this.game.players[1].units.forEach(u => {
+        if (u.animationEffect) {
+          if (u.animationEffect.progress <= 1) {
+            u.animationEffect.started = true
+            this.#animationsRunning++
+          } else {
+            u.animationEffect = null
+          }
+        }
+        if (u.animationMove) {
+          if (u.animationMove.fieldsToGoTo.length) {
+            u.animationMove.started = true
+            this.#animationsRunning++
+          } else {
+            u.animationMove = null
+          }
+        }
+      })
+    }
+    if (before != this.#animationsRunning) {
+      console.log('animFix', before - this.#animationsRunning)
+    }
   }
 
   
