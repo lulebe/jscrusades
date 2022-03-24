@@ -46,7 +46,7 @@ export function playTurnMusic () {
   }
   const song = pickTurnMusic()
   turnPlaying = song
-  song.volume = 0.04
+  song.volume = 0.2
   song.currentTime = 0
   if (playAudio)
     song.play()
