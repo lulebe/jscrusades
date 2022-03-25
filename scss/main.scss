@@ -119,6 +119,42 @@ a {
   }
 }
 
+@keyframes fight-attacker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(50px);
+  }
+}
+
+@keyframes fight-attacker-flip {
+  from {
+    transform: translateX(0) scaleX(-1);
+  }
+  to {
+    transform: translateX(50px) scaleX(-1);
+  }
+}
+
+@keyframes fight-defender {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50px);
+  }
+}
+
+@keyframes fight-defender-flip {
+  from {
+    transform: translateX(0) scaleX(-1);
+  }
+  to {
+    transform: translateX(-50px) scaleX(-1);
+  }
+}
+
 #fight {
   display: none;
   position: fixed;
@@ -129,6 +165,20 @@ a {
   background: rgba(0,0,0,0.8);
   &.visible {
     display: flex;
+    .att-flipped {
+      transform: scaleX(-1);
+      animation: fight-attacker-flip 2.4s !important;
+    }
+    #fight-attacker-img {
+      animation: fight-attacker 2.4s;
+    }
+    .def-flipped {
+      transform: scaleX(-1);
+      animation: fight-defender-flip 2.4s !important;
+    }
+    #fight-defender-img {
+      animation: fight-defender 2.4s;
+    }
   }
   .unit {
     position: relative;

@@ -27,7 +27,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 3, 3, 3, 3, 2, 2, 2, 1, 1, 1, 3, 1, 1],
     moveAndFight: true,
     movementPoints: 4,
-    movementCosts: [0,-1, 2, -1, 4, -1, 1, -1, -1]
+    movementCosts: [0,-1, 2, -1, 4, -1, 1, -1, -1],
+    flipDefender: [false, false, false]
   },
   2: {
     price: 10,
@@ -41,7 +42,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 3, 3, 3, 3, 5, 5, 5, 1, 1, 1, 3, 1, 2],
     moveAndFight: true,
     movementPoints: 5,
-    movementCosts: [0,-1, 2, 2, 3, 3, 1, -1, 3]
+    movementCosts: [0,-1, 2, 2, 3, 3, 1, -1, 3],
+    flipDefender: [false, true, true]
   },
   3: {
     price: 15,
@@ -55,7 +57,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 4, 1, 1],
     moveAndFight: true,
     movementPoints: 5,
-    movementCosts: [0,-1, 2, 2, 3, 3, 1, -1, 3]
+    movementCosts: [0,-1, 2, 2, 3, 3, 1, -1, 3],
+    flipDefender: [false, false, false]
   },
   4: {
     price: 20,
@@ -69,7 +72,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 3, 3, 3, 3, 2, 2, 2, 1, 1, 1, 3, 2, 3],
     moveAndFight: true,
     movementPoints: 6,
-    movementCosts: [0, -1, 2, 2, 3, 3, 1, -1, 3]
+    movementCosts: [0, -1, 2, 2, 3, 3, 1, -1, 3],
+    flipDefender: [false, true, true]
   },
   5: {
     price: 25,
@@ -83,7 +87,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 4, 4, 4, 4, 3, 3, 3, 2, 2, 2, 4, 1, 2],
     moveAndFight: true,
     movementPoints: 8,
-    movementCosts: [0, -1, 2, 2, 3, 3, 1, -1, 3]
+    movementCosts: [0, -1, 2, 2, 3, 3, 1, -1, 3],
+    flipDefender: [false, false, false]
   },
   6: {
     price: 30,
@@ -97,7 +102,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 3, 3, 3, 3, 2, 2, 2, 1, 1, 1, 3, 2, 4],
     moveAndFight: true,
     movementPoints: 8,
-    movementCosts: [0, -1, 2, 2, 3, 3, 1, -1, 3]
+    movementCosts: [0, -1, 2, 2, 3, 3, 1, -1, 3],
+    flipDefender: [false, true, true]
   },
   7: {
     price: 35,
@@ -111,7 +117,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 5, 5, 5, 5, 4, 4, 4, 3, 3, 3, 5, 2, 3],
     moveAndFight: true,
     movementPoints: 7,
-    movementCosts: [0, -1, 2, 2, 3, 3, 1, -1, 3]
+    movementCosts: [0, -1, 2, 2, 3, 3, 1, -1, 3],
+    flipDefender: [false, false, false]
   },
   8: {
     price: 30,
@@ -125,7 +132,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 1, 2, 1],
     moveAndFight: false,
     movementPoints: 4,
-    movementCosts: [0, -1, 2, -1, 5, -1, 1, -1, -1]
+    movementCosts: [0, -1, 2, -1, 5, -1, 1, -1, -1],
+    flipDefender: [false, false, false]
   },
   9: {
     price: 35,
@@ -139,7 +147,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 3, 3, 3, 3, 2, 2, 2, 1, 1, 1, 3, 1, 1],
     moveAndFight: false,
     movementPoints: 4,
-    movementCosts: [0, -1, 2, -1, 4, -1, 1, -1, -1]
+    movementCosts: [0, -1, 2, -1, 4, -1, 1, -1, -1],
+    flipDefender: [false, true, true]
   },
   10: {
     price: 45,
@@ -153,7 +162,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 2, 2, 2, 2, 1, 1, 1, 4, 4, 4, 2, 1, 0],
     moveAndFight: false,
     movementPoints: 3,
-    movementCosts: [0, -1, 2, -1, -1, -1, 1, -1, -1]
+    movementCosts: [0, -1, 2, -1, -1, -1, 1, -1, -1],
+    flipDefender: [false, true, true]
   },
   11: {
     price: 45,
@@ -167,7 +177,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 4, 4, 4, 4, 3, 3, 3, 1, 1, 1, 4, 1, 3],
     moveAndFight: false,
     movementPoints: 3,
-    movementCosts: [0, -1, 2, -1, -1, -1, 1, -1, -1]
+    movementCosts: [0, -1, 2, -1, -1, -1, 1, -1, -1],
+    flipDefender: [false, true, true]
   },
   12: {
     price: 40,
@@ -181,7 +192,8 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1],
     moveAndFight: true,
     movementPoints: 8,
-    movementCosts: [0, 1, -1, -1, -1, -1, -1, -1, -1]
+    movementCosts: [0, 1, -1, -1, -1, -1, -1, -1, -1],
+    flipDefender: [false, true, true]
   },
   13: {
     price: 50,
@@ -195,6 +207,7 @@ export const UNIT_DATA = {
     defenseNumberOfFights: [0, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 4, 2, 3],
     moveAndFight: true,
     movementPoints: 10,
-    movementCosts: [0, 1, 1, 1, 1, 1, 1, 1, 1]
+    movementCosts: [0, 1, 1, 1, 1, 1, 1, 1, 1],
+    flipDefender: [false, false, false]
   }
 }

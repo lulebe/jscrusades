@@ -1,7 +1,7 @@
 import GameCanvas from './canvas.js'
 import Game from './gamedata/game.js'
 import makeAITurn from './gamedata/ai.js'
-import { UNIT_TYPES } from './gamedata/unitInfo.js'
+import { UNIT_DATA, UNIT_TYPES } from './gamedata/unitInfo.js'
 import { BUILDING } from './gamedata/mapInfo.js'
 import { playTurnMusic, playFightSound, toggleAudio } from './audio.js'
 
@@ -70,6 +70,12 @@ export function onFight (attacker, defender, attackerDamage, defenderDamage) {
   const bgd = findUnitBackground(defender.type, game.map.fields[defender.posY][defender.posX])
   document.getElementById('fight-attacker-health').innerHTML = ('' + attacker.hp + attackerDamage).padStart(2, '0')
   document.getElementById('fight-defender-health').innerHTML = ('' + defender.hp + defenderDamage).padStart(2, '0')
+  document.getElementById('fight-attacker-img').classList.remove('att-flipped')
+  if (!UNIT_DATA[attacker.type].flipDefender[attacker.faction])
+    document.getElementById('fight-attacker-img').classList.add('att-flipped')
+  document.getElementById('fight-defender-img').classList.remove('def-flipped')
+  if (UNIT_DATA[defender.type].flipDefender[defender.faction])
+    document.getElementById('fight-defender-img').classList.add('def-flipped')
   document.getElementById('fight-defender-img').src = `/static/imgs/unitThumbs/${defender.type}_${defender.faction}.png`
   document.getElementById('fight-attacker-img').src = `/static/imgs/unitThumbs/${attacker.type}_${attacker.faction}.png`
   document.getElementById('fight-attacker-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bga}.png"`

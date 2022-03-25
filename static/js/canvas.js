@@ -168,8 +168,8 @@ export default class GameCanvas {
     )
     this.#ctx.fillStyle = '#ffffff'
     this.#ctx.fillRect(
-      (unit.posX + 1) * this.#tileSize - this.#tileSize * 0.35,
-      (unit.posY + 1) * this.#tileSize - this.#tileSize * 0.26,
+      (unit.posX + 1 - 0.35) * this.#tileSize,
+      (unit.posY + 1 - 0.26) * this.#tileSize,
       this.#tileSize * 0.35,
       this.#tileSize * 0.26
     )
@@ -178,9 +178,26 @@ export default class GameCanvas {
     this.#ctx.textAlign = 'left'
     this.#ctx.fillText(
       String(unit.hp).padStart(2, '0'),
-      (unit.posX + 1) * this.#tileSize - this.#tileSize * 0.35,
-      (unit.posY + 1) * this.#tileSize - this.#tileSize * 0.035
+      (unit.posX + 1 - 0.35) * this.#tileSize,
+      (unit.posY + 1 - 0.035) * this.#tileSize
     )
+    if (unit.ammo === 1 || unit.food === 1 && unit.faction === this.game.currentTurn) { //draw warning
+      this.#ctx.fillStyle = '#ffffff'
+      this.#ctx.fillRect(
+        (unit.posX+0.03) * this.#tileSize,
+        (unit.posY+0.03) * this.#tileSize,
+        this.#tileSize * 0.12,
+        this.#tileSize * 0.23
+      )
+      this.#ctx.fillStyle = '#aa0000'
+      this.#ctx.font = `600 ${this.#tileSize*0.3}px Source Code Pro`
+      this.#ctx.textAlign = 'left'
+      this.#ctx.fillText(
+        '!',
+        (unit.posX) * this.#tileSize,
+        (unit.posY + 0.25) * this.#tileSize
+      )
+    }
     if (unit.animationEffect) {
       if (!unit.animationEffect.started) {
         unit.animationEffect.started = true

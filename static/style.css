@@ -119,6 +119,38 @@ a:not(.disabled):not([disabled]):hover {
   max-width: 70%;
 }
 
+@keyframes fight-attacker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(50px);
+  }
+}
+@keyframes fight-attacker-flip {
+  from {
+    transform: translateX(0) scaleX(-1);
+  }
+  to {
+    transform: translateX(50px) scaleX(-1);
+  }
+}
+@keyframes fight-defender {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50px);
+  }
+}
+@keyframes fight-defender-flip {
+  from {
+    transform: translateX(0) scaleX(-1);
+  }
+  to {
+    transform: translateX(-50px) scaleX(-1);
+  }
+}
 #fight {
   display: none;
   position: fixed;
@@ -130,6 +162,20 @@ a:not(.disabled):not([disabled]):hover {
 }
 #fight.visible {
   display: flex;
+}
+#fight.visible .att-flipped {
+  transform: scaleX(-1);
+  animation: fight-attacker-flip 2.4s !important;
+}
+#fight.visible #fight-attacker-img {
+  animation: fight-attacker 2.4s;
+}
+#fight.visible .def-flipped {
+  transform: scaleX(-1);
+  animation: fight-defender-flip 2.4s !important;
+}
+#fight.visible #fight-defender-img {
+  animation: fight-defender 2.4s;
 }
 #fight .unit {
   position: relative;
