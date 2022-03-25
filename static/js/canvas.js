@@ -58,7 +58,7 @@ export default class GameCanvas {
     this.#animStep = 0
     window.addEventListener('resize', () => this.recalculateCanvasSize())
     this.#initMouseEvents()
-    setInterval(() => this.#fixAnimations(), 10000)
+    this.#checkAnims()
   }
 
   loadGame (game, gameAssets) {
@@ -85,16 +85,10 @@ export default class GameCanvas {
     this.recalculateCanvasSize()
   }
   
-  drawGame (animTimestamp=null) {
+  drawGame () {
     this.#ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     this.#ctx.translate(this.#translateX, this.#translateY)
     this.#ctx.scale(this.#scale, this.#scale)
-
-    if (this.#animationsRunning) {
-      if (this.#previousAnimationTimestamp == 0) this.#previousAnimationTimestamp = animTimestamp
-      this.#animStep = animTimestamp - this.#previousAnimationTimestamp
-      this.#previousAnimationTimestamp = animTimestamp
-    }
   
     this.#drawMap()
     this.#drawFightFinding()
@@ -107,10 +101,16 @@ export default class GameCanvas {
   
     this.#ctx.scale(1.0/this.#scale, 1.0/this.#scale)
     this.#ctx.translate(-this.#translateX, -this.#translateY)
-    if (this.#animationsRunning)
-      window.requestAnimationFrame(t => this.drawGame(t))
-    else
-      this.#previousAnimationTimestamp = 0
+  }
+
+  #checkAnims (animTimestamp=null) {
+    if (!this.game) return
+    if (this.#previousAnimationTimestamp == 0) this.#previousAnimationTimestamp = animTimestamp
+    this.#animStep = animTimestamp - this.#previousAnimationTimestamp
+    this.#previousAnimationTimestamp = animTimestamp
+    const animsRunning = !!(this.game.players[1].units.find(u => !!u.animationMove || !!u.animationEffect)) | !!(this.game.players[2].units.find(u => !!u.animationMove || !!u.animationEffect))
+    if (animsRunning) this.drawGame()
+    window.requestAnimationFrame(t => this.#checkAnims(t))
   }
 
   #drawGrid () {
@@ -185,10 +185,8 @@ export default class GameCanvas {
       if (!unit.animationEffect.started) {
         unit.animationEffect.started = true
         unit.animationEffect.progress = 0
-        this.#animationsRunning++
       } else if (unit.animationEffect.progress >= 1) {
         unit.animationEffect = null
-        this.#animationsRunning--
       } else {
         this.#drawEffect(unit)
       }
@@ -201,10 +199,8 @@ export default class GameCanvas {
     .forEach(unit => {
       if (!unit.animationMove.started) {
         unit.animationMove.started = true
-        this.#animationsRunning++
       } else if (!unit.animationMove.fieldsToGoTo.length) {
         unit.animationMove = null
-        this.#animationsRunning--
         this.#drawUnit(unit)
       } else {
         this.#drawUnitAnimation(unit)
@@ -288,35 +284,6 @@ export default class GameCanvas {
     if (!isOnMap(this.#highlightedTile[0], this.#highlightedTile[1], this.game.map.sizeX, this.game.map.sizeY)) return
     this.#ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
     this.#ctx.fillRect(this.#highlightedTile[0] * this.#tileSize, this.#highlightedTile[1] * this.#tileSize, this.#tileSize, this.#tileSize)
-  }
-
-  #fixAnimations () {
-    if (!this.game) return
-    const before = this.#animationsRunning
-    this.#animationsRunning = 0
-    for (let i = 1; i <= 2; i++) {
-      this.game.players[1].units.forEach(u => {
-        if (u.animationEffect) {
-          if (u.animationEffect.progress <= 1) {
-            u.animationEffect.started = true
-            this.#animationsRunning++
-          } else {
-            u.animationEffect = null
-          }
-        }
-        if (u.animationMove) {
-          if (u.animationMove.fieldsToGoTo.length) {
-            u.animationMove.started = true
-            this.#animationsRunning++
-          } else {
-            u.animationMove = null
-          }
-        }
-      })
-    }
-    if (before != this.#animationsRunning) {
-      console.log('animFix', before - this.#animationsRunning)
-    }
   }
 
   
