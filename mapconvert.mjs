@@ -1,3 +1,8 @@
+import { mapToString } from './static/js/gamedata/mapLoader.mjs'
+
+import { writeFile } from 'fs/promises'
+
+
 const sea = 1
 const street = 6
 const ground = 2
@@ -49,6 +54,8 @@ const map_f_18 = {deckID:18,name:"f_18_20x15",bgModel:"f_18_20x15.swf",units:[],
 const map_f_19 = {deckID:19,name:"f_19_20x20",bgModel:"f_19_20x20.swf",units:[],cities:[["Village","no","sarazen_village_mc",18,17],["Village","no","crusader_village_mc",1,1],["Town","no","crusader_town_mc",5,5],["Town","no","crusader_town_mc",12,7],["Town","no","sarazen_town_mc",16,13],["Town","no","sarazen_town_mc",9,11],["Factory","no","sarazen_factory_mc",5,13],["LightFactory","no","sarazen_l-factory_mc",4,15],["Factory","no","crusader_factory_mc",15,5],["LightFactory","no","crusader_l-factory_mc",15,3],["Village","no","sarazen_village_mc",16,12],["Village","no","sarazen_village_mc",17,14],["Village","no","sarazen_village_mc",15,11],["Village","no","sarazen_village_mc",17,9],["Airport","no","sarazen_airport_mc",17,11],["Village","no","crusader_village_mc",1,10],["Village","no","crusader_village_mc",4,7],["Village","no","crusader_village_mc",4,6],["Village","no","crusader_village_mc",3,5],["Airport","no","crusader_airport_mc",2,7],["Barracks","crusader","crusader_barracks_mc",8,3],["Town","crusader","crusader_town_mc",10,2],["Town","crusader","crusader_town_mc",11,1],["Headquarter","crusader","crusader_hq_mc",8,1],["Barracks","sarazen","sarazen_barracks_mc",7,17],["Town","sarazen","sarazen_town_mc",12,16],["Town","sarazen","sarazen_town_mc",10,17],["Headquarter","sarazen","sarazen_hq_mc",9,18]],terrain:[[ground,ground,wood,wood,ground,ground,ground,hill,hill,ground,ground,ground,ground,sea,sea,ground,ground,ground,ground,ground],[ground,ground,wood,ground,ground,ground,ground,ground,hill,hill,ground,street,street,street,street,ground,ground,ground,ground,ground],[wood,wood,wood,ground,ground,ground,street,street,street,hill,street,street,sea,ground,street,street,street,street,street,ground],[wood,ground,ground,ground,ground,street,street,wood,street,street,street,ground,sea,hill,hill,hill,hill,ground,street,ground],[ground,ground,ground,ground,ground,street,ground,ground,wood,wood,ground,sea,sea,hill,street,street,street,street,street,ground],[sea,sea,ground,ground,ground,street,wood,wood,wood,wood,ground,sea,ground,street,street,wood,ground,ground,ground,ground],[ground,sea,sea,sea,sea,street,street,street,street,ground,sea,sea,ground,street,wood,ground,ground,ground,ground,ground],[ground,ground,ground,ground,sea,sea,sea,sea,street,ground,sea,street,street,street,street,street,street,street,street,ground],[ground,street,ground,street,street,street,street,street,street,sea,sea,street,ground,ground,wood,ground,ground,ground,street,ground],[ground,street,ground,street,ground,ground,ground,ground,sea,sea,ground,street,ground,ground,ground,wood,wood,wood,street,ground],[ground,street,street,street,ground,ground,ground,wood,wood,sea,ground,ground,ground,ground,wood,wood,street,street,street,ground],[ground,street,wood,wood,wood,wood,wood,wood,wood,sea,sea,wood,wood,wood,ground,wood,street,wood,wood,wood],[ground,street,ground,ground,wood,wood,ground,ground,ground,wood,sea,ground,ground,ground,ground,wood,street,ground,ground,ground],[ground,street,ground,ground,wood,hill,hill,hill,sea,sea,sea,sea,sea,sea,sea,ground,street,ground,ground,ground],[ground,street,wood,wood,wood,ground,ground,sea,sea,wood,ground,ground,ground,ground,sea,sea,street,street,street,street],[ground,street,wood,street,street,street,street,sea,hill,wood,ground,ground,ground,ground,ground,sea,sea,sea,sea,street],[ground,street,street,street,wood,ground,street,sea,hill,ground,wood,ground,ground,street,street,street,street,street,street,street],[ground,ground,ground,hill,ground,sea,street,street,hill,ground,wood,street,street,street,ground,ground,wood,wood,wood,wood],[ground,ground,hill,ground,ground,sea,ground,street,hill,wood,wood,wood,wood,street,ground,hill,wood,ground,wood,ground],[ground,hill,hill,ground,ground,sea,sea,street,street,street,street,street,street,street,hill,wood,wood,ground,ground,ground]]};
 const map_f_20 = {deckID:20,name:"f_20_30x10",bgModel:"f_20_30x10.swf",units:[],cities:[["Airport","no","sarazen_airport_mc",5,19],["Airport","no","crusader_airport_mc",3,12],["LightFactory","no","crusader_l-factory_mc",8,11],["LightFactory","no","sarazen_l-factory_mc",1,19],["Factory","no","sarazen_factory_mc",1,24],["Factory","no","crusader_factory_mc",7,7],["Village","no","sarazen_village_mc",0,22],["Village","no","crusader_village_mc",9,7],["Barracks","no","crusader_barracks_mc",2,13],["Town","no","crusader_town_mc",4,14],["Village","no","crusader_village_mc",5,13],["Village","no","crusader_village_mc",6,12],["Village","no","crusader_village_mc",7,13],["LightFactory","no","sarazen_l-factory_mc",7,16],["Town","no","sarazen_town_mc",2,18],["Village","no","sarazen_village_mc",4,18],["Village","no","sarazen_village_mc",3,17],["Village","no","sarazen_village_mc",2,17],["Barracks","sarazen","sarazen_barracks_mc",5,27],["Town","sarazen","sarazen_town_mc",6,28],["Town","sarazen","sarazen_town_mc",4,28],["Headquarter","sarazen","sarazen_hq_mc",7,26],["Barracks","crusader","crusader_barracks_mc",4,2],["Town","crusader","crusader_town_mc",2,5],["Town","crusader","crusader_town_mc",6,2],["Headquarter","crusader","crusader_hq_mc",2,3]],terrain:[[ground,ground,ground,ground,ground,street,street,street,ground,ground,ground,hill,hill,ground,ground,ground,ground,ground,hill,hill,hill,ground,ground,ground,ground,ground,ground,ground,ground,ground],[ground,ground,ground,ground,ground,street,wood,street,ground,ground,hill,hill,ground,street,street,street,street,ground,ground,street,hill,hill,ground,ground,street,street,street,street,street,ground],[ground,ground,ground,street,street,street,wood,street,ground,hill,hill,ground,street,street,ground,hill,street,street,street,street,ground,hill,hill,ground,street,wood,ground,ground,street,ground],[ground,ground,ground,street,ground,ground,wood,street,hill,hill,ground,ground,street,ground,ground,hill,ground,ground,ground,street,ground,ground,hill,hill,street,wood,wood,ground,street,ground],[ground,street,street,street,ground,wood,wood,street,ground,hill,ground,ground,street,street,street,ground,hill,ground,ground,street,ground,street,street,street,street,wood,wood,ground,street,ground],[ground,street,ground,street,street,wood,wood,street,street,street,street,ground,ground,ground,street,hill,ground,ground,ground,street,street,street,ground,hill,street,wood,street,street,street,ground],[ground,street,street,ground,street,ground,wood,street,hill,ground,street,street,street,street,street,hill,ground,ground,ground,street,ground,ground,hill,hill,street,wood,street,ground,street,ground],[ground,ground,ground,ground,street,street,wood,street,hill,hill,ground,street,ground,ground,street,street,street,street,street,street,ground,hill,hill,ground,street,wood,street,ground,ground,ground],[ground,ground,ground,ground,ground,street,street,street,hill,hill,ground,street,ground,ground,hill,ground,ground,ground,ground,ground,hill,hill,ground,ground,street,wood,street,ground,ground,ground],[ground,ground,ground,ground,ground,ground,ground,ground,ground,hill,hill,ground,ground,ground,hill,hill,ground,ground,ground,hill,hill,ground,ground,ground,street,street,street,ground,ground,ground]]};
 
+const allMaps = [map_f_1, map_f_2, map_f_3, map_f_4, map_f_5, map_f_6, map_f_7, map_f_8, map_f_9, map_f_10, map_f_11, map_f_12, map_f_13, map_f_14, map_f_15, map_f_16, map_f_17, map_f_18, map_f_19, map_f_20]
+
 function convertMap (map) {
   const data = [].concat(...map.terrain).map(terrain => ({terrain, building: 0, faction: 0, isOwned: 0}))
   const sizeX = parseInt(map.name.split('_')[2].split('x')[0])
@@ -64,4 +71,26 @@ function convertUnits (map) {
   return map.units.map(unit => ({type: UNIT_TYPES[unit[0]], faction: unit[4][0] == 'c' ? 1 : 2, x: unit[3], y: unit[2]}))
 }
 
-console.log(convertUnits(map_f_7))
+function mapToB64 (map) {
+  const data = [].concat(...map.terrain).map(terrain => ({terrain, building: 0, faction: 0, owner: 0}))
+  const sizeX = parseInt(map.name.split('_')[2].split('x')[0])
+  const sizeY = parseInt(map.name.split('_')[2].split('x')[1])
+  map.cities.forEach(city => {
+    data[city[3]*sizeX + city[4]].building = BUILDING[city[0]]
+    data[city[3]*sizeX + city[4]].faction = city[2][0] == 'c' ? 1 : 2
+    data[city[3]*sizeX + city[4]].owner = city[1][0] == 'n' ? 0 : (city[1][0] == 'c' ? 1 : 2)
+  })
+  map.units.forEach(unit => {
+    data[unit[2]*sizeX + unit[3]].unitType = UNIT_TYPES[unit[0]]
+    data[unit[2]*sizeX + unit[3]].unitFaction = unit[4][0] == 'c' ? 1 : 2
+    data[unit[2]*sizeX + unit[3]].unitHP = unit[5]
+  })
+  return {sizeX, sizeY, data: mapToString(data, sizeX, sizeY)}
+}
+
+function defaultMapConversion (map) {
+  const {sizeX, sizeY, data} = mapToB64(map)
+  return {mapNum: map.deckID, sizeX, sizeY, data}
+}
+
+writeFile('./mapData.json', JSON.stringify(allMaps.map(m => defaultMapConversion(m))))

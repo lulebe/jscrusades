@@ -58,23 +58,22 @@ function fieldsAreSame (a, b) {
   return !(Object.keys(a).some(key => a[key] !== b[key]))
 }
 
-function test () {
-  const randomField = generateRandomField()
-  const num = fieldToNum(randomField)
-  const b64 = intToBase64style(num)
-  const backNum = base64StyleToInt(b64)
-  const backField = numToField(backNum)
-  return fieldsAreSame(randomField, backField)
+export function test (cycles) {
+  for (let i = 0; i < cycles; i++) {
+    const randomField = generateRandomField()
+    if (!fieldsAreSame(randomField, numToField(base64StyleToInt(intToBase64style(fieldToNum(randomField)))))) return false
+  }
+  return true
 }
 
-function randomMap (sizeX, sizeY) {
+export function randomMap (sizeX, sizeY) {
   return Array.from(Array(sizeX * sizeY)).map(() => intToBase64style(fieldToNum(generateRandomField()))).join('')
 }
 
 export function stringToMap (str) {
-  return (str.match(/.{1,3}/g) || []).map(field => numToField(base64StyleToInt(field)))
+  return {sizeX: parseInt(str.substr(0, 2)), sizeY: parseInt(str.substr(2, 2)), data: (str.substr(4).match(/.{1,3}/g) || []).map(field => numToField(base64StyleToInt(field)))}
 }
 
-export function maptoString (m) {
-  return m.map(field => intToBase64style(fieldToNum(field))).join('')
+export function mapToString (m, sizeX, sizeY) {
+  return (''+sizeX).padStart(2, '0') + (''+sizeY).padStart(2, '0') + m.map(field => intToBase64style(fieldToNum(field))).join('')
 }
