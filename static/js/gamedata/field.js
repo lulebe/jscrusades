@@ -14,10 +14,8 @@ export default class Field {
     return BUILDING_INFO[this.building].earnings
   }
 
-  static fromText (text) {
-    const decoded = text.split(',').map(str => parseInt(str))
-    decoded[3] = decoded[3] ? decoded[2] : null
-    return new Field(...decoded)
+  static fromData (data) {
+    return new Field(data.terrain, data.building, data.buildingFaction, data.owner)
   }
 
 }

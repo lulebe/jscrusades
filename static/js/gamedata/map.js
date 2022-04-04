@@ -15,10 +15,15 @@ export default class GameMap {
     return distx + disty
   }
 
-  static fromText (text, mapNum, sizeX, sizeY) {
+  static fromData (fieldData, mapNum, sizeX, sizeY) {
     const fields = []
-    const decoded = text.split(';').map(textField => Field.fromText(textField))
-    while(decoded.length) fields.push(decoded.splice(0,sizeX))
+    let column = 0
+    for (let i = 0; i < fieldData.length; i++) {
+      if (column === 0) fields.push([])
+      fields[fields.length-1].push(Field.fromData(fieldData[i]))
+      column++
+      if (column === sizeX) column = 0
+    }
     return new GameMap(fields, mapNum, sizeX, sizeY)
   }
 

@@ -1,17 +1,19 @@
-import config from '../config.js'
 import GameMap from './map.js'
 import Game from './game.js'
-import { MAP_INFO } from './mapInfo.js'
 import GameAssets from './gameAssets.js'
 import Player from './player.js'
+import { stringToMap } from './mapLoader.js'
+import DEFAULT_MAPS from './defaultMapData.js'
+import Unit from './unit.js'
 
 export async function loadGame (gameData) {
   const mapNum = gameData.mapNum
-  const res = await fetch(config.STATIC_URL + `/mapData/map${mapNum}.txt`)
-  if (!res.ok) throw Error(response.status)
-  const map = GameMap.fromText(await res.text(), mapNum, MAP_INFO[mapNum].sizeX, MAP_INFO[mapNum].sizeY)
+  const mapData = stringToMap(DEFAULT_MAPS[mapNum].data)
+  const map = GameMap.fromData(mapData.data, mapNum, mapData.sizeX, mapData.sizeY)
   const crusaderPlayer = Player.createFromSave(gameData.crusaderPlayer, 1)
+  if (!gameData.crusaderPlayer) loadDefaultUnits(mapData, crusaderPlayer)
   const saracenPlayer = Player.createFromSave(gameData.saracenPlayer, 2)
+  if (!gameData.saracenPlayer) loadDefaultUnits(mapData, saracenPlayer)
   const game = new Game(map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, gameData.saveNum, gameData.actionCount)
   if (gameData.buildingOwners)
     gameData.buildingOwners.forEach(b => {
@@ -32,4 +34,18 @@ export function updateGame (oldGame, gameData) {
     game.map.fields[b.y][b.x].owner = b.owner
   })
   return game
+}
+
+function loadDefaultUnits (mapData, player) {
+  mapData.data.forEach((field, i) => {
+    if (field.unitType && field.unitFaction === player.faction) {
+      player.units.push(Unit.createFromSave({
+        type: field.unitType,
+        faction: field.unitFaction,
+        posX: i % mapData.sizeX,
+        posY: Math.floor(i / mapData.sizeX),
+        hp: field.unitHP
+      }))
+    }
+  })
 }

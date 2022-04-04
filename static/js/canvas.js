@@ -181,7 +181,7 @@ export default class GameCanvas {
       (unit.posX + 1 - 0.35) * this.#tileSize,
       (unit.posY + 1 - 0.035) * this.#tileSize
     )
-    if (unit.ammo === 1 || unit.ammo === 0 || unit.food <= 1 && unit.faction === this.game.currentTurn) { //draw warning
+    if (unit.ammo === 1 || unit.ammo === 0 || unit.food === 1 || unit.food === 0 && unit.faction === this.game.currentTurn) { //draw warning
       this.#ctx.fillStyle = '#ffffff'
       this.#ctx.fillRect(
         (unit.posX+0.03) * this.#tileSize,

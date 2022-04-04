@@ -10,7 +10,17 @@ export const MAP_INFO = {
   7: {mapNum: 7, sizeX: 10, sizeY: 20},
   8: {mapNum: 8, sizeX: 15, sizeY: 15},
   9: {mapNum: 9, sizeX: 15, sizeY: 15},
-  10: {mapNum: 10, sizeX: 20, sizeY: 20}
+  10: {mapNum: 10, sizeX: 20, sizeY: 20},
+  11: {mapNum: 11, sizeX: 10, sizeY: 30},
+  12: {mapNum: 12, sizeX: 20, sizeY: 15},
+  13: {mapNum: 13, sizeX: 30, sizeY: 10},
+  14: {mapNum: 14, sizeX: 15, sizeY: 20},
+  15: {mapNum: 15, sizeX: 15, sizeY: 15},
+  16: {mapNum: 16, sizeX: 10, sizeY: 10},
+  17: {mapNum: 17, sizeX: 15, sizeY: 20},
+  18: {mapNum: 18, sizeX: 20, sizeY: 15},
+  19: {mapNum: 19, sizeX: 20, sizeY: 20},
+  20: {mapNum: 20, sizeX: 30, sizeY: 10}
 }
 
 export const BUILDING = {

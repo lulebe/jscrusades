@@ -38,7 +38,7 @@ function unitInfo (unit) {
   <div class="info-table">
     <div>${LOC.WORDS.MOVEMENT_POINTS}</div>
     <div><span class="iconify-inline" data-icon="line-md:navigation-right-up" style="color: white;"></span></div>
-    <div>${unit.food > 0 ? UNIT_DATA[unit.type].movementPoints : 1}</div>
+    <div>${unit.food !== 0 ? UNIT_DATA[unit.type].movementPoints : 1}</div>
   </div>
   <div class="info-table">
     <div>${LOC.WORDS.ATTACK_DISTANCE}</div>

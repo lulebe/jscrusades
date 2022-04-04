@@ -5,7 +5,7 @@
 [{
   terrain: 1-8 (terrain type),
   building: 0-8 (building type or 0 for none),
-  faction: 0-2 (building faction, ignored when building=0),
+  buildingFaction: 0-2 (building faction, ignored when building=0),
   owner: 0-2 (building occupier faction, ignored when building=0),
   unitType: 0-13 (unit type on field or 0),
   unitFaction: 0-2 (unit faction, ignored when unitType=0),
@@ -25,14 +25,14 @@ function base64StyleToInt (str) {
 }
 
 function fieldToNum (field) {
-  return (field.terrain-1) * 9 * 2 * 3 * 14 * 2 * 13 + (field.building || 0) * 2 * 3 * 14 * 2 * 13 + ((field.faction || 1) - 1) * 3 * 14 * 2 * 13 + (field.owner || 0) * 14 * 2 * 13 + (field.unitType || 0) * 2 * 13 + ((field.unitFaction || 1) - 1) * 13 + (field.unitHP || 0)
+  return (field.terrain-1) * 9 * 2 * 3 * 14 * 2 * 13 + (field.building || 0) * 2 * 3 * 14 * 2 * 13 + ((field.buildingFaction || 1) - 1) * 3 * 14 * 2 * 13 + (field.owner || 0) * 14 * 2 * 13 + (field.unitType || 0) * 2 * 13 + ((field.unitFaction || 1) - 1) * 13 + (field.unitHP || 0)
 }
 
 function numToField (num) {
   return {
     terrain: 1 + (Math.floor(num / (9 * 2 * 3 * 14 * 2 * 13))),
     building: Math.floor(num / (2 * 3 * 14 * 2 * 13)) % 9,
-    faction: 1 + (Math.floor(num / (3 * 14 * 2 * 13)) % 2),
+    buildingFaction: 1 + (Math.floor(num / (3 * 14 * 2 * 13)) % 2),
     owner: Math.floor(num / (14 * 2 * 13)) % 3,
     unitType: Math.floor(num / (2 * 13)) % 14,
     unitFaction: 1 + (Math.floor(num / 13) % 2),
@@ -47,7 +47,7 @@ function generateRandomField () {
   return {
     terrain: 1 + Math.floor(Math.random() * 8),
     building: Math.floor(Math.random() * 9),
-    faction: 1 + Math.floor(Math.random() * 2),
+    buildingFaction: 1 + Math.floor(Math.random() * 2),
     owner: Math.floor(Math.random() * 3),
     unitType: Math.floor(Math.random() * 14),
     unitFaction: 1 + Math.floor(Math.random() * 2),
