@@ -1,4 +1,6 @@
-let compat = null;
+let compat = {
+   World: new World() // TODO
+};
 
 const AiWishlist_Max = 1000;
 let aiWishlist_counter = 0;
