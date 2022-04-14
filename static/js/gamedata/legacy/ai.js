@@ -15,6 +15,14 @@ const gameMap_marker = [];
 const gameMap_fortify = [];
 const gameMap_threat = [];
 
+const DataUnit_ProfileId_Infantry = _root.Spearman; // TODO
+
+const Unit_State_WaitingForOrder = 0;
+const Unit_State_FinishedMoving = 1; // Seems unused.
+const Unit_State_Finished = 2;
+
+const report = { human: 0, soft: 0, hard: 0, air: 0, water: 0 };
+
 // Vars which were previously global but w/o declaration
 let score = 0;
 let neighbour = 0;
@@ -212,25 +220,17 @@ function AiInfluencePrepareMap_Fight(unit) {
    }
 }
 
-// TODO clean-up done until here; continue below
+// Milestone: this is how far the first expedition made it.
 
-function AiInfluenceFinalizeMap(item)
-{
-   var _loc4_ = undefined;
-   var _loc3_ = undefined;
-   if(World.DataUnitsGetBehaviour(World.UnitsGetProfile(item)) == "FightOrMove" || World.DataUnitsGetMinRange(World.UnitsGetProfile(item)) > 1)
-   {
-      for(i in World.unitList)
-      {
-         enemy = World.unitList[i];
-         if(World.PlayerAreEnemies(enemy.getPlayer(),item.getPlayer()))
-         {
-            neighbour = 0;
-            while(neighbour < 4)
-            {
-               var _loc1_ = World.NeighboursSelect(neighbour,item.row,item.col);
-               if(_loc1_ != null)
-               {
+function AiInfluenceFinalizeMap(item) {
+   if (compat.World.DataUnitsGetBehaviour(compat.World.UnitsGetProfile(item)) == "FightOrMove" || compat.World.DataUnitsGetMinRange(compat.World.UnitsGetProfile(item)) > 1) {
+      for (let i = 0; i < compat.World.unitList.length; i++) {
+         const enemy = compat.World.unitList[i];
+         if (compat.World.PlayerAreEnemies(enemy.getPlayer(), item.getPlayer())) {
+            let neighbour = 0;
+            while (neighbour < 4) {
+               const _loc1_ = compat.World.NeighboursSelect(neighbour, item.row, item.col);
+               if(_loc1_ != null) {
                   gameMap_influence[_loc1_.row][_loc1_.col] = Ai_InvalidValue;
                }
                neighbour++;
@@ -239,54 +239,39 @@ function AiInfluenceFinalizeMap(item)
       }
    }
 }
-function AiInfluenceComputeMap(item)
-{
-   var _loc8_ = undefined;
-   var _loc7_ = undefined;
-   var _loc2_ = undefined;
-   path = 0;
-   while(path < World.rows)
-   {
-      var _loc5_ = 0;
-      while(_loc5_ < World.rows)
-      {
-         var _loc3_ = 0;
-         while(_loc3_ < World.cols)
-         {
-            if(World.IsPositionBlocked(_loc5_,_loc3_,World.UnitsGetProfile(item)) == false)
-            {
-               if(gameMap_marker[_loc5_][_loc3_] == 0)
-               {
+
+function AiInfluenceComputeMap(item) {
+   let _loc2_ = undefined; // influence
+   let path = 0; // row
+   while (path < compat.World.rows) {
+      let _loc5_ = 0; // row
+      while (_loc5_ < compat.World.rows) {
+         let _loc3_ = 0; // col
+         while (_loc3_ < compat.World.cols) {
+            if (compat.World.IsPositionBlocked(_loc5_, _loc3_, compat.World.UnitsGetProfile(item)) == false) {
+               if (gameMap_marker[_loc5_][_loc3_] == 0) {
                   _loc2_ = -1;
-                  neighbour = 0;
-                  while(neighbour < 4)
-                  {
-                     var _loc1_ = World.NeighboursSelect(neighbour,_loc5_,_loc3_);
-                     if(_loc1_ != null)
-                     {
-                        if(gameMap_marker[_loc1_.row][_loc1_.col] > 0)
-                        {
-                           if(gameMap_influence[_loc1_.row][_loc1_.col] > _loc2_)
-                           {
+                  let neighbour = 0;
+                  while (neighbour < 4) {
+                     const _loc1_ = compat.World.NeighboursSelect(neighbour, _loc5_, _loc3_);
+                     if (_loc1_ != null) {
+                        if (gameMap_marker[_loc1_.row][_loc1_.col] > 0) {
+                           if (gameMap_influence[_loc1_.row][_loc1_.col] > _loc2_) {
                               _loc2_ = gameMap_influence[_loc1_.row][_loc1_.col];
                            }
                         }
                      }
                      neighbour++;
                   }
-                  if(_loc2_ >= 0)
-                  {
-                     _loc2_ = _loc2_ - item.getMovementCost(World.map.terrain[_loc5_][_loc3_].name) * item.getMovementCost(World.map.terrain[_loc5_][_loc3_].name) * 2;
-                     if(World.map.units[_loc5_][_loc3_] != null)
-                     {
-                        var _loc6_ = World.map.units[_loc5_][_loc3_];
-                        if(World.PlayerAreFriends(_loc6_.getPlayer(),item.getPlayer()))
-                        {
+                  if (_loc2_ >= 0) {
+                     _loc2_ = _loc2_ - item.getMovementCost(compat.World.map.terrain[_loc5_][_loc3_].name) * item.getMovementCost(compat.World.map.terrain[_loc5_][_loc3_].name) * 2;
+                     if (compat.World.map.units[_loc5_][_loc3_] != null) {
+                        const _loc6_ = compat.World.map.units[_loc5_][_loc3_];
+                        if (compat.World.PlayerAreFriends(_loc6_.getPlayer(), item.getPlayer())) {
                            _loc2_ = _loc2_ - 2;
                         }
                      }
-                     if(_loc2_ >= 0)
-                     {
+                     if (_loc2_ >= 0) {
                         gameMap_influence[_loc5_][_loc3_] = _loc2_;
                      }
                   }
@@ -296,14 +281,11 @@ function AiInfluenceComputeMap(item)
          }
          _loc5_ = _loc5_ + 1;
       }
-      _loc5_ = 0;
-      while(_loc5_ < World.rows)
-      {
-         _loc3_ = 0;
-         while(_loc3_ < World.cols)
-         {
-            if(gameMap_influence[_loc5_][_loc3_] != Ai_InvalidValue && gameMap_marker[_loc5_][_loc3_] == 0)
-            {
+      _loc5_ = 0; // row
+      while (_loc5_ < compat.World.rows) {
+         _loc3_ = 0; // col
+         while (_loc3_ < compat.World.cols) {
+            if (gameMap_influence[_loc5_][_loc3_] != Ai_InvalidValue && gameMap_marker[_loc5_][_loc3_] == 0) {
                gameMap_marker[_loc5_][_loc3_] = 1;
             }
             _loc3_ = _loc3_ + 1;
@@ -312,14 +294,11 @@ function AiInfluenceComputeMap(item)
       }
       path++;
    }
-   _loc5_ = 0;
-   while(_loc5_ < World.rows)
-   {
-      _loc3_ = 0;
-      while(_loc3_ < World.cols)
-      {
-         if(gameMap_marker[_loc5_][_loc3_] == 2)
-         {
+   let _loc5_ = 0; // row
+   while (_loc5_ < compat.World.rows) {
+      let _loc3_ = 0; // col
+      while (_loc3_ < compat.World.cols) {
+         if (gameMap_marker[_loc5_][_loc3_] == 2) {
             gameMap_influence[_loc5_][_loc3_] = gameMap_influence[_loc5_][_loc3_] * 2;
          }
          _loc3_ = _loc3_ + 1;
@@ -327,188 +306,154 @@ function AiInfluenceComputeMap(item)
       _loc5_ = _loc5_ + 1;
    }
 }
-function AiInfluenceGetScoreForEnemyUnit(item, enemy)
-{
-   var _loc2_ = World.computeDamage(item,enemy);
-   var _loc1_ = World.computeDamage(enemy,item);
-   if(gameInfluence_baseBehaviour == AiInfluence_Passive)
-   {
+
+function AiInfluenceGetScoreForEnemyUnit(item, enemy) {
+   const _loc2_ = compat.World.computeDamage(item, enemy);
+   let _loc1_ = compat.World.computeDamage(enemy, item);
+   if (gameInfluence_baseBehaviour == AiInfluence_Passive) {
       _loc1_ = _loc1_ * 1.2;
    }
    return (_loc2_ - _loc1_) * 10;
 }
-function AiInfluenceGetScoreForCity(item, city)
-{
-   if(World.DataUnitsIsFlying(World.UnitsGetProfile(item)))
-   {
+
+function AiInfluenceGetScoreForCity(item, city) {
+   if (compat.World.DataUnitsIsFlying(compat.World.UnitsGetProfile(item))) {
       return Ai_InvalidValue;
    }
-   var _loc2_ = World.map.units[city.row][city.col];
-   if(_loc2_ == null && city.getPlayer() == Player_Neutral)
-   {
-      return AiInfluence_GetScoreForNeutralCity_NotOccupied(item,city);
+   const _loc2_ = compat.World.map.units[city.row][city.col]; // unit
+   if (_loc2_ == null && city.getPlayer() == null) {
+      return AiInfluence_GetScoreForNeutralCity_NotOccupied(item, city);
    }
-   if(_loc2_ != null && city.getPlayer() == Player_Neutral)
-   {
-      return AiInfluence_GetScoreForNeutralCity_Occupied(item,city,_loc2_);
+   if (_loc2_ != null && city.getPlayer() == null) {
+      return AiInfluence_GetScoreForNeutralCity_Occupied(item, city, _loc2_);
    }
-   if(_loc2_ == null && World.PlayerAreFriends(city.getPlayer(),item.getPlayer()))
-   {
-      return AiInfluence_GetScoreForFriendlyCity_NotOccupied(item,city);
+   if (_loc2_ == null && compat.World.PlayerAreFriends(city.getPlayer(), item.getPlayer())) {
+      return AiInfluence_GetScoreForFriendlyCity_NotOccupied(item, city);
    }
-   if(_loc2_ != null && World.PlayerAreFriends(city.getPlayer(),item.getPlayer()))
-   {
-      return AiInfluence_GetScoreForFriendlyCity_Occupied(item,city,_loc2_);
+   if (_loc2_ != null && compat.World.PlayerAreFriends(city.getPlayer(), item.getPlayer())) {
+      return AiInfluence_GetScoreForFriendlyCity_Occupied(item, city, _loc2_);
    }
-   if(_loc2_ == null && World.PlayerAreEnemies(city.getPlayer(),item.getPlayer()))
-   {
-      return AiInfluence_GetScoreForEnemyCity_NotOccupied(item,city);
+   if (_loc2_ == null && compat.World.PlayerAreEnemies(city.getPlayer(), item.getPlayer())) {
+      return AiInfluence_GetScoreForEnemyCity_NotOccupied(item, city);
    }
-   if(_loc2_ != null && World.PlayerAreEnemies(city.getPlayer(),item.getPlayer()))
-   {
-      return AiInfluence_GetScoreForEnemyCity_Occupied(item,city,_loc2_);
+   if (_loc2_ != null && compat.World.PlayerAreEnemies(city.getPlayer(), item.getPlayer())) {
+      return AiInfluence_GetScoreForEnemyCity_Occupied(item, city, _loc2_);
    }
    console.log("AiInfluenceGetScoreForCity() ERROR!!!");
 }
-function AiInfluenceGetScoreForTerrain(item, unit, row, col)
-{
-   if(World.DataUnitsIsFlying(World.UnitsGetProfile(item)))
-   {
+
+function AiInfluenceGetScoreForTerrain(item, unit, row, col) {
+   if (compat.World.DataUnitsIsFlying(compat.World.UnitsGetProfile(item))) {
       return 0;
    }
-   if(World.IsPositionBlocked(row,col,World.UnitsGetProfile(item)))
-   {
+   if (compat.World.IsPositionBlocked(row, col, compat.World.UnitsGetProfile(item))) {
       return Ai_InvalidValue;
    }
-   if(World.getCity(row,col) != null)
-   {
+   if (compat.World.getCity(row, col) != null) {
       return 4;
    }
-   return World.map.terrain[row][col].getDefence();
+   return compat.World.map.terrain[row][col].getDefence();
 }
-function AiInfluence_GetScoreForNeutralCity_NotOccupied(item, city)
-{
-   if(World.DataUnitsCanCaptureCity(World.UnitsGetProfile(item)))
-   {
-      return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 1.4;
+
+function AiInfluence_GetScoreForNeutralCity_NotOccupied(item, city) {
+   if(compat.World.DataUnitsCanCaptureCity(compat.World.UnitsGetProfile(item))) {
+      return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 1.4;
    }
    return Ai_InvalidValue;
 }
-function AiInfluence_GetScoreForNeutralCity_Occupied(item, city, conqueror)
-{
-   if(conqueror == item)
-   {
-      if(World.DataUnitsCanCaptureCity(World.UnitsGetProfile(conqueror)))
-      {
-         return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 2;
+
+function AiInfluence_GetScoreForNeutralCity_Occupied(item, city, conqueror) {
+   if (conqueror == item) {
+      if (compat.World.DataUnitsCanCaptureCity(compat.World.UnitsGetProfile(conqueror))) {
+         return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 2;
       }
       return Ai_InvalidValue;
    }
-   if(World.PlayerAreEnemies(conqueror.getPlayer(),item.getPlayer()))
-   {
-      return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 1.05;
+   if (compat.World.PlayerAreEnemies(conqueror.getPlayer(), item.getPlayer())) {
+      return compat.World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 1.05;
    }
-   if(World.DataUnitsCanCaptureCity(World.UnitsGetProfile(conqueror)))
-   {
+   if (compat.World.DataUnitsCanCaptureCity(compat.World.UnitsGetProfile(conqueror))) {
       return Ai_InvalidValue;
    }
-   return World.DataCitiesGetScore(World.CitiesGetProfile(city));
+   return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city));
 }
-function AiInfluence_GetScoreForFriendlyCity_NotOccupied(item, city)
-{
-   if(gameMap_fortify[city.row][city.col] > 0)
-   {
-      if(World.CitiesIsProductionFacility(city))
-      {
-         if(item.getPlayer().getGold() > World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry))
-         {
-            return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 0.3;
+
+function AiInfluence_GetScoreForFriendlyCity_NotOccupied(item, city) {
+   if (gameMap_fortify[city.row][city.col] > 0) {
+      if (compat.World.CitiesIsProductionFacility(city)) {
+         if (item.getPlayer().getGold() > compat.World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry)) {
+            return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 0.3;
          }
       }
-      return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 1.5;
+      return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 1.5;
    }
-   if(gameInfluence_baseBehaviour == AiInfluence_Aggressive)
-   {
+   if (gameInfluence_baseBehaviour == AiInfluence_Aggressive) {
       return Ai_InvalidValue;
    }
    return 20;
 }
-function AiInfluence_GetScoreForFriendlyCity_Occupied(item, city, conqueror)
-{
-   if(World.PlayerAreEnemies(conqueror.getPlayer(),item.getPlayer()))
-   {
-      if(World.DataUnitsCanCaptureCity(World.UnitsGetProfile(conqueror)))
-      {
-         return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 1.5;
+function AiInfluence_GetScoreForFriendlyCity_Occupied(item, city, conqueror) {
+   if (compat.World.PlayerAreEnemies(conqueror.getPlayer(), item.getPlayer())) {
+      if (compat.World.DataUnitsCanCaptureCity(compat.World.UnitsGetProfile(conqueror))) {
+         return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 1.5;
       }
-      return World.DataCitiesGetScore(World.CitiesGetProfile(city));
+      return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city));
    }
-   if(gameMap_fortify[city.row][city.col] > 0)
-   {
-      if(item == conqueror)
-      {
-         if(World.CitiesIsProductionFacility(city))
-         {
-            if(item.getPlayer().getGold() > World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry))
-            {
-               return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 0.3;
+   if (gameMap_fortify[city.row][city.col] > 0) {
+      if (item == conqueror) {
+         if (compat.World.CitiesIsProductionFacility(city)) {
+            if (item.getPlayer().getGold() > compat.World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry)) {
+               return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 0.3;
             }
          }
-         return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 1.5;
+         return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 1.5;
       }
       return Ai_InvalidValue;
    }
    return Ai_InvalidValue;
 }
-function AiInfluence_GetScoreForEnemyCity_NotOccupied(item, city)
-{
-   if(World.DataUnitsCanCaptureCity(World.UnitsGetProfile(item)))
-   {
-      if(gameInfluence_baseBehaviour == AiInfluence_Aggressive)
-      {
-         return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 1.1;
+
+function AiInfluence_GetScoreForEnemyCity_NotOccupied(item, city) {
+   if (compat.World.DataUnitsCanCaptureCity(compat.World.UnitsGetProfile(item))) {
+      if (gameInfluence_baseBehaviour == AiInfluence_Aggressive) {
+         return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 1.1;
       }
-      return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 0.8;
+      return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 0.8;
    }
    return Ai_InvalidValue;
 }
-function AiInfluence_GetScoreForEnemyCity_Occupied(item, city, conqueror)
-{
-   if(World.DataUnitsCanCaptureCity(World.UnitsGetProfile(item)))
-   {
-      if(gameInfluence_baseBehaviour == AiInfluence_Aggressive)
-      {
-         return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 0.5;
+
+function AiInfluence_GetScoreForEnemyCity_Occupied(item, city, conqueror) {
+   if (compat.World.DataUnitsCanCaptureCity(compat.World.UnitsGetProfile(item))) {
+      if (gameInfluence_baseBehaviour == AiInfluence_Aggressive) {
+         return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 0.5;
       }
-      return World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 0.25;
+      return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 0.25;
    }
    return Ai_InvalidValue;
 }
-function AiInfluenceClearScore()
-{
+
+function AiInfluenceClearScore() {
    gameMap_influence = [];
-   var _loc2_ = 0;
-   while(_loc2_ < World.rows)
-   {
+   let _loc2_ = 0; // row
+   while (_loc2_ < compat.World.rows) {
       gameMap_influence[_loc2_] = [];
-      var _loc1_ = 0;
-      while(_loc1_ < World.cols)
-      {
+      let _loc1_ = 0; // col
+      while (_loc1_ < compat.World.cols) {
          gameMap_influence[_loc2_][_loc1_] = Ai_InvalidValue;
          _loc1_ = _loc1_ + 1;
       }
       _loc2_ = _loc2_ + 1;
    }
 }
-function AiInfluenceClearFortify()
-{
+
+function AiInfluenceClearFortify() {
    gameMap_fortify = [];
-   var _loc2_ = 0;
-   while(_loc2_ < World.rows)
-   {
+   let _loc2_ = 0;
+   while (_loc2_ < compat.World.rows) {
       gameMap_fortify[_loc2_] = [];
-      var _loc1_ = 0;
-      while(_loc1_ < World.cols)
+      let _loc1_ = 0;
+      while(_loc1_ < compat.World.cols)
       {
          gameMap_fortify[_loc2_][_loc1_] = 0;
          _loc1_ = _loc1_ + 1;
@@ -516,71 +461,58 @@ function AiInfluenceClearFortify()
       _loc2_ = _loc2_ + 1;
    }
 }
-function AiInfluenceClearMarker()
-{
+
+function AiInfluenceClearMarker() {
    gameMap_marker = [];
-   var _loc2_ = 0;
-   while(_loc2_ < World.rows)
-   {
+   let _loc2_ = 0;
+   while (_loc2_ < compat.World.rows) {
       gameMap_marker[_loc2_] = [];
-      var _loc1_ = 0;
-      while(_loc1_ < World.cols)
-      {
+      let _loc1_ = 0;
+      while (_loc1_ < compat.World.cols) {
          gameMap_marker[_loc2_][_loc1_] = 0;
          _loc1_ = _loc1_ + 1;
       }
       _loc2_ = _loc2_ + 1;
    }
 }
-function AiInfluenceSet(row, col, influence)
-{
+
+function AiInfluenceSet(row, col, influence) {
    gameMap_influence[row][col] = influence;
 }
-function AiInfluenceClearThreat()
-{
+
+function AiInfluenceClearThreat() {
    gameMap_threat = [];
-   var _loc2_ = 0;
-   while(_loc2_ < World.rows)
-   {
+   let _loc2_ = 0;
+   while (_loc2_ < compat.World.rows) {
       gameMap_threat[_loc2_] = [];
-      var _loc1_ = 0;
-      while(_loc1_ < World.cols)
-      {
+      let _loc1_ = 0;
+      while (_loc1_ < compat.World.cols) {
          gameMap_threat[_loc2_][_loc1_] = 0;
          _loc1_ = _loc1_ + 1;
       }
       _loc2_ = _loc2_ + 1;
    }
 }
-function AiInfluenceCreateThreat(item)
-{
+function AiInfluenceCreateThreat(item) {
    AiInfluenceClearThreat();
-   var _loc6_ = item.getPlayer();
-   for(i in World.unitList)
-   {
-      var _loc1_ = World.unitList[i];
-      if(World.PlayerAreEnemies(_loc1_.getPlayer(),_loc6_))
-      {
-         var _loc3_ = World.DataUnitsGetRange(World.UnitsGetProfile(_loc1_));
-         if(_loc3_ > 1)
-         {
-            var _loc4_ = World.UnitsGetNumberOfFights(_loc1_,item,0);
-            if(_loc4_ > 1)
-            {
-               var _loc2_ = 1;
-               if(_loc4_ > 3)
-               {
+   const _loc6_ = item.getPlayer(); // player
+   for (let i = 0; i < compat.World.unitList.length; i++) {
+      const _loc1_ = compat.World.unitList[i]; // unit
+      if (compat.World.PlayerAreEnemies(_loc1_.getPlayer(), _loc6_)) {
+         const _loc3_ = compat.World.DataUnitsGetRange(compat.World.UnitsGetProfile(_loc1_));
+         if (_loc3_ > 1) {
+            const _loc4_ = compat.World.UnitsGetNumberOfFights(_loc1_, item, 0);
+            if (_loc4_ > 1) {
+               let _loc2_ = 1;
+               if (_loc4_ > 3) {
                   _loc2_ = 3;
-               }
-               else if(_loc4_ > 2)
-               {
+               } else if (_loc4_ > 2) {
                   _loc2_ = 2;
                }
-               var _loc5_ = World.DataUnitsGetMinRange(World.UnitsGetProfile(_loc1_));
-               range = _loc5_;
-               while(range < _loc3_ + 1)
-               {
-                  AiInfluenceCreateThreatRing(_loc1_.row,_loc1_.col,range,_loc2_);
+               const _loc5_ = compat.World.DataUnitsGetMinRange(compat.World.UnitsGetProfile(_loc1_));
+               let range = _loc5_;
+               while (range < _loc3_ + 1) {
+                  AiInfluenceCreateThreatRing(_loc1_.row, _loc1_.col, range, _loc2_);
                   range++;
                }
             }
@@ -588,25 +520,23 @@ function AiInfluenceCreateThreat(item)
       }
    }
 }
-function AiInfluenceCreateThreatRing(row, col, range, threat)
-{
-   var _loc1_ = {};
+
+function AiInfluenceCreateThreatRing(row, col, range, threat) {
+   let _loc1_ = {};
    _loc1_.row = row;
    _loc1_.col = col;
-   i = 0;
-   while(i < range)
-   {
-      _loc1_ = World.NeighboursSelect(3,_loc1_.row,_loc1_.col);
+   let i = 0;
+   while (i < range) {
+      // The argument 3 is potentially a bug.
+      // Why only create a threat ring to the left? (Maybe that's the strength?)
+      _loc1_ = compat.World.NeighboursSelect(3, _loc1_.row, _loc1_.col);
       i++;
    }
-   neighbour = 0;
-   while(neighbour < 4)
-   {
+   let neighbour = 0;
+   while (neighbour < 4) {
       i = 0;
-      while(i < range)
-      {
-         switch(neighbour)
-         {
+      while (i < range) {
+         switch (neighbour) {
             case 0:
                _loc1_.row = _loc1_.row - 1;
                _loc1_.col = _loc1_.col + 1;
@@ -623,8 +553,7 @@ function AiInfluenceCreateThreatRing(row, col, range, threat)
                _loc1_.col = _loc1_.col - 1;
                _loc1_.row = _loc1_.row - 1;
          }
-         if(_loc1_.row >= 0 && _loc1_.row <= World.rows && _loc1_.col >= 0 && _loc1_.col <= World.cols)
-         {
+         if (_loc1_.row >= 0 && _loc1_.row <= compat.World.rows && _loc1_.col >= 0 && _loc1_.col <= compat.World.cols) {
             gameMap_threat[_loc1_.row][_loc1_.col] = gameMap_threat[_loc1_.row][_loc1_.col] + threat;
          }
          i++;
@@ -632,27 +561,23 @@ function AiInfluenceCreateThreatRing(row, col, range, threat)
       neighbour++;
    }
 }
-function AiToolsMove(item, range)
-{
+
+function AiToolsMove(item, range) {
    console.log("AiToolsMove( " + item + ", " + range + " )");
-   World.createMovement(item,true);
-   var _loc4_ = gameMap_influence[item.row][item.col];
-   var _loc7_ = item.row;
-   var _loc6_ = item.col;
-   var _loc3_ = undefined;
-   var _loc2_ = 0;
-   while(_loc2_ < World.rows)
-   {
-      var _loc1_ = 0;
-      while(_loc1_ < World.cols)
-      {
-         if(World.map.movement[_loc2_][_loc1_] > 0 && World.map.movement[_loc2_][_loc1_] <= range)
-         {
-            if(World.map.units[_loc2_][_loc1_] == null || World.map.units[_loc2_][_loc1_] == item)
-            {
+   compat.World.createMovement(item, true);
+   let _loc4_ = gameMap_influence[item.row][item.col];
+   let _loc7_ = item.row;
+   let _loc6_ = item.col;
+   let _loc3_ = undefined;
+
+   let _loc2_ = 0; // row
+   while (_loc2_ < compat.World.rows) {
+      let _loc1_ = 0; // col
+      while (_loc1_ < compat.World.cols) {
+         if (compat.World.map.movement[_loc2_][_loc1_] > 0 && compat.World.map.movement[_loc2_][_loc1_] <= range) {
+            if (compat.World.map.units[_loc2_][_loc1_] == null || compat.World.map.units[_loc2_][_loc1_] == item) {
                _loc3_ = gameMap_influence[_loc2_][_loc1_];
-               if(_loc3_ > _loc4_)
-               {
+               if (_loc3_ > _loc4_) {
                   _loc4_ = _loc3_;
                   _loc7_ = _loc2_;
                   _loc6_ = _loc1_;
@@ -663,43 +588,37 @@ function AiToolsMove(item, range)
       }
       _loc2_ = _loc2_ + 1;
    }
-   if(World.map.units[_loc7_][_loc6_] == null)
-   {
-      World.game.Marker.setPos(_loc7_,_loc6_);
-      item.move(_loc7_,_loc6_);
+   if (compat.World.map.units[_loc7_][_loc6_] == null) {
+      compat.World.game.Marker.setPos(_loc7_, _loc6_);
+      item.move(_loc7_, _loc6_);
    }
 }
-function AiToolsBattle(item)
-{
-   World.createBattle(item);
-   console.log("BattleDescription: " + World.BattleDescription[0]);
-   var _loc1_ = AiToolsSearchBestBattleDescription(item,false);
+
+function AiToolsBattle(item) {
+   compat.World.createBattle(item);
+   console.log("BattleDescription: " + compat.World.BattleDescription[0]);
+   const _loc1_ = AiToolsSearchBestBattleDescription(item, false);
    console.log(_loc1_[0] + " " + _loc1_[1] + " " + _loc1_[2].type);
-   if(_loc1_ != null)
-   {
-      World.game.Marker.setPos(_loc1_[0],_loc1_[1]);
-      World.executeBattle(item,_loc1_[2]);
+   if (_loc1_ != null) {
+      compat.World.game.Marker.setPos(_loc1_[0], _loc1_[1]);
+      compat.World.executeBattle(item, _loc1_[2]);
       console.log(_loc1_[0] + " " + _loc1_[1] + " " + _loc1_[2].type);
-      if(World.map.units[_loc1_[0]][_loc1_[1]] == null)
-      {
+      if (compat.World.map.units[_loc1_[0]][_loc1_[1]] == null) {
          AiInfluencePrepareMap_Fortify(item.player);
       }
    }
-   World.destroyBattle();
+   compat.World.destroyBattle();
 }
-function AiToolsSearchBestUnit_GameUnitsItem(player, category)
-{
-   var _loc3_ = Ai_InvalidValue;
-   var _loc4_ = null;
-   var _loc2_ = Ai_InvalidValue;
-   for(i in World.unitList)
-   {
-      var _loc1_ = World.unitList[i];
-      if(_loc1_.player == player && _loc1_.state == _loc1_.State_WaitingForOrder && _loc1_.getTypeCat() == category)
-      {
+
+function AiToolsSearchBestUnit_GameUnitsItem(player, category) {
+   let _loc3_ = Ai_InvalidValue;
+   let _loc4_ = null;
+   let _loc2_ = Ai_InvalidValue;
+   for (let i = 0; i < compat.World.unitList.length; i++) {
+      const _loc1_ = compat.World.unitList[i];
+      if (_loc1_.player == player && _loc1_.state == Unit_State_WaitingForOrder && _loc1_.getTypeCat() == category) {
          _loc2_ = gameMap_influence[_loc1_.row][_loc1_.col];
-         if(_loc2_ > _loc3_)
-         {
+         if (_loc2_ > _loc3_) {
             _loc3_ = _loc2_;
             _loc4_ = _loc1_;
          }
@@ -707,95 +626,76 @@ function AiToolsSearchBestUnit_GameUnitsItem(player, category)
    }
    return _loc4_;
 }
-function AiToolsSearchBestBattleDescription(attacker, farRangeAttack)
-{
-   var _loc6_ = null;
-   var _loc4_ = 0;
-   var _loc1_ = 0;
-   for(i in World.BattleDescription)
-   {
-      console.log(i);
-      var _loc3_ = World.BattleDescription[i];
-      var _loc2_ = _loc3_[2];
+
+function AiToolsSearchBestBattleDescription(attacker, farRangeAttack) {
+   let _loc6_ = null;
+   let _loc4_ = 0;
+   let _loc1_ = 0;
+   for (let i = 0; i < World.BattleDescription.length; i++) {
+      const _loc3_ = World.BattleDescription[i];
+      const _loc2_ = _loc3_[2];
       console.log("defender " + _loc2_.type);
-      _loc1_ = AiInfluenceGetScoreForEnemyUnit(attacker,_loc2_) + 50;
+      _loc1_ = AiInfluenceGetScoreForEnemyUnit(attacker, _loc2_) + 50;
       console.log("score " + _loc1_);
-      if(farRangeAttack)
-      {
-         if(attacker.computeDistance(_loc2_) > 1)
-         {
+      if (farRangeAttack) {
+         if (attacker.computeDistance(_loc2_) > 1) {
             _loc1_ = _loc1_ + 500;
-         }
-         else
-         {
+         } else {
             _loc1_ = _loc1_ - 600;
          }
       }
-      if(_loc1_ > _loc4_)
-      {
+      if (_loc1_ > _loc4_) {
          _loc6_ = _loc3_;
          _loc4_ = _loc1_;
       }
    }
    return _loc6_;
 }
-function AiReportCreate_AiReportDefinition(player0, player1)
-{
-   var _loc13_ = World.UnitsCount(player0,"Human");
-   var _loc10_ = World.UnitsCount(player1,"Human");
-   var _loc2_ = _loc13_ + _loc10_;
-   var _loc16_ = World.UnitsCount(player0,"Soft");
-   var _loc15_ = World.UnitsCount(player1,"Soft");
-   var _loc4_ = _loc16_ + _loc15_;
-   var _loc8_ = World.UnitsCount(player0,"Hard");
-   var _loc17_ = World.UnitsCount(player1,"Hard");
-   var _loc6_ = _loc8_ + _loc17_;
-   var _loc11_ = World.UnitsCount(player0,"Air");
-   var _loc9_ = World.UnitsCount(player1,"Air");
-   var _loc5_ = _loc11_ + _loc9_;
-   var _loc14_ = World.UnitsCount(player0,"Water");
-   var _loc12_ = World.UnitsCount(player1,"Water");
-   var _loc7_ = _loc14_ + _loc12_;
+
+function AiReportCreate_AiReportDefinition(player0, player1) {
+   const _loc13_ = compat.World.UnitsCount(player0, "Human");
+   const _loc10_ = compat.World.UnitsCount(player1, "Human");
+   const _loc2_ = _loc13_ + _loc10_;
+   const _loc16_ = compat.World.UnitsCount(player0, "Soft");
+   const _loc15_ = compat.World.UnitsCount(player1, "Soft");
+   const _loc4_ = _loc16_ + _loc15_;
+   const _loc8_ = compat.World.UnitsCount(player0, "Hard");
+   const _loc17_ = compat.World.UnitsCount(player1, "Hard");
+   const _loc6_ = _loc8_ + _loc17_;
+   const _loc11_ = compat.World.UnitsCount(player0, "Air");
+   const _loc9_ = compat.World.UnitsCount(player1, "Air");
+   const _loc5_ = _loc11_ + _loc9_;
+   const _loc14_ = compat.World.UnitsCount(player0, "Water");
+   const _loc12_ = compat.World.UnitsCount(player1, "Water");
+   const _loc7_ = _loc14_ + _loc12_;
    report.human = 0;
    report.soft = 0;
    report.hard = 0;
    report.air = 0;
    report.water = 0;
-   if(_loc2_ != 0)
-   {
+   if (_loc2_ != 0) {
       report.human = _loc13_ * 100 / _loc2_ - _loc10_ * 100 / _loc2_;
    }
-   if(_loc4_ != 0)
-   {
+   if (_loc4_ != 0) {
       report.soft = _loc16_ * 100 / _loc4_ - _loc15_ * 100 / _loc4_;
    }
-   if(_loc6_ != 0)
-   {
+   if (_loc6_ != 0) {
       report.hard = _loc8_ * 100 / _loc6_ - _loc17_ * 100 / _loc6_;
    }
-   if(_loc5_ != 0)
-   {
+   if (_loc5_ != 0) {
       report.air = _loc11_ * 100 / _loc5_ - _loc9_ * 100 / _loc5_;
    }
-   if(_loc7_ != 0)
-   {
+   if (_loc7_ != 0) {
       report.water = _loc14_ * 100 / _loc7_ - _loc12_ * 100 / _loc7_;
    }
    return report;
 }
-function AiReportDestroy(report)
-{
-   false;
-   report = {};
-}
-function AiReportGetBalanceLevel(report, category)
-{
-   if(report == null)
-   {
+
+function AiReportGetBalanceLevel(report, category) {
+   if (report == null) {
       console.log("invalid report");
    }
-   switch(category)
-   {
+   switch(category) {
       case "Human":
          return report.human;
       case "Soft":
@@ -811,20 +711,21 @@ function AiReportGetBalanceLevel(report, category)
          console.log("unknown report category!");
    }
 }
-function AiReportHasAdvantage(player)
-{
-   var _loc1_ = World.UnitsCountEnemyHitpoints(player);
-   var _loc2_ = World.UnitsCountFriendlyHitpoints(player) * 1.1;
+
+function AiReportHasAdvantage(player) {
+   const _loc1_ = compat.World.UnitsCountEnemyHitpoints(player);
+   const _loc2_ = compat.World.UnitsCountFriendlyHitpoints(player) * 1.1;
    return _loc2_ > _loc1_;
 }
-function AiBuyUnitsCreate()
-{
+function AiBuyUnitsCreate() {
    AiWishlistCreate();
 }
-function AiBuyUnitsDestroy()
-{
+function AiBuyUnitsDestroy() {
    AiWishlistDestroy();
 }
+
+// This is where the second expedition ran out of energy bars (Apr 14, 2022).
+
 function AiBuyUnitsExecute(player)
 {
    if(player.getGold() < 10)
@@ -1082,7 +983,7 @@ function AiSystemExecute_MoveWeakUnitsStep(player)
       console.log("unit.type: " + unit.type);
       if(unit.getPlayer() == player)
       {
-         if(unit.getState() == unit.State_WaitingForOrder)
+         if(unit.getState() == Unit_State_WaitingForOrder)
          {
             var _loc2_ = false;
             if(unit.GetHitpointsInPercent() < 45)
@@ -1097,7 +998,7 @@ function AiSystemExecute_MoveWeakUnitsStep(player)
             {
                _loc2_ = true;
             }
-            if(_loc2_ && unit.getState() != unit.State_Finished)
+            if(_loc2_ && unit.getState() != Unit_State_Finished)
             {
                AiInfluencePrepareMap_Supply(unit);
                AiInfluenceComputeMap(unit);
@@ -1117,7 +1018,7 @@ function AiSystemExecute_MoveWeakUnitsWait(unit)
    if(!unit.isMoving)
    {
       clearInterval(_root.AiSystemExecute_MoveWeakUnitsINT);
-      unit.state = unit.State_Finished;
+      unit.state = Unit_State_Finished;
       UnitCounter++;
       AiSystemExecute_MoveWeakUnitsStep(unit.player);
    }
@@ -1137,7 +1038,7 @@ function AiSystemExecute_FightOrMoveUnitsStep(player)
    else
    {
       unit = World.unitList[UnitCounter];
-      if(unit.getPlayer() == player && unit.getState() == unit.State_WaitingForOrder)
+      if(unit.getPlayer() == player && unit.getState() == Unit_State_WaitingForOrder)
       {
          var _loc4_ = unit.getBehavior();
          if(_loc4_ == "FightOrMove")
@@ -1204,7 +1105,7 @@ function AiSystemExecute_StandardUnitsStep(player, score, range)
    else
    {
       unit = World.unitList[UnitCounter];
-      if(unit.getPlayer() == player && unit.getState() == unit.State_WaitingForOrder && unit.getRange() > range)
+      if(unit.getPlayer() == player && unit.getState() == Unit_State_WaitingForOrder && unit.getRange() > range)
       {
          console.log("try to fight");
          AiInfluencePrepareMap_Fight(unit);
@@ -1230,7 +1131,7 @@ function AiSystemExecute_StandardUnitsWait(unit, score, range)
    {
       var _loc3_ = unit.player;
       clearInterval(_root.AiSystemExecute_StandardUnitsINT);
-      if(unit.getState() != unit.State_Finished)
+      if(unit.getState() != Unit_State_Finished)
       {
          console.log("attack");
          AiToolsBattle(unit);
@@ -1254,7 +1155,7 @@ function AiSystemExecute_StandardUnitsAttackDone(player, score, range, unit)
    if(unit != undefined)
    {
       UnitCounter++;
-      unit.state = unit.State_Finished;
+      unit.state = Unit_State_Finished;
    }
    AiSystemExecute_StandardUnitsStep(player,score,range);
 }
@@ -1268,11 +1169,9 @@ var gameMap_influence = [];
 var gameMap_marker = [];
 var gameMap_fortify = [];
 var gameMap_threat = [];
-var Player_Neutral = null;
 var GameMovement_BlockedField = -1;
 var gameInfluence_baseBehaviour = AiInfluence_Aggressive;
 var Ai_InvalidValue = -1000;
-report = {human:0,soft:0,hard:0,air:0,water:0};
 var World;
 var AIexecutionState = 0;
 var AiSystemDone = false;
