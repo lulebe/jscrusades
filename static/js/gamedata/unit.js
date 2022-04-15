@@ -21,7 +21,7 @@ export default class Unit {
   }
 
   get isInfantry () {
-    return this.type < 5
+    return this.type < 5 || this.type === 11
   }
 
   get canMove () {
