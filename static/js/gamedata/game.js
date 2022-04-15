@@ -1,6 +1,5 @@
 import { FACTION } from './gameConstants.js'
-import { BUILDING, BUILDING_INFO, HBONUSES } from './mapInfo.js'
-import { UNIT_DATA } from './unitInfo.js'
+import { BUILDING, BUILDING_INFO, HBONUSES, UNIT_DATA } from './gameInfo.js'
 import Unit from './unit.js'
 import GameMap from './map.js'
 
@@ -16,7 +15,7 @@ export default class Game {
   #me
   #fightListener
 
-  constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum, actionCount=0) {
+  constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum, actionCount=0, turnNum=0) {
     this.map = map
     this.type = type
     this.#me = type === Game.GAME_TYPE.LOCAL_MP ? null : (myFaction || FACTION.CRUSADER)
@@ -27,6 +26,7 @@ export default class Game {
     this.finished = false
     this.#fightListener = null
     this.actionCount = actionCount
+    this.turnNum = turnNum
     this.#currentTurn = typeof currentTurn === 'number' ? currentTurn : FACTION.CRUSADER
   }
 
@@ -198,6 +198,7 @@ export default class Game {
     this.#currentTurn = this.#currentTurn === FACTION.CRUSADER ? FACTION.SARACEN : FACTION.CRUSADER
     this.#startOfTurnCalculations()
     this.actionCount++
+    this.turnNum++
     this.#saveGame()
   }
 
@@ -243,6 +244,7 @@ export default class Game {
     })
     const data = {
       version: 2,
+      turnNum: this.turnNum,
       actionCount: this.actionCount,
       time: (new Date()).toJSON(),
       mapNum: this.map.mapNum,

@@ -1,7 +1,6 @@
-import { UNIT_DATA, UNIT_TYPES } from "./unitInfo.js"
+import { UNIT_DATA, UNIT_TYPES, BUILDING_INFO, BUILDING, FIELD } from "./gameInfo.js"
 import GameMap from './map.js'
 import { FACTION } from './gameConstants.js'
-import { BUILDING_INFO, BUILDING, FIELD } from "./mapInfo.js"
 
 export default class Unit {
 

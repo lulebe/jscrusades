@@ -1,6 +1,6 @@
 import LOC from './gamedata/language.js'
-import { BUILDING_INFO, HBONUSES } from './gamedata/mapInfo.js'
-import { UNIT_DATA } from './gamedata/unitInfo.js'
+import { BUILDING_INFO, HBONUSES } from './gamedata/gameInfo.js'
+import { UNIT_DATA } from './gamedata/gameInfo.js'
 import { FACTION } from './gamedata/gameConstants.js'
 
 export function displayHoverInfo (location, game) {
