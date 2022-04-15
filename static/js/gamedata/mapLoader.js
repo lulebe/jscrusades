@@ -72,7 +72,7 @@ export function randomMap (sizeX, sizeY) {
 
 export function compressedStringToMap (strCompressed) {
   // Inverse to mapToString.
-  return stringToMap(decompress(strCompressed));
+  return decompress(strCompressed).then(stringToMap);
 }
 
 export function stringToMap (str) {
