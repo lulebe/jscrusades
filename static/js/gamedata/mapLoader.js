@@ -70,10 +70,61 @@ export function randomMap (sizeX, sizeY) {
   return Array.from(Array(sizeX * sizeY)).map(() => intToBase64style(fieldToNum(generateRandomField()))).join('')
 }
 
+export function compressedStringToMap (strCompressed) {
+  // Inverse to mapToString.
+  return stringToMap(decompress(strCompressed));
+}
+
 export function stringToMap (str) {
   return {sizeX: parseInt(str.substr(0, 2)), sizeY: parseInt(str.substr(2, 2)), data: (str.substr(4).match(/.{1,3}/g) || []).map(field => numToField(base64StyleToInt(field)))}
 }
 
 export function mapToString (m, sizeX, sizeY) {
-  return (''+sizeX).padStart(2, '0') + (''+sizeY).padStart(2, '0') + m.map(field => intToBase64style(fieldToNum(field))).join('')
+  // Converts a map into a compressed string. Inverse to compressedStringToMap.
+  const str = (''+sizeX).padStart(2, '0') + (''+sizeY).padStart(2, '0') + m.map(field => intToBase64style(fieldToNum(field))).join('')
+  return compress(str)
+}
+
+// Compression algorithm to shorten the map info in the URL
+// Functions are copied together from a bunch of SO answers
+
+// Empirically determined 'deflate' to be superior to 'gzip' with our data.
+const ENCODING = 'deflate';
+
+function compress (string) {
+  const byteArray = new TextEncoder().encode(string)
+  const compressionStream = new CompressionStream(ENCODING)
+  const writer = compressionStream.writable.getWriter()
+  writer.write(byteArray)
+  writer.close()
+  return new Response(compressionStream.readable).arrayBuffer()
+    .then(arrayBufferToBase64)
+}
+
+function decompress (string) {
+  const cs = new DecompressionStream(ENCODING)
+  const writer = cs.writable.getWriter()
+  writer.write(base64ToArrayBuffer(string))
+  writer.close()
+  return new Response(cs.readable).arrayBuffer()
+    .then(arrayBuffer => new TextDecoder().decode(arrayBuffer));
+}
+
+function arrayBufferToBase64 (buffer) {
+  let binary = ''
+  const bytes = new Uint8Array( buffer )
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+  return btoa(binary)
+}
+
+function base64ToArrayBuffer (base64) {
+  const binaryString = atob(base64)
+  const len = binaryString.length
+  const bytes = new Uint8Array(len)
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+  return bytes.buffer
 }
