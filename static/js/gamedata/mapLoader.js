@@ -76,7 +76,7 @@ export function compressedStringToMap (strCompressed) {
 }
 
 export function stringToMap (str) {
-  return {sizeX: parseInt(str.substr(0, 2)), sizeY: parseInt(str.substr(2, 2)), data: (str.substr(4).match(/.{1,3}/g) || []).map(field => numToField(base64StyleToInt(field)))}
+  return Promise.resolve({sizeX: parseInt(str.substr(0, 2)), sizeY: parseInt(str.substr(2, 2)), data: (str.substr(4).match(/.{1,3}/g) || []).map(field => numToField(base64StyleToInt(field)))})
 }
 
 export function mapToString (m, sizeX, sizeY) {
