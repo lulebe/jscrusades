@@ -6,10 +6,33 @@ let compat = {
 };
 
 export function startLegacyAi (game, endTurnCallback) {
-   initWithGame(game, endTurnCallback)
-   compat.World = new World(game)
-   AiSystemCreate()
-   AiSystemExecute(new Player(game.currentPlayer))
+   initWithGame(game, endTurnCallback);
+   compat.World = new World(game);
+   resetAllAIVars();
+   AiSystemCreate();
+   AiSystemExecute(new Player(game.currentPlayer));
+}
+
+function resetAllAIVars () {
+   aiWishlist_counter = 0;
+   aiWishlist_profiles = new Array(AiWishlist_Max);
+   AIexecutionState = 0;
+   AiSystemDone = false;
+   AiSystemMoveWeakUnitsDone = false;
+   AiSystemMoveOrFightDone = false;
+   AiSystemStandardUnitsDone = false;
+   UnitCounter = 0;
+   gameMap_influence = [];
+   gameMap_marker = [];
+   gameMap_fortify = [];
+   gameMap_threat = [];
+   report = { human: 0, soft: 0, hard: 0, air: 0, water: 0 };
+   score = 0;
+   neighbour = 0;
+   AiSystemExecuteINT = null;
+   AiSystemExecute_MoveWeakUnitsINT = null;
+   DisplayBattleINT = null;
+   AiSystemExecute_StandardUnitsINT = null;
 }
 
 
@@ -22,7 +45,7 @@ const UnitDataObjects = new Array(13).fill(0).map((_, i) => new Profile(i + 1));
 
 const AiWishlist_Max = 1000;
 let aiWishlist_counter = 0;
-const aiWishlist_profiles = new Array(AiWishlist_Max);
+let aiWishlist_profiles = new Array(AiWishlist_Max);
 
 const AiInfluence_Aggressive = 0;
 const AiInfluence_Passive = 1;
@@ -42,10 +65,10 @@ let UnitCounter = 0;
 const Ai_InvalidValue = -1000;
 const GameMovement_BlockedField = -1;
 
-const gameMap_influence = [];
-const gameMap_marker = [];
-const gameMap_fortify = [];
-const gameMap_threat = [];
+let gameMap_influence = [];
+let gameMap_marker = [];
+let gameMap_fortify = [];
+let gameMap_threat = [];
 
 const DataUnit_ProfileId_Infantry = new Profile(2);
 
@@ -53,7 +76,7 @@ const Unit_State_WaitingForOrder = 0;
 const Unit_State_FinishedMoving = 1; // Seems unused.
 const Unit_State_Finished = 2;
 
-const report = { human: 0, soft: 0, hard: 0, air: 0, water: 0 };
+let report = { human: 0, soft: 0, hard: 0, air: 0, water: 0 };
 
 // Vars which were previously global but w/o declaration
 let score = 0;
