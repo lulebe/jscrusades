@@ -144,6 +144,7 @@ export class World {
 
   createMovement(unit, enemyUnitsAreBlocking) {
     // fill map.movement 2D array (same size as map) with movementPoints left as value, but if (val > 0) val += 1, for whatever reason
+    this.clearMovementMap()
     const pathfindResult = unit.base.pathfind(this.game.base, enemyUnitsAreBlocking)
     pathfindResult.forEach(res => {
       this.map.movement[res.y][res.x] = res.left > 0 ? res.left + 1 : 0
@@ -412,6 +413,7 @@ export class Unit {
 
   move(row, col) {
     const option = this.base.pathfind(baseGame).find(p => p.x === col && p.y === row)
+    console.log("try move", this, row, col)
     if (!option) throw new Error("Unit can't move to requested field");
     this.base.move(col, row, option.path, baseGame)
   }
