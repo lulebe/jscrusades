@@ -1,16 +1,28 @@
-import { initWithGame, World, Player, Profile, AI_STEP_TYPE } from './compat.js'
+import { initWithGame, World, Player, Profile } from './compat.js'
 
 
 const compat = {
    World: null
 };
 
+export const AI_STEP_TYPE = {
+   END_TURN: 0,
+   NOTHING: 1,
+   RECRUIT: 2,
+   MOVE: 3,
+   ATTACK: 4
+ }
+
 export function startLegacyAi (game, endTurnCallback) {
    initWithGame(game, endTurnCallback);
    compat.World = new World(game);
+   const aiPlayer = new Player(game.currentPlayer)
    resetAllAIVars();
    AiSystemCreate();
-   AiSystemExecute(new Player(game.currentPlayer));
+   AiSystemExecute();
+   return () => {
+      return AiSystemExecuteStep(aiPlayer)
+   }
 }
 
 function resetAllAIVars () {
@@ -22,6 +34,7 @@ function resetAllAIVars () {
    AiSystemMoveOrFightDone = false;
    AiSystemStandardUnitsDone = false;
    UnitCounter = 0;
+   StandardUnitMoving = true;
    gameMap_influence = [];
    gameMap_marker = [];
    gameMap_fortify = [];
@@ -61,6 +74,7 @@ let AiSystemMoveOrFightDone = false;
 let AiSystemStandardUnitsDone = false;
 
 let UnitCounter = 0;
+let StandardUnitMoving = true;
 
 const Ai_InvalidValue = -1000;
 const GameMovement_BlockedField = -1;
@@ -659,6 +673,7 @@ function AiToolsMove(item, range) {
 }
 
 function AiToolsBattle(item) {
+   let didFight = false
    compat.World.createBattle(item);
    console.log("BattleDescription: " + compat.World.BattleDescription[0]);
    const _loc1_ = AiToolsSearchBestBattleDescription(item, false);
@@ -667,12 +682,14 @@ function AiToolsBattle(item) {
    if (_loc1_ != null) {
       compat.World.game.Marker.setPos(_loc1_[0], _loc1_[1]);
       compat.World.executeBattle(item, _loc1_[2]);
+      didFight = true;
       console.log(_loc1_[0] + " " + _loc1_[1] + " " + _loc1_[2].type);
       if (compat.World.map.units[_loc1_[0]][_loc1_[1]] == null) {
          AiInfluencePrepareMap_Fortify(item.player);
       }
    }
    compat.World.destroyBattle();
+   return didFight
 }
 
 function AiToolsSearchBestUnit_GameUnitsItem(player, category) {
@@ -792,8 +809,9 @@ function AiBuyUnitsDestroy() {
 // This is where the second expedition ran out of energy bars (Apr 14, 2022).
 
 function AiBuyUnitsExecute(player) {
+   let boughtUnit = false
    if (player.getGold() < 10) {
-      return;
+      return boughtUnit;
    }
    AiWishlistReset();
    if (compat.World.CitiesCanProduceUnit(player, "Human")) {
@@ -801,13 +819,15 @@ function AiBuyUnitsExecute(player) {
       const _loc7_ = compat.World.UnitsCount(player, "Human");
       if (_loc9_ > _loc7_) {
          AiBuyUnitsAddToWishlist(player, "Human");
-         AiBuyUnitsFromWishlist("rule1", player);
-         return;
+         let boughtNow = AiBuyUnitsFromWishlist("rule1", player);
+         boughtUnit = boughtUnit || boughtNow;
+         return boughtUnit;
       }
       const _loc8_ = compat.World.CitiesCountOccupied(player, "Town");
       if (_loc8_ > _loc7_) {
          AiBuyUnitsAddToWishlist(player, "Human");
-         AiBuyUnitsFromWishlist("rule2", player);
+         let boughtNow = AiBuyUnitsFromWishlist("rule2", player);
+         boughtUnit = boughtUnit || boughtNow;
       }
    }
    let catCount = 0;
@@ -837,10 +857,11 @@ function AiBuyUnitsExecute(player) {
       catCount++;
    }
    if (AiWishlistIsEmpty() == false) {
-      AiBuyUnitsFromWishlist("rule3", player);
-      return;
+      boughtNow = AiBuyUnitsFromWishlist("rule3", player);
+      boughtUnit = boughtUnit || boughtNow;
+      return boughtUnit;
    }
-   if (player.getGold() > 60 || myRnd(0, 100) > 80){
+   if (player.getGold() > 60 || myRnd(0, 100) > 80) {
       let profCount = 0;
       while (profCount < UnitDataObjects.length) {
          const _loc3_ = UnitDataObjects[profCount];
@@ -857,13 +878,15 @@ function AiBuyUnitsExecute(player) {
          }
          profCount++;
       }
-      AiBuyUnitsFromWishlist("rule4", player);
+      let boughtNow = AiBuyUnitsFromWishlist("rule4", player);
+      boughtUnit = boughtUnit || boughtNow;
    }
+   return boughtUnit;
 }
 
 function AiBuyUnitsFromWishlist(rule, player) {
    if (AiWishlistIsEmpty()) {
-      return;
+      return false;
    }
    const _loc3_ = AiWishlistGetRandomProfile(); // profile
    for (let i = 0; i < compat.World.cityList.length; i++) {
@@ -873,10 +896,11 @@ function AiBuyUnitsFromWishlist(rule, player) {
          if (_loc1_.type == _loc2_ && compat.World.map.units[_loc1_.row][_loc1_.col] == null) {
             compat.World.game.Marker.setPos(_loc1_.row ,_loc1_.col);
             player.buyUnit(_loc3_.name, _loc1_.row, _loc1_.col);
-            return;
+            return true;
          }
       }
    }
+   return false;
 }
 
 function AiBuyUnitsAddToWishlist(player, category) {
@@ -914,150 +938,163 @@ function AiSystemDestroy() {
    AiBuyUnitsDestroy();
 }
 
-function AiSystemExecute(player) {
-   // TODO check if necessary, following vars never used before
-   /**
-    * AiSystemExecute()
-    * while (AiSystemExecuteStep()) {
-    *    delay();
-    * }
-    */
+function AiSystemExecute() {
    AIexecutionState = 0;
    AiSystemDone = false;
-   AiSystemExecuteINT = setInterval(AiSystemExecuteStep, 500, player);
 }
 
 function AiSystemExecuteStep(player) {
-   let returnValue = AI_STEP_TYPE.NOTHING
+   let boughtUnits = false
    switch (AIexecutionState) {
       case 0:
-         AiBuyUnitsExecute(player);
-         AiSystemExecute_BehaviourHandling(player);
-         AiSystemExecute_MoveWeakUnits(player);
-         break;
+         boughtUnits = AiBuyUnitsExecute(player);
+         AIexecutionState = 1;
+         return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
       case 1:
-         if (!AiSystemMoveWeakUnitsDone) {
-            return returnValue;
-         }
-         AiInfluencePrepareMap_Fortify(player);
-         AiSystemExecute_FightOrMoveUnits(player);
-         break;
-      case 2:
-         if (!AiSystemMoveOrFightDone) {
-            return returnValue;
-         }
-         AiSystemExecute_StandardUnits(player, 10, 1);
-         break;
-      case 3:
-         if(!AiSystemStandardUnitsDone) {
-            return returnValue;
-         }
-         AiBuyUnitsExecute(player);
-         AiSystemExecute_StandardUnits(player, 100, 0);
-         break;
-      case 4:
-         if (!AiSystemStandardUnitsDone) {
-            return returnValue;
-         }
-         AiSystemExecute_StandardUnits(player, 60, 0);
-         break;
+         UnitCounter = 0;
+         AiSystemMoveWeakUnitsDone = false;
+         AIexecutionState = 5;
+         return AI_STEP_TYPE.NOTHING;
       case 5:
-         if(!AiSystemStandardUnitsDone) {
-            return returnValue;
+         if (AiSystemMoveWeakUnitsDone) {
+            AIexecutionState = 10;
+            return AI_STEP_TYPE.NOTHING
          }
-         AiBuyUnitsExecute(player);
-         AiSystemExecute_BehaviourHandling(player);
-         AiSystemExecute_StandardUnits(player, 30, 0);
-         break;
-      case 6:
-         if(!AiSystemStandardUnitsDone) {
-            return returnValue;
+         return AiSystemExecute_MoveWeakUnitsStep(player) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+      case 10:
+         AiInfluencePrepareMap_Fortify(player);
+         UnitCounter = 0;
+         AiSystemMoveOrFightDone = false;
+         AIexecutionState = 11;
+         return AI_STEP_TYPE.NOTHING;
+      case 11:
+         if (AiSystemMoveOrFightDone) {
+            AIexecutionState = 20;
+            return AI_STEP_TYPE.NOTHING;
          }
-         AiBuyUnitsExecute(player);
-         AiSystemExecute_StandardUnits(player, Ai_InvalidValue, 0);
-         break;
-      case 7:
-         if (!AiSystemStandardUnitsDone) {
-            return returnValue;
+         return AiSystemExecute_FightOrMoveUnitsStep(player) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 20:
+         UnitCounter = 0;
+         AiSystemStandardUnitsDone = false;
+         StandardUnitMoving = true;
+         AIexecutionState = 21;
+      case 21:
+         if (AiSystemStandardUnitsDone) {
+            AIexecutionState = 30;
+            return AI_STEP_TYPE.NOTHING;
          }
-         AiBuyUnitsExecute(player);
-         clearInterval(AiSystemExecuteINT);
+         if (StandardUnitMoving)
+            return AiSystemExecute_StandardUnitsStep(player, 10, 1) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+         else
+            return AiSystemExecute_StandardUnitsWait(player, 10, 1) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 30:
+         boughtUnits = AiBuyUnitsExecute(player);
+         AiSystemStandardUnitsDone = false;
+         StandardUnitMoving = true;
+         AIexecutionState = 31;
+         return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
+      case 31:
+         if (AiSystemStandardUnitsDone) {
+            AIexecutionState = 40;
+            return AI_STEP_TYPE.NOTHING;
+         }
+         if (StandardUnitMoving)
+            return AiSystemExecute_StandardUnitsStep(player, 100, 0) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+         else
+            return AiSystemExecute_StandardUnitsWait(player, 100, 0) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 40:
+         AiSystemStandardUnitsDone = false;
+         StandardUnitMoving = true;
+         AIexecutionState = 41;
+         return AI_STEP_TYPE.NOTHING;
+      case 41:
+         if (AiSystemStandardUnitsDone) {
+            AIexecutionState = 50;
+            return AI_STEP_TYPE.NOTHING;
+         }
+         if (StandardUnitMoving)
+            return AiSystemExecute_StandardUnitsStep(player, 60, 0) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+         else
+            return AiSystemExecute_StandardUnitsWait(player, 60, 0) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 50:
+         boughtUnits = AiBuyUnitsExecute(player);
+         AiSystemStandardUnitsDone = false;
+         StandardUnitMoving = true;
+         AIexecutionState = 51;
+         return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
+      case 51:
+         if (AiSystemStandardUnitsDone) {
+            AIexecutionState = 60;
+            return AI_STEP_TYPE.NOTHING;
+         }
+         if (StandardUnitMoving)
+            return AiSystemExecute_StandardUnitsStep(player, 30, 0) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+         else
+            return AiSystemExecute_StandardUnitsWait(player, 30, 0) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 60:
+         boughtUnits = AiBuyUnitsExecute(player);
+         AiSystemStandardUnitsDone = false;
+         StandardUnitMoving = true;
+         AIexecutionState = 61;
+         return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
+      case 61:
+         if (AiSystemStandardUnitsDone) {
+            AIexecutionState = 70;
+            return AI_STEP_TYPE.NOTHING;
+         }
+         if (StandardUnitMoving)
+            return AiSystemExecute_StandardUnitsStep(player, Ai_InvalidValue, 0) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+         else
+            return AiSystemExecute_StandardUnitsWait(player, Ai_InvalidValue, 0) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 70:
+         boughtUnits = AiBuyUnitsExecute(player);
+         AIexecutionState = 71;
+         return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
+      case 71:
          AiSystemDone = true;
-         returnValue = AI_STEP_TYPE.END_TURN
-         compat.World.game.nextTurn();
-         break;
-      default:
-         console.log("AIexecutionState ERROR!");
+         AiSystemDestroy();
+         return AI_STEP_TYPE.END_TURN;
    }
    AIexecutionState++;
-   return returnValue
-}
-
-function AiSystemExecute_BehaviourHandling(player) {
-   if (AiReportHasAdvantage(player)) {
-      AiInfluenceSetBaseBehaviour(AiInfluence_Aggressive);
-   } else {
-      AiInfluenceSetBaseBehaviour(AiInfluence_Passive);
-   }
-}
-
-function AiSystemExecute_MoveWeakUnits(player) {
-   UnitCounter = 0;
-   AiSystemMoveWeakUnitsDone = false;
-   AiSystemExecute_MoveWeakUnitsStep(player);
+   return AI_STEP_TYPE.NOTHING
 }
 
 function AiSystemExecute_MoveWeakUnitsStep(player) {
    if (UnitCounter >= compat.World.unitList.length) {
       AiSystemMoveWeakUnitsDone = true;
-   } else {
-      const unit = compat.World.unitList[UnitCounter];
-      console.log("unit.type: " + unit.type);
-      if (unit.getPlayer().equals(player)) {
-         if (unit.getState() == Unit_State_WaitingForOrder) {
-            let _loc2_ = false;
-            if (unit.GetHitpointsInPercent() < 45) {
-               _loc2_ = true;
-            }
-            if (unit.GetAmmoInPercent() < 25) {
-               _loc2_ = true;
-            }
-            if (unit.GetFuelInPercent() < 25) {
-               _loc2_ = true;
-            }
-            if (_loc2_ && unit.getState() != Unit_State_Finished) {
-               AiInfluencePrepareMap_Supply(unit);
-               AiInfluenceComputeMap(unit);
-               AiInfluenceFinalizeMap(unit);
-               AiToolsMove(unit, unit.getMovement());
-               // TODO transfer to executeStep/outside, see function below
-               AiSystemExecute_MoveWeakUnitsINT = setInterval(AiSystemExecute_MoveWeakUnitsWait, 500, unit);
-               return;
-            }
+      return false;
+   }
+   const unit = compat.World.unitList[UnitCounter];
+   console.log("unit.type: " + unit.type);
+   if (unit.getPlayer().equals(player)) {
+      if (unit.getState() == Unit_State_WaitingForOrder) {
+         let _loc2_ = false;
+         if (unit.GetHitpointsInPercent() < 45) {
+            _loc2_ = true;
+         }
+         if (unit.GetAmmoInPercent() < 25) {
+            _loc2_ = true;
+         }
+         if (unit.GetFuelInPercent() < 25) {
+            _loc2_ = true;
+         }
+         if (_loc2_ && unit.getState() != Unit_State_Finished) {
+            AiInfluencePrepareMap_Supply(unit);
+            AiInfluenceComputeMap(unit);
+            AiInfluenceFinalizeMap(unit);
+            AiToolsMove(unit, unit.getMovement());
+            unit.state = Unit_State_Finished;
+            UnitCounter++;
+            return true;
          }
       }
-      UnitCounter++;
-      AiSystemExecute_MoveWeakUnitsStep(player);
    }
-}
-
-function AiSystemExecute_MoveWeakUnitsWait(unit) {
-   // TODO not an AI task; remove
-   if (!unit.isMoving) {
-      clearInterval(AiSystemExecute_MoveWeakUnitsINT);
-      unit.state = Unit_State_Finished;
-      UnitCounter++;
-      AiSystemExecute_MoveWeakUnitsStep(unit.player);
-   }
-}
-
-function AiSystemExecute_FightOrMoveUnits(player) {
-   UnitCounter = 0;
-   AiSystemMoveOrFightDone = false;
-   AiSystemExecute_FightOrMoveUnitsStep(player);
+   UnitCounter++;
+   return false;
 }
 
 function AiSystemExecute_FightOrMoveUnitsStep(player) {
+   let didFight = false;
    if (UnitCounter >= compat.World.unitList.length) {
       AiSystemMoveOrFightDone = true;
    } else {
@@ -1070,17 +1107,16 @@ function AiSystemExecute_FightOrMoveUnitsStep(player) {
             if (_loc3_ != null) {
                if (compat.World.CitiesIsProductionFacility(_loc3_)) {
                   if (player.getGold() > compat.World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry)) {
-                     AiToolsBattle(unit);
-                     // TODO: move to execute step (long term)
-                     DisplayBattleINT = setTimeout(AiSystemExecute_FightOrMoveUnitsStepDone, 4000, player, unit);
-                     return;
+                     didFight = AiToolsBattle(unit);
+                     if (unit.hp) {
+                        UnitCounter++;
+                     }
+                     return didFight;
                   }
                }
             }
-            AiToolsBattle(unit);
-            // TODO: move to execute step (long term)
-            DisplayBattleINT = setTimeout(AiSystemExecute_FightOrMoveUnitsStepDone, 4000, player, unit);
-            return;
+            didFight = AiToolsBattle(unit);
+            return didFight;
          }
       }
       UnitCounter++;
@@ -1088,67 +1124,42 @@ function AiSystemExecute_FightOrMoveUnitsStep(player) {
    }
 }
 
-function AiSystemExecute_FightOrMoveUnitsStepDone(player, unit) {
-   if (unit != undefined) {
-      UnitCounter++;
-   }
-   AiSystemExecute_FightOrMoveUnitsStep(player);
-}
-
-function AiSystemExecute_StandardUnits(player, score, range) {
-   console.log("AiSystemExecute_StandardUnits()");
-   UnitCounter = 0;
-   AiSystemStandardUnitsDone = false;
-   AiSystemExecute_StandardUnitsStep(player, score, range);
-}
-
 function AiSystemExecute_StandardUnitsStep(player, score, range) {
    if (UnitCounter >= compat.World.unitList.length) {
       AiSystemStandardUnitsDone = true;
+      return false;
    }
-   else {
-      const unit = compat.World.unitList[UnitCounter];
-      if (unit.getPlayer().equals(player) && unit.getState() == Unit_State_WaitingForOrder && unit.getRange() > range) {
-         console.log("try to fight");
-         AiInfluencePrepareMap_Fight(unit);
-         AiInfluenceComputeMap(unit);
-         AiInfluenceFinalizeMap(unit);
-         const _loc2_ = gameMap_influence[unit.row][unit.col];
-         console.log("influence = " + _loc2_);
-         console.log("score = " + score);
-         if (_loc2_ >= score) {
-            AiToolsMove(unit, unit.getMovement());
-            // TODO: remove interval
-            AiSystemExecute_StandardUnitsINT = setInterval(AiSystemExecute_StandardUnitsWait, 500, unit, score, range);
-            return;
-         }
+   const unit = compat.World.unitList[UnitCounter];
+   if (unit.getPlayer().equals(player) && unit.getState() == Unit_State_WaitingForOrder && unit.getRange() > range) {
+      console.log("try to fight");
+      AiInfluencePrepareMap_Fight(unit);
+      AiInfluenceComputeMap(unit);
+      AiInfluenceFinalizeMap(unit);
+      const _loc2_ = gameMap_influence[unit.row][unit.col];
+      console.log("influence = " + _loc2_);
+      console.log("score = " + score);
+      if (_loc2_ >= score) {
+         AiToolsMove(unit, unit.getMovement());
+         StandardUnitMoving = false;
+         return true;
       }
-      UnitCounter++;
-      AiSystemExecute_StandardUnitsStep(player, score, range);
    }
+   UnitCounter++;
+   return false;
 }
 
-function AiSystemExecute_StandardUnitsWait(unit, score, range) {
-   if (!unit.isMoving) {
-      var _loc3_ = unit.player;
-      // TODO: remove interval
-      clearInterval(AiSystemExecute_StandardUnitsINT);
-      if (unit.getState() != Unit_State_Finished) {
-         console.log("attack");
-         AiToolsBattle(unit);
-         // TODO: remove interval
-         DisplayBattleINT = setTimeout(AiSystemExecute_StandardUnitsAttackDone, 4000, _loc3_, score, range, unit);
-         return;
+function AiSystemExecute_StandardUnitsWait(player, score, range) {
+   StandardUnitMoving = true;
+   const unit = compat.World.unitList[UnitCounter];
+   if (unit.getState() != Unit_State_Finished) {
+      console.log("attack");
+      AiToolsBattle(unit);
+      if (unit.hp) {
+         UnitCounter++;
+         unit.state = Unit_State_Finished;
       }
-      UnitCounter++;
-      AiSystemExecute_StandardUnitsStep(_loc3_, score, range);
+      return true;
    }
-}
-
-function AiSystemExecute_StandardUnitsAttackDone(player, score, range, unit) {
-   if (unit) {
-      UnitCounter++;
-      unit.state = Unit_State_Finished;
-   }
-   AiSystemExecute_StandardUnitsStep(player, score, range);
+   UnitCounter++;
+   return false;
 }
