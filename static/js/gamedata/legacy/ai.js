@@ -18,6 +18,7 @@ export function startLegacyAi (game, endTurnCallback) {
 // modofied old AI code
 //---------------------
 
+const UnitDataObjects = new Array(13).fill(0).map((_, i) => new Profile(i + 1));
 
 const AiWishlist_Max = 1000;
 let aiWishlist_counter = 0;
@@ -59,6 +60,7 @@ let score = 0;
 let neighbour = 0;
 
 // intervals
+let AiSystemExecuteINT = null;
 let AiSystemExecute_MoveWeakUnitsINT = null;
 let DisplayBattleINT = null;
 let AiSystemExecute_StandardUnitsINT = null;
@@ -787,9 +789,8 @@ function AiBuyUnitsExecute(player) {
       const _loc5_ = compat.World.UnitsCountCounterHitpoints(player, _loc4_);
       if (_loc5_ < _loc6_) {
          let profCount = 0;
-         // TODO UnitDataObjects
-         while (profCount < _root.UnitDataObjects.length) {
-            const _loc3_ = _root.UnitDataObjects[profCount];
+         while (profCount < UnitDataObjects.length) {
+            const _loc3_ = UnitDataObjects[profCount];
             if (_loc3_) {
                if (compat.World.DataUnitsGetPrice(_loc3_) < player.getGold() && compat.World.DataUnitsGetQuality(_loc3_) > 0) {
                   if (compat.World.CitiesCanProduceUnit(player, _loc3_.type)) {
@@ -812,9 +813,8 @@ function AiBuyUnitsExecute(player) {
    }
    if (player.getGold() > 60 || myRnd(0, 100) > 80){
       let profCount = 0;
-      // TODO pull the roots out (but keep the professor)
-      while (profCount < _root.UnitDataObjects.length) {
-         const _loc3_ = _root.UnitDataObjects[profCount];
+      while (profCount < UnitDataObjects.length) {
+         const _loc3_ = UnitDataObjects[profCount];
          if (_loc3_) {
             if (compat.World.DataUnitsGetPrice(_loc3_) < player.getGold()) {
                if (World.CitiesCanProduceUnit(player, _loc3_)) {
@@ -857,8 +857,8 @@ function AiBuyUnitsAddToWishlist(player, category) {
    }
    let profCount = 0;
    // TODO pull the roots out
-   while (profCount < _root.UnitDataObjects.length) {
-      var _loc2_ = _root.UnitDataObjects[profCount];
+   while (profCount < UnitDataObjects.length) {
+      var _loc2_ = UnitDataObjects[profCount];
       if (_loc2_) {
          if (compat.World.DataUnitsGetCategory(_loc2_) == category && compat.World.DataUnitsGetPrice(_loc2_) < player.getGold()) {
             let quality = 1;
@@ -896,7 +896,7 @@ function AiSystemExecute(player) {
     */
    AIexecutionState = 0;
    AiSystemDone = false;
-   _root.AiSystemExecuteINT = setInterval(AiSystemExecuteStep, 500, player);
+   AiSystemExecuteINT = setInterval(AiSystemExecuteStep, 500, player);
 }
 
 function AiSystemExecuteStep(player) {
@@ -954,7 +954,7 @@ function AiSystemExecuteStep(player) {
          }
          AiBuyUnitsExecute(player);
          // TODO return value should signal not to call ExecuteStep again
-         clearInterval(_root.AiSystemExecuteINT);
+         clearInterval(AiSystemExecuteINT);
          AiSystemDone = true;
          returnValue = AI_STEP_TYPE.END_TURN
          // TODO probably remove next line
