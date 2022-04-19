@@ -32,6 +32,11 @@ export default class Unit {
     return !this.didFight && (!this.didMove || UNIT_DATA[this.type].moveAndFight)
   }
 
+  get movementPoints () {
+    if (this.food !== 0) return UNIT_DATA[this.type].movementPoints
+    return 1
+  }
+
   heal () {
     if (this.hp == UNIT_DATA[this.type].hp) return
     this.hp++
@@ -39,7 +44,6 @@ export default class Unit {
   }
 
   resupply () {
-    //TODO how does this work? refill all at once or one per round?
     this.ammo = UNIT_DATA[this.type].ammo
     this.food = UNIT_DATA[this.type].food
     this.startEffectAnimation()
@@ -53,10 +57,8 @@ export default class Unit {
     if (this.didMove) return []
     const fieldsToCalculate = [Math.round(this.posX + this.posY*game.map.sizeX)]
     const pathFindMap = [...Array(game.map.sizeY)].map(x=>Array(game.map.sizeX))
-    pathFindMap[this.posY][this.posX] = {left: UNIT_DATA[this.type].movementPoints, path: [], canStop: false}
-    let firstCheck = true
-    while (fieldsToCalculate.length && (firstCheck || this.food)) {
-      firstCheck = false
+    pathFindMap[this.posY][this.posX] = {left: this.movementPoints, path: [], canStop: false}
+    while (fieldsToCalculate.length) {
       const intField = fieldsToCalculate.pop()
       const fieldY = Math.floor(intField / game.map.sizeX)
       const fieldX = intField % game.map.sizeX
