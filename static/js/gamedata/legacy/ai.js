@@ -1,7 +1,7 @@
 import { initWithGame, World, Player, Profile, AI_STEP_TYPE } from './compat.js'
 
 
-let compat = {
+const compat = {
    World: null
 };
 
