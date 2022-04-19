@@ -48,7 +48,7 @@ audios.turnMusic.forEach(audio => {
 
 export function playTurnMusic () {
   if (turnPlaying) {
-    if (song.currentTime < 60) return
+    if (turnPlaying.currentTime < 60) return
     turnPlaying.pause()
   }
   const song = pickTurnMusic()
