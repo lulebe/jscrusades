@@ -1,4 +1,5 @@
-import { UNIT_DATA, UNIT_TYPES } from "../gameInfo.js"
+import { AI_DEFENCE, BUILDING_INFO, HBONUSES, UNIT_DATA, UNIT_TYPES } from "../gameInfo.js"
+import GameMap from '../map.js'
 
 const profileNames = {
   Guard: UNIT_TYPES.GUARD,
@@ -14,6 +15,14 @@ const profileNames = {
   HeavyCavalry: UNIT_TYPES.HEAVY_KAV,
   Ship: UNIT_TYPES.SHIP,
   FlyingUnit: UNIT_TYPES.AIR
+}
+
+const attackStrengthIndices = {
+  Human: 1,
+  Soft: 5,
+  Hard: 8,
+  Water: 12,
+  Air: 13
 }
 
 let baseGame = null
@@ -96,12 +105,12 @@ export class World {
   }
 
   DataUnitsGetAttackStrengthAgainstCategory(profile, unitCategory) {
-    throw new Error();
+    return UNIT_DATA[profile.typeNum].attackNumberOfFights[attackStrengthIndices[unitCategory]]
   }
 
   DataUnitsGetBehaviour(profile) {
     // All possible return values: "FightOrMove", "FightAndMove".
-    throw new Error();
+    return UNIT_DATA[profile.typeNum].moveAndFight ? "FightAndMove" : "FightOrMove"
   }
 
   DataUnitsGetCategory(profile) {
@@ -109,7 +118,7 @@ export class World {
   }
 
   DataUnitsGetPrice(profile) {
-    throw new Error();
+    return UNIT_DATA[profile.typeNum].price
   }
 
   DataUnitsGetProduction(profile) {
@@ -237,7 +246,7 @@ export class Unit {
   }
 
   getBehaviour() {
-    throw new Error(); // "FightOrMove" ...
+    return UNIT_DATA[this.base.type].moveAndFight ? "FightAndMove" : "FightOrMove"
   }
 
   GetAmmoInPercent() {
@@ -257,8 +266,8 @@ export class Unit {
     throw new Error();
   }
 
-  getMovementCost(terrainName) { // terrainName = Terrain.name
-    throw new Error();
+  getMovementCost(terrainType) { // used to be terrainName = Terrain.name, but changed to typeNum for easier usage
+    return UNIT_DATA[this.base.type].movementCosts[terrainType]
   }
   
   getPlayer() {
@@ -266,7 +275,7 @@ export class Unit {
   }
 
   getRange() {
-    throw new Error(); // return .range of unit profile
+    return UNIT_DATA[this.base.type].maxAttackDistance
   }
 
   getState() {
@@ -275,7 +284,7 @@ export class Unit {
 
   getTypeCat() {
     // TODO return type ("Human", "Hard", "Soft", "Water", "Air")
-    throw new Error(); 
+    return UNIT_DATA[this.base.type].legacy.type
   }
 
   move(row, col) {
@@ -284,7 +293,7 @@ export class Unit {
 
   computeDistance(unit) {
     // distance in fields for fights
-    throw new Error();
+    return GameMap.getDistance(this.base.posX, this.base.posY, unit.base.posX, unit.base.posY)
   }
 }
 
@@ -310,13 +319,16 @@ export class Player {
     return this.#base.money
   }
 
-  buyUnit(profileName, row, col) {
-    // profileName is profile.name string
-    baseGame.recruit(profileNames[profileName], col, row)
+  buyUnit(profileType, row, col) {
+    baseGame.recruit(profileType, col, row)
   }
 }
 
 export class Profile { // represents UNIT_DATA item in LuLeBe Version
+
+  get name () {
+    return this.typeNum // potential issue because original getter would return profile name as string like "Spearman"
+  }
 
   get type () {
     return UNIT_DATA[this.typeNum].legacy.type
@@ -341,10 +353,11 @@ export class Profile { // represents UNIT_DATA item in LuLeBe Version
 
 export class City {
 
-  constructor(x, y, ownerFaction) {
+  constructor(x, y, ownerFaction, type) {
     this.row = y
     this.col = x
     this.ownerFaction = ownerFaction
+    this.type = type
   }
   
   getPlayer() {
@@ -353,21 +366,42 @@ export class City {
 }
 
 export class CityProfile {
-  name
-  aiScore
+  get name () {
+    throw new Error() //should never be accessed afaik, so throw to check that
+  }
+
+  get aiScore () {
+    return BUILDING_INFO[this.typeNum].aiScore
+  }
+
+  constructor (typeNum) {
+    this.typeNum = typeNum
+  }
 }
 
 export class Coord {
-  row
-  col
+  constructor (row, col) {
+    this.row = row
+    this.col = col
+  }
 }
 
 export class Terrain {
-  hb_bonus
-  name // "ground", "street", "wood", "hill", "river", "sea", "hedgerows", "swamp"
+
+  get name () {
+    return this.type // used to be name but changed to type (only used in Unit.getMovementCost) for easier usage
+  }
+
+  get hb_bonus () {
+    return HBONUSES[this.type]
+  }
   
   getDefence() {
-    throw new Error();
+    return AI_DEFENCE[this.type]
+  }
+
+  constructor (typeNum) {
+    this.type = typeNum
   }
 }
 
@@ -389,4 +423,6 @@ export class Marker {
   setPos(row, col) {
     console.log(`Marker Pos (y/x): ${row}/${col}`)
   }
+
+  constructor() {}
 }

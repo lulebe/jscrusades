@@ -29,7 +29,7 @@ const gameMap_marker = [];
 const gameMap_fortify = [];
 const gameMap_threat = [];
 
-const DataUnit_ProfileId_Infantry = _root.Spearman; // TODO
+const DataUnit_ProfileId_Infantry = _root.Spearman; // TODO replace with Spearman Profile
 
 const Unit_State_WaitingForOrder = 0;
 const Unit_State_FinishedMoving = 1; // Seems unused.

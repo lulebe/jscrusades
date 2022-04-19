@@ -83,9 +83,10 @@ export class World {
     throw new Error();
   }
 
-  DataUnitsGetProduction(profile: Profile): string {
+  DataUnitsGetProduction(profile: Profile): number {
     // Was originally used as `_loc2_.name`;
-    // we simplified to returning the name of the building that produces the unit directly.
+    // we simplified to returning the typeNum of the building that produces the unit directly.
+     // needs to be same as City.type for comparison
     throw new Error();
   }
 
@@ -203,7 +204,7 @@ export class Unit {
     throw new Error();
   }
 
-  getMovementCost(terrainName: string): number { // terrainName = Terrain.name
+  getMovementCost(terrainType: number): number { // terrainName = Terrain.name, replaced by terrainType to fit to base game data
     throw new Error();
   }
   
@@ -248,14 +249,15 @@ export class Player {
     throw new Error();
   }
 
-  buyUnit(profileName: string, row: number, col: number): void {
-    // profileName is profile.name string
+  buyUnit(profileType: number, row: number, col: number): void {
+    // profileType used to be profileName (profile.name string)
     throw new Error();
   }
 }
 
 export class Profile { // represents UNIT_DATA item in LuLeBe Version
   type: string = "" // "Air", "Human", "Soft", "Hard", "Water"...
+  name: number = 0 // replaced with type, used to be string like "Spearman" for Player.buyUnit (also replaced with type)
   behaviour // unknown type
   minRange: number = 0
   range: number = 0
@@ -264,6 +266,7 @@ export class Profile { // represents UNIT_DATA item in LuLeBe Version
 export class City {
   row: number
   col: number
+  type: number // needs to be same as return of World.DataUnitsGetProduction for comparison
   
   getPlayer(): Player | null {
     throw new Error();
@@ -283,7 +286,8 @@ export class Coord {
 
 export class Terrain {
   hb_bonus: number
-  name: string // "ground", "street", "wood", "hill", "river", "sea", "hedgerows", "swamp"
+  //name: string // "ground", "street", "wood", "hill", "river", "sea", "hedgerows", "swamp"
+  name: number// instead of name, only used in Unit.getMovementCost
   
   getDefence(): number {
     throw new Error();

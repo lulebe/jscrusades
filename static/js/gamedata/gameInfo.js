@@ -73,54 +73,74 @@ export const HBONUSES = [
   0
 ]
 
+export const AI_DEFENCE = [
+  0,
+  0,
+  2,
+  3,
+  4,
+  5,
+  1,
+  0,
+  0
+]
+
 export const BUILDING_INFO = {
   1: {
     recruitable: [],
     supports: [],
     earnings: 1,
-    battleBonus: 1
+    battleBonus: 1,
+    aiScore: 70
   },
   2: {
     recruitable: [],
     supports: [U.GUARD, U.SPEAR, U.SWORD, U.ARCHER, U.LIGHT_KAV, U.ARCHER_KAV, U.HEAVY_KAV, U.CATAPULT, U.BALLISTA, U.TREBUCHET, U.TOWER],
     earnings: 4,
-    battleBonus: 3
+    battleBonus: 3,
+    aiScore: 101
   },
   3: {
     recruitable: [],
     supports: [U.GUARD, U.SPEAR, U.SWORD, U.ARCHER, U.LIGHT_KAV, U.ARCHER_KAV, U.HEAVY_KAV, U.CATAPULT, U.BALLISTA, U.TREBUCHET, U.TOWER, U.AIR],
     earnings: 2,
-    battleBonus: 1
+    battleBonus: 1,
+    aiScore: 300
   },
   4: {
     recruitable: [U.GUARD, U.SPEAR, U.SWORD, U.ARCHER],
     supports: [],
     earnings: 0,
-    battleBonus: 2
+    battleBonus: 2,
+    aiScore: 100
   },
   5: {
     recruitable: [U.LIGHT_KAV, U.ARCHER_KAV, U.HEAVY_KAV],
     supports: [],
     earnings: 0,
-    battleBonus: 2
+    battleBonus: 2,
+    aiScore: 100
   },
   6: {
     recruitable: [U.CATAPULT, U.BALLISTA, U.TREBUCHET, U.TOWER],
     supports: [],
     earnings: 0,
-    battleBonus: 2
+    battleBonus: 2,
+    aiScore: 100
   },
   7: {
     recruitable: [U.SHIP],
     supports: [U.SHIP],
     earnings: 0,
-    battleBonus: 2
+    battleBonus: 2,
+    aiScore: 100
   },
   8: {
     recruitable: [U.AIR],
     supports: [U.AIR],
     earnings: 0,
-    battleBonus: 2
+    battleBonus: 2,
+    aiScore: 100
   }
 }
 
