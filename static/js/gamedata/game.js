@@ -203,6 +203,7 @@ export default class Game {
 
   #startOfTurnCalculations () {
     //conquer buildings & heal/resupply units
+    this.currentPlayer.units.forEach(unit => this.#resupplyUnit(unit))
     this.currentPlayer.units.forEach(unit => {
       unit.didMove = false
       unit.didFight = false
@@ -218,9 +219,8 @@ export default class Game {
             this.finished = true
           }
         }
-      } else if (unitField.owner === this.#currentTurn && BUILDING_INFO[unitField.building].supports.includes(unit.type)) { //heal & resupply
+      } else if (unitField.owner === this.#currentTurn && BUILDING_INFO[unitField.building].supports.includes(unit.type)) { //heal
         unit.heal()
-        unit.resupply()
       }
     })
     //earn money
@@ -231,6 +231,22 @@ export default class Game {
       }, 0)
     }, 0)
     this.currentPlayer.money += earnings
+  }
+
+  #resupplyUnit(unit) {
+    const fields = [{x: unit.posX, y: unit.posY}]
+    if (unit.posX > 0) fields.push({x: unit.posX - 1, y: unit.posY})
+    if (unit.posY > 0) fields.push({x: unit.posX, y: unit.posY - 1})
+    if (unit.posX < (this.map.sizeX - 1)) fields.push({x: unit.posX + 1, y: unit.posY})
+    if (unit.posY < (this.map.sizeY - 1)) fields.push({x: unit.posX, y: unit.posY + 1})
+    fields.some(f => this.#resupplyOnField(unit, f.x, f.y))
+  }
+
+  #resupplyOnField(unit, x, y) {
+    if (!this.map.fields[y][x].building || this.map.fields[y][x].owner !== this.#currentTurn) return false
+    if (!BUILDING_INFO[unitField.building].supports.includes(unit.type)) return false
+    unit.resupply()
+    return true
   }
 
   serialize () {
