@@ -184,6 +184,10 @@ export class Unit {
 
   isMoving: boolean
 
+  row: number
+
+  col: number
+
   getBehaviour(): string {
     throw new Error(); // "FightOrMove" ...
   }

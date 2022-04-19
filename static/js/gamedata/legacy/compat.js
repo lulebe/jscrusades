@@ -78,15 +78,15 @@ export class World {
 
   constructor(baseGame) {
     this.game = new Game(baseGame)
-    this.map = new AiMap(game.map)
-    this.rows = game.map.sizeY
-    this.cols = game.map.sizeX
+    this.map = new AiMap(baseGame.map)
+    this.rows = baseGame.map.sizeY
+    this.cols = baseGame.map.sizeX
   }
 
   CitiesCanProduceUnit(player, unitCategory) {
     // unitCategory is "Human"...
     return this.cityList.some(c => {
-      if (c.ownerFaction === player.base.faction && BUILDING_INFO[c.type].recruits.includes(unitCategoryExamples[unitCategory])) return true
+      if (c.ownerFaction === player.base.faction && BUILDING_INFO[c.type].recruitable.includes(unitCategoryExamples[unitCategory])) return true
       return false
     })
   }
@@ -119,7 +119,7 @@ export class World {
   }
 
   CitiesIsProductionFacility(city) {
-    return !!BUILDING_INFO[city.type].recruits.length
+    return !!BUILDING_INFO[city.type].recruitable.length
   }
 
   clearMovementMap() {
@@ -139,14 +139,14 @@ export class World {
   createBattle(unit) {
     // creates BattleDescription array
     this.destroyBattle()
-    this.BattleDescription = unit.base.fightfind().map(u => ([u.posY, u.posX, new Unit(u)]))
+    this.BattleDescription = unit.base.fightfind(this.game.base).map(u => ([u.posY, u.posX, new Unit(u)]))
   }
 
   createMovement(unit, enemyUnitsAreBlocking) {
     // fill map.movement 2D array (same size as map) with movementPoints left as value, but if (val > 0) val += 1, for whatever reason
     const pathfindResult = unit.base.pathfind(this.game.base, enemyUnitsAreBlocking)
     pathfindResult.forEach(res => {
-      this.map.movement[res.y][res.x] = left > 0 ? left + 1 : 0
+      this.map.movement[res.y][res.x] = res.left > 0 ? res.left + 1 : 0
     })
   }
 
@@ -316,6 +316,14 @@ export class AiMap {
  */
 export class Unit {
 
+  get row () {
+    return this.base.posY
+  }
+
+  get col () {
+    return this.base.posX
+  }
+
   get player () {
     return new Player(baseGame.players[this.base.faction])
   }
@@ -325,6 +333,22 @@ export class Unit {
     if (this.base.canMove) return 0
     if (this.base.canFight) return 1
     return 2
+  }
+
+  set state (val) {
+    switch (val) {
+      case 0:
+        this.base.didFight = false
+        this.base.didMove = false
+        break
+      case 1:
+        this.base.didFight = false
+        this.base.didMove = true
+        break;
+      case 2:
+        this.base.didFight = true
+        this.base.didMove = true
+    }
   }
 
   get type () { // unit name
@@ -343,7 +367,7 @@ export class Unit {
     return this.base === unit.base
   }
 
-  getBehaviour() {
+  getBehavior() {
     return UNIT_DATA[this.base.type].moveAndFight ? "FightAndMove" : "FightOrMove"
   }
 
@@ -417,7 +441,7 @@ export class Player {
   }
   
   getGold() {
-    return this.#base.money
+    return this.base.money
   }
 
   buyUnit(profileType, row, col) {
@@ -466,7 +490,7 @@ export class City {
   }
   
   getPlayer() {
-    return baseGame.players[this.ownerFaction]
+    return new Player(baseGame.players[this.ownerFaction])
   }
 }
 

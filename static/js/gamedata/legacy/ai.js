@@ -342,7 +342,7 @@ function AiInfluenceComputeMap(item) {
       }
       _loc5_ = 0; // row
       while (_loc5_ < compat.World.rows) {
-         _loc3_ = 0; // col
+         let _loc3_ = 0; // col
          while (_loc3_ < compat.World.cols) {
             if (gameMap_influence[_loc5_][_loc3_] != Ai_InvalidValue && gameMap_marker[_loc5_][_loc3_] == 0) {
                gameMap_marker[_loc5_][_loc3_] = 1;
@@ -429,7 +429,7 @@ function AiInfluence_GetScoreForNeutralCity_Occupied(item, city, conqueror) {
       return Ai_InvalidValue;
    }
    if (compat.World.PlayerAreEnemies(conqueror.getPlayer(), item.getPlayer())) {
-      return compat.World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 1.05;
+      return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 1.05;
    }
    if (compat.World.DataUnitsCanCaptureCity(compat.World.UnitsGetProfile(conqueror))) {
       return Ai_InvalidValue;
@@ -657,7 +657,8 @@ function AiToolsBattle(item) {
    compat.World.createBattle(item);
    console.log("BattleDescription: " + compat.World.BattleDescription[0]);
    const _loc1_ = AiToolsSearchBestBattleDescription(item, false);
-   console.log(_loc1_[0] + " " + _loc1_[1] + " " + _loc1_[2].type);
+   // accesses nullable before null-check:
+   //console.log(_loc1_[0] + " " + _loc1_[1] + " " + _loc1_[2].type);
    if (_loc1_ != null) {
       compat.World.game.Marker.setPos(_loc1_[0], _loc1_[1]);
       compat.World.executeBattle(item, _loc1_[2]);
@@ -690,8 +691,8 @@ function AiToolsSearchBestBattleDescription(attacker, farRangeAttack) {
    let _loc6_ = null;
    let _loc4_ = 0;
    let _loc1_ = 0;
-   for (let i = 0; i < World.BattleDescription.length; i++) {
-      const _loc3_ = World.BattleDescription[i];
+   for (let i = 0; i < compat.World.BattleDescription.length; i++) {
+      const _loc3_ = compat.World.BattleDescription[i];
       const _loc2_ = _loc3_[2];
       console.log("defender " + _loc2_.type);
       _loc1_ = AiInfluenceGetScoreForEnemyUnit(attacker, _loc2_) + 50;
@@ -840,9 +841,9 @@ function AiBuyUnitsExecute(player) {
          const _loc3_ = UnitDataObjects[profCount];
          if (_loc3_) {
             if (compat.World.DataUnitsGetPrice(_loc3_) < player.getGold()) {
-               if (World.CitiesCanProduceUnit(player, _loc3_)) {
+               if (compat.World.CitiesCanProduceUnit(player, _loc3_)) {
                   let quality = 1;
-                  while (quality < World.DataUnitsGetQuality(_loc3_)) {
+                  while (quality < compat.World.DataUnitsGetQuality(_loc3_)) {
                      AiWishlistAdd(_loc3_);
                      quality++;
                   }
@@ -862,7 +863,7 @@ function AiBuyUnitsFromWishlist(rule, player) {
    const _loc3_ = AiWishlistGetRandomProfile(); // profile
    for (let i = 0; i < compat.World.cityList.length; i++) {
       const _loc1_ = compat.World.cityList[i];
-      if (_loc1_.getPlayer().equals(player)) {
+      if (_loc1_.getPlayer() && _loc1_.getPlayer().equals(player)) {
          const _loc2_ = compat.World.DataUnitsGetProduction(_loc3_);
          if (_loc1_.type == _loc2_ && compat.World.map.units[_loc1_.row][_loc1_.col] == null) {
             compat.World.game.Marker.setPos(_loc1_.row ,_loc1_.col);
@@ -922,7 +923,7 @@ function AiSystemExecute(player) {
 }
 
 function AiSystemExecuteStep(player) {
-   const returnValue = AI_STEP_TYPE.NOTHING
+   let returnValue = AI_STEP_TYPE.NOTHING
    switch (AIexecutionState) {
       case 0:
          AiBuyUnitsExecute(player);
@@ -978,7 +979,7 @@ function AiSystemExecuteStep(player) {
          clearInterval(AiSystemExecuteINT);
          AiSystemDone = true;
          returnValue = AI_STEP_TYPE.END_TURN
-         World.game.nextTurn();
+         compat.World.game.nextTurn();
          break;
       default:
          console.log("AIexecutionState ERROR!");
