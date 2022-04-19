@@ -413,7 +413,6 @@ export class Unit {
 
   move(row, col) {
     const option = this.base.pathfind(baseGame).find(p => p.x === col && p.y === row)
-    console.log("try move", this, row, col)
     if (!option) throw new Error("Unit can't move to requested field");
     this.base.move(col, row, option.path, baseGame)
   }
