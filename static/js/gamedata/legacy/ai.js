@@ -588,7 +588,12 @@ function AiInfluenceCreateThreatRing(row, col, range, threat) {
    while (i < range) {
       // The argument 3 is potentially a bug.
       // Why only create a threat ring to the left? (Maybe that's the strength?)
-      _loc1_ = compat.World.NeighboursSelect(3, _loc1_.row, _loc1_.col);
+      // CODE CHANGED
+      // _loc1_ = compat.World.NeighboursSelect(3, _loc1_.row, _loc1_.col);
+      let temp = compat.World.NeighboursSelect(3, _loc1_.row, _loc1_.col);
+      if (temp != null)
+      _loc1_ = temp
+      // END OF CHANGE
       i++;
    }
    let neighbour = 0;
