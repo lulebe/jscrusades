@@ -1,6 +1,23 @@
+import { initWithGame, World, Player, Profile, AI_STEP_TYPE } from './compat.js'
+
+
 let compat = {
-   World: new World() // TODO
+   World: null
 };
+
+export function startLegacyAi (game, endTurnCallback) {
+   initWithGame(game, endTurnCallback)
+   compat.World = new World(game)
+   AiSystemCreate()
+   AiSystemExecute(new Player(game.currentPlayer))
+}
+
+
+
+//---------------------
+// modofied old AI code
+//---------------------
+
 
 const AiWishlist_Max = 1000;
 let aiWishlist_counter = 0;
@@ -29,7 +46,7 @@ const gameMap_marker = [];
 const gameMap_fortify = [];
 const gameMap_threat = [];
 
-const DataUnit_ProfileId_Infantry = _root.Spearman; // TODO replace with Spearman Profile
+const DataUnit_ProfileId_Infantry = new Profile(2);
 
 const Unit_State_WaitingForOrder = 0;
 const Unit_State_FinishedMoving = 1; // Seems unused.
@@ -68,8 +85,6 @@ function AiWishlistReset() {
 }
 
 function AiWishlistAdd(profile) {
-   // TODO (?) param unclear; dtype is wishlist_profiles' content
-   // dtype can likely be ignored
    if (aiWishlist_counter >= AiWishlist_Max) {
       console.log("list full!");
    } else {
@@ -861,10 +876,8 @@ function myRnd(min, max) {
    return min + Math.floor(Math.random() * (max + 1 - min));
 }
 
-function AiSystemCreate(world) {
-   // World is never used because of compat.World, so implement something to make sure compat is current
+function AiSystemCreate() {
    console.log("AiSystemCreate( world )");
-   World = world;
    AiBuyUnitsCreate();
 }
 
@@ -887,6 +900,7 @@ function AiSystemExecute(player) {
 }
 
 function AiSystemExecuteStep(player) {
+   const returnValue = AI_STEP_TYPE.NOTHING
    switch (AIexecutionState) {
       case 0:
          AiBuyUnitsExecute(player);
@@ -895,33 +909,33 @@ function AiSystemExecuteStep(player) {
          break;
       case 1:
          if (!AiSystemMoveWeakUnitsDone) {
-            return;
+            return returnValue;
          }
          AiInfluencePrepareMap_Fortify(player);
          AiSystemExecute_FightOrMoveUnits(player);
          break;
       case 2:
          if (!AiSystemMoveOrFightDone) {
-            return;
+            return returnValue;
          }
          AiSystemExecute_StandardUnits(player, 10, 1);
          break;
       case 3:
          if(!AiSystemStandardUnitsDone) {
-            return;
+            return returnValue;
          }
          AiBuyUnitsExecute(player);
          AiSystemExecute_StandardUnits(player, 100, 0);
          break;
       case 4:
          if (!AiSystemStandardUnitsDone) {
-            return;
+            return returnValue;
          }
          AiSystemExecute_StandardUnits(player, 60, 0);
          break;
       case 5:
          if(!AiSystemStandardUnitsDone) {
-            return;
+            return returnValue;
          }
          AiBuyUnitsExecute(player);
          AiSystemExecute_BehaviourHandling(player);
@@ -929,19 +943,20 @@ function AiSystemExecuteStep(player) {
          break;
       case 6:
          if(!AiSystemStandardUnitsDone) {
-            return;
+            return returnValue;
          }
          AiBuyUnitsExecute(player);
          AiSystemExecute_StandardUnits(player, Ai_InvalidValue, 0);
          break;
       case 7:
          if (!AiSystemStandardUnitsDone) {
-            return;
+            return returnValue;
          }
          AiBuyUnitsExecute(player);
          // TODO return value should signal not to call ExecuteStep again
          clearInterval(_root.AiSystemExecuteINT);
          AiSystemDone = true;
+         returnValue = AI_STEP_TYPE.END_TURN
          // TODO probably remove next line
          World.game.nextTurn();
          break;
@@ -949,6 +964,7 @@ function AiSystemExecuteStep(player) {
          console.log("AIexecutionState ERROR!");
    }
    AIexecutionState++;
+   return returnValue
 }
 
 function AiSystemExecute_BehaviourHandling(player) {

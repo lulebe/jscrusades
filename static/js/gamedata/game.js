@@ -87,7 +87,7 @@ export default class Game {
     let attackerInitiative = UNIT_DATA[attacker.type].initiative
     let defenderInitiative = UNIT_DATA[defender.type].initiative
     if(GameMap.getDistance(attacker.posX, attacker.posY, defender.posX, defender.posY) > 1) { //Distance attack, attacker will not get hurt
-      defenderDamage = this.#computeDamage(attacker,defender)
+      defenderDamage = this.computeDamage(attacker,defender)
       if (attacker.ammo > 0)
           attacker.ammo--
       defender.changeHP(-defenderDamage, this)
@@ -98,8 +98,8 @@ export default class Game {
       //depending on initiative, one starts the fight first or both at the same time
       //lower initiative starts the fight (what?!)
       if(attackerInitiative === defenderInitiative) {
-        defenderDamage = this.#computeDamage(attacker,defender)
-        attackerDamage = this.#computeDamage(defender,attacker)
+        defenderDamage = this.computeDamage(attacker,defender)
+        attackerDamage = this.computeDamage(defender,attacker)
         if (attacker.ammo > 0)
           attacker.ammo--
         if (defender.ammo > 0)
@@ -107,23 +107,23 @@ export default class Game {
         defender.changeHP(-defenderDamage, this)
         attacker.changeHP(-attackerDamage, this)
       } else if(attackerInitiative < defenderInitiative) {
-        defenderDamage = this.#computeDamage(attacker,defender)
+        defenderDamage = this.computeDamage(attacker,defender)
         if (attacker.ammo > 0)
           attacker.ammo--
         defender.changeHP(-defenderDamage, this)
         if(defender.hp > 0) {
-          attackerDamage = this.#computeDamage(defender,attacker)
+          attackerDamage = this.computeDamage(defender,attacker)
           if (defender.ammo > 0)
             defender.ammo--
           attacker.changeHP(-attackerDamage, this)
         }
       } else if(attackerInitiative > defenderInitiative) {
-        attackerDamage = this.#computeDamage(defender,attacker)
+        attackerDamage = this.computeDamage(defender,attacker)
         if (defender.ammo > 0)
           defender.ammo--
         attacker.changeHP(-attackerDamage, this)
         if(attacker.hp > 0) {
-          defenderDamage = this.#computeDamage(attacker,defender)
+          defenderDamage = this.computeDamage(attacker,defender)
           if (attacker.ammo > 0)
             attacker.ammo--
           defender.changeHP(-defenderDamage, this)
@@ -137,7 +137,7 @@ export default class Game {
       this.#fightListener(attacker, defender, attackerDamage, defenderDamage)
   }
 
-  #computeDamage (attacker, defender) {
+  computeDamage (attacker, defender) {
     let damage = 0
     const distance = GameMap.getDistance(attacker.posX, attacker.posY, defender.posX, defender.posY)
     for (let i = 0; i < 6; i++) {

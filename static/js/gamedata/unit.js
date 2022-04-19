@@ -53,7 +53,7 @@ export default class Unit {
     this.animationEffect = {started: false, progress: 0}
   }
 
-  pathfind (game) {
+  pathfind (game, enemiesBlock=true) {
     if (this.didMove) return []
     const fieldsToCalculate = [Math.round(this.posX + this.posY*game.map.sizeX)]
     const pathFindMap = [...Array(game.map.sizeY)].map(x=>Array(game.map.sizeX))
@@ -64,10 +64,10 @@ export default class Unit {
       const intField = fieldsToCalculate.pop()
       const fieldY = Math.floor(intField / game.map.sizeX)
       const fieldX = intField % game.map.sizeX
-      if (fieldX < game.map.sizeX-1) this.#pathfindToField(fieldX, fieldY, fieldX+1, fieldY, game, pathFindMap, fieldsToCalculate)
-      if (fieldY < game.map.sizeY-1) this.#pathfindToField(fieldX, fieldY, fieldX, fieldY+1, game, pathFindMap, fieldsToCalculate)
-      if (fieldX > 0) this.#pathfindToField(fieldX, fieldY, fieldX-1, fieldY, game, pathFindMap, fieldsToCalculate)
-      if (fieldY > 0) this.#pathfindToField(fieldX, fieldY, fieldX, fieldY-1, game, pathFindMap, fieldsToCalculate)
+      if (fieldX < game.map.sizeX-1) this.#pathfindToField(fieldX, fieldY, fieldX+1, fieldY, game, pathFindMap, fieldsToCalculate, enemiesBlock)
+      if (fieldY < game.map.sizeY-1) this.#pathfindToField(fieldX, fieldY, fieldX, fieldY+1, game, pathFindMap, fieldsToCalculate, enemiesBlock)
+      if (fieldX > 0) this.#pathfindToField(fieldX, fieldY, fieldX-1, fieldY, game, pathFindMap, fieldsToCalculate, enemiesBlock)
+      if (fieldY > 0) this.#pathfindToField(fieldX, fieldY, fieldX, fieldY-1, game, pathFindMap, fieldsToCalculate, enemiesBlock)
     }
     const pathFindFields = []
     pathFindMap.forEach((row, y) => {
@@ -81,7 +81,7 @@ export default class Unit {
     return pathFindFields
   }
 
-  #pathfindToField (fromX, fromY, toX, toY, game, pathFindMap, fieldsToCalculate) {
+  #pathfindToField (fromX, fromY, toX, toY, game, pathFindMap, fieldsToCalculate, enemiesBlock=true) {
     let cost = UNIT_DATA[this.type].movementCosts[game.map.fields[toY][toX].terrain]
     if (game.map.fields[toY][toX].building === BUILDING.HARBOUR) cost = UNIT_DATA[this.type].movementCosts[FIELD.SOIL]
     if (cost === -1) return
@@ -89,7 +89,7 @@ export default class Unit {
     const movementPointsLeft = pathFieldCurrent.left - cost
     if (movementPointsLeft < 0) return
     const unitOnField = game.findUnitAt(toX, toY)
-    if (unitOnField && unitOnField.faction !== this.faction) return
+    if (unitOnField && unitOnField.faction !== this.faction && enemiesBlock) return
     const canStop = !unitOnField
     const pathFieldTo = pathFindMap[toY][toX] || {left: -1, path: [], canStop}
     if (movementPointsLeft <= pathFieldTo.left) return

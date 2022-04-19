@@ -5,7 +5,7 @@ export class World {
   rows: number // map size along Y
   cols: number // map size along X
 
-  map: Map
+  map: AiMap
 
   game: Game
 
@@ -22,13 +22,13 @@ export class World {
     throw new Error();
   }
 
-  CitiesCountNeutral(player: Player, category: string): number {
-    // player arg not used, counts neutral cities of type category
+  CitiesCountNeutral(player: Player, cityName: string): number {
+    // player arg not used, counts neutral cities of type cityName
     throw new Error();
   }
 
-  CitiesCountOccupied(player: Player, category: string): number {
-    // counts cities of type category by player
+  CitiesCountOccupied(player: Player, cityName: string): number {
+    // counts cities of type cityName by player
     throw new Error();
   }
   CitiesGetProfile(city: City): CityProfile {
@@ -86,7 +86,7 @@ export class World {
   DataUnitsGetProduction(profile: Profile): number {
     // Was originally used as `_loc2_.name`;
     // we simplified to returning the typeNum of the building that produces the unit directly.
-     // needs to be same as City.type for comparison
+    // needs to be same as City.type for comparison
     throw new Error();
   }
 
@@ -139,12 +139,12 @@ export class World {
     throw new Error(); // return number of units of given Category ("Human"...) owned by player
   }
 
-  UnitsCountCounterHitpoints(player: Player, unitCategory: string): number {
+  UnitsCountCounterHitpoints(player: Player, unitCategory: string | undefined): number {
     // TODO figure out
     throw new Error(); 
   }
 
-  UnitsCountEnemyHitpoints(player: Player, unitCategory: string): number {
+  UnitsCountEnemyHitpoints(player: Player, unitCategory: string | undefined): number {
     throw new Error(); // total HP of all enemy units in unitCategory
   }
 
@@ -157,12 +157,13 @@ export class World {
   }
 
   UnitsGetNumberOfFights(enemy: Unit, unit: Unit, fightCategory: number): number {
+    // fightCategory is 0 as attacker, 1 as defender
     throw new Error();
   }
 }
 
 
-export class Map {
+export class AiMap { // not called Map because of conflicting JS standard class
 
   movement: Number[][] = [] // rows,cols size
   units: Unit[][] = [] // rows,cols size, nullable 2d array of Units

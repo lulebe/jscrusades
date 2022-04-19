@@ -17,7 +17,18 @@ const profileNames = {
   FlyingUnit: UNIT_TYPES.AIR
 }
 
-const attackStrengthIndices = {
+const cityNames = {
+  Town: 2,
+  Headquarter: 3,
+  Airport: 8,
+  Factory: 6,
+  Village: 1,
+  LightFactory: 5,
+  Harbour: 7,
+  Barracks: 4
+}
+
+const unitCategoryExamples = {
   Human: 1,
   Soft: 5,
   Hard: 8,
@@ -26,78 +37,122 @@ const attackStrengthIndices = {
 }
 
 let baseGame = null
+let endTurnHandler = null
 
-export function initWithGame(g) {
+export function initWithGame(g, endTurnCb) {
   baseGame = g
+  endTurnHandler = endTurnCb
 }
 
+export const AI_STEP_TYPE = {
+   END_TURN: 0,
+   NOTHING: 1,
+   RECRUIT: 2,
+   MOVE: 3,
+   ATTACK: 4
+ }
+
 export class World {
-  unitList = []
-  cityList = []
 
-  rows // map size along Y
-  cols // map size along X
+  get unitList () {
+    const units = []
+    this.game.base.players.filter(p => !!p).forEach(p => {
+      p.units.forEach(u => {
+        units.push(new Unit(u))
+      })
+    })
+    return units
+  }
 
-  map
-
-  game
+  get cityList () {
+    const cities = []
+    this.map.base.fields.forEach((row, y) => row.forEach((field, x) => {
+      if (field.building) cities.push(new City(x, y, field.owner, field.building))
+    }))
+    return cities
+  }
 
   // Possibly the red fields which can be attacked.
   // Triples of (row: number, col: number, unit: Unit)
   BattleDescription = []
 
-  constructor(map, game) {
-    this.map = map
-    this.game = game
+  constructor(baseGame) {
+    this.game = new Game(baseGame)
+    this.map = new AiMap(game.map)
+    this.rows = game.map.sizeY
+    this.cols = game.map.sizeX
   }
 
   CitiesCanProduceUnit(player, unitCategory) {
     // unitCategory is "Human"...
-    throw new Error();
+    return this.cityList.some(c => {
+      if (c.ownerFaction === player.base.faction && BUILDING_INFO[c.type].recruits.includes(unitCategoryExamples[unitCategory])) return true
+      return false
+    })
   }
 
   CitiesCanSupplyUnit(city, unit) {
-    throw new Error();
+    return BUILDING_INFO[city.type].supports.includes(unit.type)
   }
 
-  CitiesCountNeutral(player, category) {
-    // player arg not used, counts neutral cities of type category
-    throw new Error();
+  CitiesCountNeutral(player, cityName) {
+    // player arg not used, counts neutral cities of type cityName
+    let counter = 0
+    this.map.base.fields.forEach(row => row.forEach(f => {
+      if (f.building === cityNames[cityName] && !f.owner)
+        counter++
+      }))
+    return counter
   }
 
-  CitiesCountOccupied(player, category) {
+  CitiesCountOccupied(player, cityName) {
     // counts cities of type category by player
-    throw new Error();
+    let counter = 0
+    this.map.base.fields.forEach(row => row.forEach(f => {
+      if (f.building === cityNames[cityName] && f.owner === player.base.faction)
+        counter++
+      }))
+    return counter
   }
   CitiesGetProfile(city) {
-    throw new Error();
+    return city.profile
   }
 
   CitiesIsProductionFacility(city) {
-    throw new Error();
+    return !!BUILDING_INFO[city.type].recruits.length
   }
 
   clearMovementMap() {
-    throw new Error();
+    for (let i = 0; i < this.map.movement.length; i++) {
+      const row = this.map.movement[i];
+      for (let j = 0; j < row.length; j++) {
+        row[j] = 0
+      }
+    }
   }
 
   computeDamage(attacker, defender) {
     // No side-effects; return val is float.
-    throw new Error();
+    return this.game.base.computeDamage(attacker.base, defender.base)
   }
 
   createBattle(unit) {
     // creates BattleDescription array
-    throw new Error();
+    this.destroyBattle()
+    this.BattleDescription = unit.base.fightfind().map(u => ([u.posY, u.posX, new Unit(u)]))
   }
 
   createMovement(unit, enemyUnitsAreBlocking) {
-    throw new Error();
+    // fill map.movement 2D array (same size as map) with movementPoints left as value, but if (val > 0) val += 1, for whatever reason
+    const pathfindResult = unit.base.pathfind(this.game.base, enemyUnitsAreBlocking)
+    pathfindResult.forEach(res => {
+      this.map.movement[res.y][res.x] = left > 0 ? left + 1 : 0
+    })
   }
 
   DataCitiesGetScore(cityProfile) {
     // Return value is aiScore for city
-    throw new Error();
+    return cityProfile.aiScore
   }
 
   DataUnitsCanCaptureCity(profile) {
@@ -105,7 +160,7 @@ export class World {
   }
 
   DataUnitsGetAttackStrengthAgainstCategory(profile, unitCategory) {
-    return UNIT_DATA[profile.typeNum].attackNumberOfFights[attackStrengthIndices[unitCategory]]
+    return UNIT_DATA[profile.typeNum].attackNumberOfFights[unitCategoryExamples[unitCategory]]
   }
 
   DataUnitsGetBehaviour(profile) {
@@ -123,93 +178,136 @@ export class World {
 
   DataUnitsGetProduction(profile) {
     // Was originally used as `_loc2_.name`;
-    // we simplified to returning the name of the building that produces the unit directly.
-    throw new Error();
+    // we simplified to returning the typeNum of the building that produces the unit directly.
+    // needs to be same as City.type for comparison
+    return Object.keys(BUILDING_INFO).find(k => BUILDING_INFO[k].recruitable.includes(profile.typeNum))
   }
 
   DataUnitsGetQuality(profile) {
-    throw new Error(); // just returns profile.quality
+    return UNIT_DATA[profile.typeNum].legacy.quality
   }
 
   DataUnitsGetMinRange(profile) {
-    throw new Error();
+    return UNIT_DATA[profile.typeNum].minAttackDistance
   }
 
   DataUnitsGetRange(profile) {
-    throw new Error();
+    return UNIT_DATA[profile.typeNum].maxAttackDistance
   }
 
   DataUnitsIsFlying(profile) {
-    throw new Error();
+    return profile.typeNum === UNIT_TYPES.AIR
   }
 
   destroyBattle() {
-    throw new Error();
+    this.BattleDescription = []
   }
 
   executeBattle(attacker, defender) {
-    throw new Error();
+    this.game.base.attack(attacker.base, defender.base)
   }
 
   getCity(y, x) {
-    throw new Error();
+    const field = this.map.base.fields[y][x]
+    if (!field.building) return null
+    return new City(x, y, field.owner, field.building)
   }
 
   IsPositionBlocked(row, col, profile) {
-    throw new Error();
+    return UNIT_DATA[profile.typeNum].movementCosts[this.map.base.fields[row][col].terrain] === -1
   }
 
   NeighboursSelect(neighbour, row, col) {
     // neighbour range is {0, 1, 2, 3} corresponds to above, right, below, left
-    throw new Error();
+    switch(neighbour) {
+      case 0: // above
+        if (row <= 0) return null
+        return new Coord(row - 1, col)
+      case 1: // right
+        if (col >= (this.map.base.sizeX - 1)) return null
+        return new Coord(row, col + 1)
+      case 2: // below
+        if (row >= (this.map.base.sizeY - 1)) return null
+        return new Coord(row + 1, col)
+      case 3: // left
+        if (col <= 0) return null
+        return new Coord(row, col - 1)
+    }
   }
 
   PlayerAreEnemies(p1, p2) {
-    throw new Error();
+    return !(p1.equals(p2))
   }
 
   PlayerAreFriends(p1, p2) {
-    throw new Error();
+    return p1.equals(p2)
   }
 
   UnitsCount(player, unitCategory) {
-    throw new Error(); // return number of units of given Category ("Human"...) owned by player
+    // return number of units of given Category ("Human"...) owned by player
+    return player.base.units.filter(u => UNIT_DATA[u.type].legacy.type === unitCategory).length
   }
 
   UnitsCountCounterHitpoints(player, unitCategory) {
-    // TODO figure out
-    throw new Error(); 
+    // unitCategory can be undefined
+    // like UnitsCountFriendlyHitpoints but with unitCategory filter
+    return player.base.units.reduce((sum, u) => {
+      if (unitCategory && UNIT_DATA[u.type].legacy.type !== unitCategory) return sum
+      return sum+u.hp
+    }, 0)
   }
 
   UnitsCountEnemyHitpoints(player, unitCategory) {
-    throw new Error(); // total HP of all enemy units in unitCategory
+    // unitCategory can be undefined
+    // total HP of all enemy units in unitCategory
+    return this.game.base.otherPlayer(player.base).units.reduce((sum, u) => {
+      if (unitCategory && UNIT_DATA[u.type].legacy.type !== unitCategory) return sum
+      return sum+u.hp
+    }, 0)
   }
 
   UnitsCountFriendlyHitpoints(player) {
-    throw new Error(); // total HP of all own units
+    // total HP of all own units
+    return player.base.units.reduce((sum, u) => sum+u.hp, 0)
   }
 
   UnitsGetProfile(unit) {
-    throw new Error();
+    return new Profile(unit.type)
   }
 
   UnitsGetNumberOfFights(enemy, unit, fightCategory) {
-    throw new Error();
+    if (fightCategory === 0) // as attacker
+      return UNIT_DATA[enemy.type].attackNumberOfFights[unit.type]
+    // as defender
+    return UNIT_DATA[enemy.type].defenseNumberOfFights[unit.type]
   }
 }
 
 
-export class Map {
-
-  movement = [] // rows,cols size
-  units = [] // rows,cols size, nullable 2d array of Units
+export class AiMap {
+  get units () { // rows,cols size, nullable 2d array of Units
+    const unitMap = []
+    for (let i = 0; i < this.base.sizeY; i++) {
+      unitMap.push(new Array(this.base.sizeX).fill(null))
+    }
+    baseGame.players.filter(p => !!p).forEach(p => {
+      p.units.forEach(u => {
+        unitMap[u.posY][u.posX] = new Unit(u)
+      })
+    })
+    return unitMap
+  }
 
   get terrain () {
-    return this.base.fields.map(row => row.map(f => new Terrain(/* TODO */)))
+    return this.base.fields.map(row => row.map(f => new Terrain(f.terrain)))
   }
 
   constructor(baseMap) {
     this.base = baseMap
+    this.movement = [] // rows,cols size
+    for (let i = 0; i < this.base.sizeY; i++) {
+      this.movement.push(new Array(this.base.sizeX).fill(0))
+    }
   }
 }
 
@@ -285,12 +383,13 @@ export class Unit {
   }
 
   getTypeCat() {
-    // TODO return type ("Human", "Hard", "Soft", "Water", "Air")
     return UNIT_DATA[this.base.type].legacy.type
   }
 
   move(row, col) {
-    throw new Error();
+    const option = this.base.pathfind(baseGame).find(p => p.x === col && p.y === row)
+    if (!option) throw new Error("Unit can't move to requested field");
+    this.base.move(col, row, option.path, baseGame)
   }
 
   computeDistance(unit) {
@@ -355,6 +454,10 @@ export class Profile { // represents UNIT_DATA item in LuLeBe Version
 
 export class City {
 
+  get profile () {
+    return new CityProfile(this.type)
+  }
+
   constructor(x, y, ownerFaction, type) {
     this.row = y
     this.col = x
@@ -416,6 +519,10 @@ export class Game {
   constructor(baseGame) {
     this.base = baseGame
     this.Marker = new Marker()
+  }
+
+  nextTurn () {
+    endTurnHandler()
   }
 }
 
