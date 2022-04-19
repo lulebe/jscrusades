@@ -154,7 +154,7 @@ function AiInfluencePrepareMap_Supply(unit /* compat.Unit */) {
          _loc8_ = false;
          if (_loc4_ != null) {
             if (_loc4_.getPlayer() == null && compat.World.DataUnitsCanCaptureCity(_loc7_)) {
-               if (_loc6_ == unit) { // TODO obj identity comparison?
+               if (_loc6_.equals(unit)) {
                   gameMap_influence[_loc3_][_loc2_] = 1000;
                   gameMap_marker[_loc3_][_loc2_] = 2;
                }
@@ -228,7 +228,7 @@ function AiInfluencePrepareMap_Fight(unit) {
                         if (_loc6_ == null) {
                            _loc2_ = _loc2_ + _loc7_;
                         }
-                        else if (_loc6_ == unit) { // TODO we want obj identity comparison here
+                        else if (_loc6_.equals(unit)) {
                            _loc2_ = _loc2_ + _loc7_ + 5;
                         }
                         else if (compat.World.PlayerAreEnemies(_loc6_.getPlayer(), unit.getPlayer())) {
@@ -399,7 +399,7 @@ function AiInfluence_GetScoreForNeutralCity_NotOccupied(item, city) {
 }
 
 function AiInfluence_GetScoreForNeutralCity_Occupied(item, city, conqueror) {
-   if (conqueror == item) {
+   if (conqueror.equals(item)) {
       if (compat.World.DataUnitsCanCaptureCity(compat.World.UnitsGetProfile(conqueror))) {
          return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 2;
       }
@@ -436,7 +436,7 @@ function AiInfluence_GetScoreForFriendlyCity_Occupied(item, city, conqueror) {
       return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city));
    }
    if (gameMap_fortify[city.row][city.col] > 0) {
-      if (item == conqueror) {
+      if (item.equals(conqueror)) {
          if (compat.World.CitiesIsProductionFacility(city)) {
             if (item.getPlayer().getGold() > compat.World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry)) {
                return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 0.3;
@@ -652,7 +652,7 @@ function AiToolsSearchBestUnit_GameUnitsItem(player, category) {
    let _loc2_ = Ai_InvalidValue;
    for (let i = 0; i < compat.World.unitList.length; i++) {
       const _loc1_ = compat.World.unitList[i];
-      if (_loc1_.player == player && _loc1_.state == Unit_State_WaitingForOrder && _loc1_.getTypeCat() == category) {
+      if (_loc1_.player.equals(player) && _loc1_.state == Unit_State_WaitingForOrder && _loc1_.getTypeCat() == category) {
          _loc2_ = gameMap_influence[_loc1_.row][_loc1_.col];
          if (_loc2_ > _loc3_) {
             _loc3_ = _loc2_;
@@ -839,7 +839,7 @@ function AiBuyUnitsFromWishlist(rule, player) {
    const _loc3_ = AiWishlistGetRandomProfile(); // profile
    for (let i = 0; i < compat.World.cityList.length; i++) {
       const _loc1_ = compat.World.cityList[i];
-      if (_loc1_.getPlayer() == player) {
+      if (_loc1_.getPlayer().equals(player)) {
          const _loc2_ = compat.World.DataUnitsGetProduction(_loc3_);
          if (_loc1_.type == _loc2_ && compat.World.map.units[_loc1_.row][_loc1_.col] == null) {
             compat.World.game.Marker.setPos(_loc1_.row ,_loc1_.col);
@@ -856,7 +856,6 @@ function AiBuyUnitsAddToWishlist(player, category) {
       return;
    }
    let profCount = 0;
-   // TODO pull the roots out
    while (profCount < UnitDataObjects.length) {
       var _loc2_ = UnitDataObjects[profCount];
       if (_loc2_) {
@@ -953,11 +952,9 @@ function AiSystemExecuteStep(player) {
             return returnValue;
          }
          AiBuyUnitsExecute(player);
-         // TODO return value should signal not to call ExecuteStep again
          clearInterval(AiSystemExecuteINT);
          AiSystemDone = true;
          returnValue = AI_STEP_TYPE.END_TURN
-         // TODO probably remove next line
          World.game.nextTurn();
          break;
       default:
@@ -987,7 +984,7 @@ function AiSystemExecute_MoveWeakUnitsStep(player) {
    } else {
       const unit = compat.World.unitList[UnitCounter];
       console.log("unit.type: " + unit.type);
-      if (unit.getPlayer() == player) {
+      if (unit.getPlayer().equals(player)) {
          if (unit.getState() == Unit_State_WaitingForOrder) {
             let _loc2_ = false;
             if (unit.GetHitpointsInPercent() < 45) {
@@ -1036,7 +1033,7 @@ function AiSystemExecute_FightOrMoveUnitsStep(player) {
       AiSystemMoveOrFightDone = true;
    } else {
       const unit = compat.World.unitList[UnitCounter];
-      if (unit.getPlayer() == player && unit.getState() == Unit_State_WaitingForOrder) {
+      if (unit.getPlayer().equals(player) && unit.getState() == Unit_State_WaitingForOrder) {
          const _loc4_ = unit.getBehavior();
          if (_loc4_ == "FightOrMove") {
             console.log("unit found" + unit.type);
@@ -1082,7 +1079,7 @@ function AiSystemExecute_StandardUnitsStep(player, score, range) {
    }
    else {
       const unit = compat.World.unitList[UnitCounter];
-      if (unit.getPlayer() == player && unit.getState() == Unit_State_WaitingForOrder && unit.getRange() > range) {
+      if (unit.getPlayer().equals(player) && unit.getState() == Unit_State_WaitingForOrder && unit.getRange() > range) {
          console.log("try to fight");
          AiInfluencePrepareMap_Fight(unit);
          AiInfluenceComputeMap(unit);
