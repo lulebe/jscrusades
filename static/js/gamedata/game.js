@@ -244,7 +244,7 @@ export default class Game {
 
   #resupplyOnField(unit, x, y) {
     if (!this.map.fields[y][x].building || this.map.fields[y][x].owner !== this.#currentTurn) return false
-    if (!BUILDING_INFO[unitField.building].supports.includes(unit.type)) return false
+    if (!BUILDING_INFO[this.map.fields[y][x].building].supports.includes(unit.type)) return false
     unit.resupply()
     return true
   }
