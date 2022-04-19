@@ -8,7 +8,7 @@ export default async function (game, gameCanvas) {
     gameCanvas.drawGame()
     switch (turnResult) {
       case AI_STEP_TYPE.MOVE:
-        await timer(500)
+        await timer(750)
         break
       case AI_STEP_TYPE.ATTACK:
         await timer(4000)
@@ -18,7 +18,8 @@ export default async function (game, gameCanvas) {
 }
 
 function timer (ms) {
-  return Promise((resolve, reject) => {
+  console.log("start timer", ms)
+  return new Promise((resolve, reject) => {
     setTimeout(() => resolve(), ms)
   })
 }

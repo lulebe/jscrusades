@@ -104,16 +104,13 @@ let AiSystemExecute_StandardUnitsINT = null;
 
 
 function AiWishlistCreate() {
-   console.log("AiWishlistCreate()");
    AiWishlistReset();
 }
 
 function AiWishlistDestroy() {
-   console.log("AiWishlistDestroy()");
 }
 
 function AiWishlistReset() {
-   console.log("AiWishlistReset()");
    let i = 0;
    while (i < AiWishlist_Max)
    {
@@ -669,7 +666,9 @@ function AiToolsMove(item, range) {
    if (compat.World.map.units[_loc7_][_loc6_] == null) {
       compat.World.game.Marker.setPos(_loc7_, _loc6_);
       item.move(_loc7_, _loc6_);
+      return true;
    }
+   return false;
 }
 
 function AiToolsBattle(item) {
@@ -857,7 +856,7 @@ function AiBuyUnitsExecute(player) {
       catCount++;
    }
    if (AiWishlistIsEmpty() == false) {
-      boughtNow = AiBuyUnitsFromWishlist("rule3", player);
+      let boughtNow = AiBuyUnitsFromWishlist("rule3", player);
       boughtUnit = boughtUnit || boughtNow;
       return boughtUnit;
    }
@@ -991,6 +990,7 @@ function AiSystemExecuteStep(player) {
          boughtUnits = AiBuyUnitsExecute(player);
          AiSystemStandardUnitsDone = false;
          StandardUnitMoving = true;
+         UnitCounter = 0;
          AIexecutionState = 31;
          return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
       case 31:
@@ -1005,6 +1005,7 @@ function AiSystemExecuteStep(player) {
       case 40:
          AiSystemStandardUnitsDone = false;
          StandardUnitMoving = true;
+         UnitCounter = 0;
          AIexecutionState = 41;
          return AI_STEP_TYPE.NOTHING;
       case 41:
@@ -1020,6 +1021,7 @@ function AiSystemExecuteStep(player) {
          boughtUnits = AiBuyUnitsExecute(player);
          AiSystemStandardUnitsDone = false;
          StandardUnitMoving = true;
+         UnitCounter = 0;
          AIexecutionState = 51;
          return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
       case 51:
@@ -1035,6 +1037,7 @@ function AiSystemExecuteStep(player) {
          boughtUnits = AiBuyUnitsExecute(player);
          AiSystemStandardUnitsDone = false;
          StandardUnitMoving = true;
+         UnitCounter = 0;
          AIexecutionState = 61;
          return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
       case 61:
@@ -1065,7 +1068,6 @@ function AiSystemExecute_MoveWeakUnitsStep(player) {
       return false;
    }
    const unit = compat.World.unitList[UnitCounter];
-   console.log("unit.type: " + unit.type);
    if (unit.getPlayer().equals(player)) {
       if (unit.getState() == Unit_State_WaitingForOrder) {
          let _loc2_ = false;
@@ -1082,10 +1084,10 @@ function AiSystemExecute_MoveWeakUnitsStep(player) {
             AiInfluencePrepareMap_Supply(unit);
             AiInfluenceComputeMap(unit);
             AiInfluenceFinalizeMap(unit);
-            AiToolsMove(unit, unit.getMovement());
+            let didMove = AiToolsMove(unit, unit.getMovement());
             unit.state = Unit_State_Finished;
             UnitCounter++;
-            return true;
+            return didMove;
          }
       }
    }
@@ -1097,31 +1099,30 @@ function AiSystemExecute_FightOrMoveUnitsStep(player) {
    let didFight = false;
    if (UnitCounter >= compat.World.unitList.length) {
       AiSystemMoveOrFightDone = true;
-   } else {
-      const unit = compat.World.unitList[UnitCounter];
-      if (unit.getPlayer().equals(player) && unit.getState() == Unit_State_WaitingForOrder) {
-         const _loc4_ = unit.getBehavior();
-         if (_loc4_ == "FightOrMove") {
-            console.log("unit found" + unit.type);
-            const _loc3_ = compat.World.getCity(unit.row, unit.col);
-            if (_loc3_ != null) {
-               if (compat.World.CitiesIsProductionFacility(_loc3_)) {
-                  if (player.getGold() > compat.World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry)) {
-                     didFight = AiToolsBattle(unit);
-                     if (unit.hp) {
-                        UnitCounter++;
-                     }
-                     return didFight;
+      return false;
+   }
+   const unit = compat.World.unitList[UnitCounter];
+   if (unit.getPlayer().equals(player) && unit.getState() == Unit_State_WaitingForOrder) {
+      const _loc4_ = unit.getBehavior();
+      if (_loc4_ == "FightOrMove") {
+         const _loc3_ = compat.World.getCity(unit.row, unit.col);
+         if (_loc3_ != null) {
+            if (compat.World.CitiesIsProductionFacility(_loc3_)) {
+               if (player.getGold() > compat.World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry)) {
+                  didFight = AiToolsBattle(unit);
+                  if (unit.hp) {
+                     UnitCounter++;
                   }
+                  return didFight;
                }
             }
-            didFight = AiToolsBattle(unit);
-            return didFight;
          }
+         didFight = AiToolsBattle(unit);
+         return didFight;
       }
-      UnitCounter++;
-      AiSystemExecute_FightOrMoveUnitsStep(player);
    }
+   UnitCounter++;
+   return didFight;
 }
 
 function AiSystemExecute_StandardUnitsStep(player, score, range) {
@@ -1136,12 +1137,10 @@ function AiSystemExecute_StandardUnitsStep(player, score, range) {
       AiInfluenceComputeMap(unit);
       AiInfluenceFinalizeMap(unit);
       const _loc2_ = gameMap_influence[unit.row][unit.col];
-      console.log("influence = " + _loc2_);
-      console.log("score = " + score);
       if (_loc2_ >= score) {
-         AiToolsMove(unit, unit.getMovement());
+         let didMove = AiToolsMove(unit, unit.getMovement());
          StandardUnitMoving = false;
-         return true;
+         return didMove;
       }
    }
    UnitCounter++;
@@ -1153,12 +1152,12 @@ function AiSystemExecute_StandardUnitsWait(player, score, range) {
    const unit = compat.World.unitList[UnitCounter];
    if (unit.getState() != Unit_State_Finished) {
       console.log("attack");
-      AiToolsBattle(unit);
+      let didFight = AiToolsBattle(unit);
       if (unit.hp) {
          UnitCounter++;
          unit.state = Unit_State_Finished;
       }
-      return true;
+      return didFight;
    }
    UnitCounter++;
    return false;
