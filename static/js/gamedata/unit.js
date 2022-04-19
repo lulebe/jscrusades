@@ -31,6 +31,11 @@ export default class Unit {
     return !this.didFight && (!this.didMove || UNIT_DATA[this.type].moveAndFight)
   }
 
+  get movementPoints () {
+    if (this.food !== 0) return UNIT_DATA[this.type].movementPoints
+    return 1
+  }
+
   heal () {
     if (this.hp == UNIT_DATA[this.type].hp) return
     this.hp++
@@ -101,7 +106,7 @@ export default class Unit {
   }
 
   move (x, y, path, game) {
-    this.food && this.food--
+    this.food > 0 && this.food--
     this.didMove = true
     this.animationMove = {started: false, curX: this.posX, curY: this.posY, fieldsToGoTo: path.concat([{x,y}])}
     this.posX = x

@@ -224,8 +224,8 @@ export class Unit {
 
   // One of 0, 1, 2 (see const values in ai.js).
   get state () {
-    if (this.base.canMove()) return 0
-    if (this.base.canFight()) return 1
+    if (this.base.canMove) return 0
+    if (this.base.canFight) return 1
     return 2
   }
 
@@ -250,20 +250,22 @@ export class Unit {
   }
 
   GetAmmoInPercent() {
-    throw new Error();
+    if (UNIT_DATA[this.base.type].ammo < 0) return 100
+    return (this.base.ammo / UNIT_DATA[this.base.type].ammo) * 100
   }
 
   GetFuelInPercent() {
-    throw new Error();
+    if (UNIT_DATA[this.base.type].food < 0) return 100
+    return (this.base.food / UNIT_DATA[this.base.type].food) * 100
   }
 
   GetHitpointsInPercent() {
-    throw new Error();
+    return (this.base.hp / UNIT_DATA[this.base.type].hp) * 100
   }
 
   getMovement() {
     // returns how many movementPoints the unit actually has determined by food
-    throw new Error();
+    return this.base.movementPoints
   }
 
   getMovementCost(terrainType) { // used to be terrainName = Terrain.name, but changed to typeNum for easier usage
