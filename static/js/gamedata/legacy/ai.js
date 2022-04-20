@@ -617,7 +617,7 @@ function AiInfluenceCreateThreatRing(row, col, range, threat) {
                _loc1_.col = _loc1_.col - 1;
                _loc1_.row = _loc1_.row - 1;
          }
-         if (_loc1_.row >= 0 && _loc1_.row <= compat.World.rows && _loc1_.col >= 0 && _loc1_.col <= compat.World.cols) {
+         if (_loc1_.row >= 0 && _loc1_.row < compat.World.rows && _loc1_.col >= 0 && _loc1_.col < compat.World.cols) {
             gameMap_threat[_loc1_.row][_loc1_.col] = gameMap_threat[_loc1_.row][_loc1_.col] + threat;
          }
          i++;
