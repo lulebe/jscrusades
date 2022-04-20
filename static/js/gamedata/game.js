@@ -44,10 +44,10 @@ export default class Game {
 
   get winner () {
     let winner = null
-    this.map.fields.find(row => {
-      return row.find(field => {
+    this.map.fields.find((row, y) => {
+      return row.find((field, x) => {
         if (field.building !== BUILDING.HQ || field.owner === field.buildingFaction) return false
-        winner = this.otherPlayer(field.buildingFaction)
+        winner = this.players[this.findUnitAt(x, y).faction]
         return true
       })
     })
