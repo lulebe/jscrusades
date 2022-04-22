@@ -1,10 +1,11 @@
 export class World {
   unitList: Unit[] = []
+  cityList: City[] = []
 
   rows: number // map size along Y
   cols: number // map size along X
 
-  map: Map
+  map: AiMap
 
   game: Game
 
@@ -12,10 +13,24 @@ export class World {
   // Triples of (row: number, col: number, unit: Unit)
   BattleDescription: Array<Array<any>>[] = []
 
+  CitiesCanProduceUnit(player: Player, unitCategory: string): boolean {
+    // unitCategory is "Human"...
+    throw new Error();
+  }
+
   CitiesCanSupplyUnit(city: City, unit: Unit): boolean {
     throw new Error();
   }
 
+  CitiesCountNeutral(player: Player, cityName: string): number {
+    // player arg not used, counts neutral cities of type cityName
+    throw new Error();
+  }
+
+  CitiesCountOccupied(player: Player, cityName: string): number {
+    // counts cities of type cityName by player
+    throw new Error();
+  }
   CitiesGetProfile(city: City): CityProfile {
     throw new Error();
   }
@@ -34,6 +49,7 @@ export class World {
   }
 
   createBattle(unit: Unit): void {
+    // creates BattleDescription array
     throw new Error();
   }
 
@@ -50,17 +66,32 @@ export class World {
     return profile.type == "Human"
   }
 
+  DataUnitsGetAttackStrengthAgainstCategory(profile: Profile, unitCategory: string): number {
+    throw new Error();
+  }
+
   DataUnitsGetBehaviour(profile: Profile): string {
     // All possible return values: "FightOrMove", "FightAndMove".
     throw new Error();
+  }
+
+  DataUnitsGetCategory(profile: Profile): string {
+    return profile.type;
   }
 
   DataUnitsGetPrice(profile: Profile): number {
     throw new Error();
   }
 
-  DataUnitsGetCategory(profile: Profile): string {
-    return profile.type;
+  DataUnitsGetProduction(profile: Profile): number {
+    // Was originally used as `_loc2_.name`;
+    // we simplified to returning the typeNum of the building that produces the unit directly.
+    // needs to be same as City.type for comparison
+    throw new Error();
+  }
+
+  DataUnitsGetQuality(profile: Profile): number {
+    throw new Error(); // just returns profile.quality
   }
 
   DataUnitsGetMinRange(profile: Profile): number {
@@ -108,8 +139,13 @@ export class World {
     throw new Error(); // return number of units of given Category ("Human"...) owned by player
   }
 
-  UnitsCountEnemyHitpoints(player: Player): number {
-    throw new Error(); // total HP of all enemy units
+  UnitsCountCounterHitpoints(player: Player, unitCategory: string | undefined): number {
+    // TODO figure out
+    throw new Error(); 
+  }
+
+  UnitsCountEnemyHitpoints(player: Player, unitCategory: string | undefined): number {
+    throw new Error(); // total HP of all enemy units in unitCategory
   }
 
   UnitsCountFriendlyHitpoints(player: Player): number {
@@ -121,12 +157,13 @@ export class World {
   }
 
   UnitsGetNumberOfFights(enemy: Unit, unit: Unit, fightCategory: number): number {
+    // fightCategory is 0 as attacker, 1 as defender
     throw new Error();
   }
 }
 
 
-export class Map {
+export class AiMap { // not called Map because of conflicting JS standard class
 
   movement: Number[][] = [] // rows,cols size
   units: Unit[][] = [] // rows,cols size, nullable 2d array of Units
@@ -145,7 +182,34 @@ export class Unit {
 
   type: string // TODO dtype ?
 
-  getMovementCost(terrainName: string): number { // terrainName = Terrain.name
+  isMoving: boolean
+
+  row: number
+
+  col: number
+
+  getBehaviour(): string {
+    throw new Error(); // "FightOrMove" ...
+  }
+
+  GetAmmoInPercent(): number {
+    throw new Error();
+  }
+
+  GetFuelInPercent(): number {
+    throw new Error();
+  }
+
+  GetHitpointsInPercent(): number {
+    throw new Error();
+  }
+
+  getMovement(): number {
+    // returns how many movementPoints the unit actually has determined by food
+    throw new Error();
+  }
+
+  getMovementCost(terrainType: number): number { // terrainName = Terrain.name, replaced by terrainType to fit to base game data
     throw new Error();
   }
   
@@ -153,19 +217,25 @@ export class Unit {
     return this.player
   }
 
+  getRange(): number {
+    throw new Error(); // return .range of unit profile
+  }
+
   getState(): number {
     return this.state
   }
 
   getTypeCat(): number {
-    throw new Error(); // TODO return type ("Human", "Hard", "Soft", "Water", "Air")
+    // TODO return type ("Human", "Hard", "Soft", "Water", "Air")
+    throw new Error(); 
   }
 
   move(row: number, col: number): void {
     throw new Error();
   }
 
-  computeDistance(unit: Unit): number { // distance in fields for fights
+  computeDistance(unit: Unit): number {
+    // distance in fields for fights
     throw new Error();
   }
 }
@@ -183,10 +253,16 @@ export class Player {
   getGold(): number {
     throw new Error();
   }
+
+  buyUnit(profileType: number, row: number, col: number): void {
+    // profileType used to be profileName (profile.name string)
+    throw new Error();
+  }
 }
 
 export class Profile { // represents UNIT_DATA item in LuLeBe Version
   type: string = "" // "Air", "Human", "Soft", "Hard", "Water"...
+  name: number = 0 // replaced with type, used to be string like "Spearman" for Player.buyUnit (also replaced with type)
   behaviour // unknown type
   minRange: number = 0
   range: number = 0
@@ -195,6 +271,7 @@ export class Profile { // represents UNIT_DATA item in LuLeBe Version
 export class City {
   row: number
   col: number
+  type: number // needs to be same as return of World.DataUnitsGetProduction for comparison
   
   getPlayer(): Player | null {
     throw new Error();
@@ -214,7 +291,8 @@ export class Coord {
 
 export class Terrain {
   hb_bonus: number
-  name: string // "ground", "street", "wood", "hill", "river", "sea", "hedgerows", "swamp"
+  //name: string // "ground", "street", "wood", "hill", "river", "sea", "hedgerows", "swamp"
+  name: number// instead of name, only used in Unit.getMovementCost
   
   getDefence(): number {
     throw new Error();
@@ -223,6 +301,7 @@ export class Terrain {
 
 export class Game {
   Marker: Marker
+  Round: number
 }
 
 export class Marker {

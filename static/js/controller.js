@@ -1,8 +1,7 @@
 import GameCanvas from './canvas.js'
 import Game from './gamedata/game.js'
 import makeAITurn from './gamedata/ai.js'
-import { UNIT_DATA, UNIT_TYPES } from './gamedata/unitInfo.js'
-import { BUILDING } from './gamedata/mapInfo.js'
+import { UNIT_DATA, UNIT_TYPES, BUILDING } from './gamedata/gameInfo.js'
 import { playTurnMusic, playFightSound, toggleAudio } from './audio.js'
 
 import { displayHoverInfo, buildingActions, turnInfo, winInfo } from './ui.js'
