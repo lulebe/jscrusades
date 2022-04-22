@@ -1118,6 +1118,9 @@ function AiSystemExecute_FightOrMoveUnitsStep(player) {
             }
          }
          didFight = AiToolsBattle(unit);
+         if (unit.hp) {
+            UnitCounter++;
+         }
          return didFight;
       }
    }
