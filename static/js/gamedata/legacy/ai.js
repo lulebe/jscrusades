@@ -673,6 +673,7 @@ function AiToolsMove(item, range) {
 
 function AiToolsBattle(item) {
    let didFight = false
+   let killedEnemyIndex = null
    compat.World.createBattle(item);
    console.log("BattleDescription: " + compat.World.BattleDescription[0]);
    const _loc1_ = AiToolsSearchBestBattleDescription(item, false);
@@ -680,15 +681,22 @@ function AiToolsBattle(item) {
    //console.log(_loc1_[0] + " " + _loc1_[1] + " " + _loc1_[2].type);
    if (_loc1_ != null) {
       compat.World.game.Marker.setPos(_loc1_[0], _loc1_[1]);
+      compat.World.unitList.find((u, index) => {
+         if (u.equals(_loc1_[2])) {
+            killedEnemyIndex = index
+            return true
+         }
+      })
       compat.World.executeBattle(item, _loc1_[2]);
       didFight = true;
+      if (_loc1_[2].hp) killedEnemyIndex = null
       console.log(_loc1_[0] + " " + _loc1_[1] + " " + _loc1_[2].type);
       if (compat.World.map.units[_loc1_[0]][_loc1_[1]] == null) {
          AiInfluencePrepareMap_Fortify(item.player);
       }
    }
    compat.World.destroyBattle();
-   return didFight
+   return { didFight, killedEnemyIndex }
 }
 
 function AiToolsSearchBestUnit_GameUnitsItem(player, category) {
@@ -1096,7 +1104,6 @@ function AiSystemExecute_MoveWeakUnitsStep(player) {
 }
 
 function AiSystemExecute_FightOrMoveUnitsStep(player) {
-   let didFight = false;
    if (UnitCounter >= compat.World.unitList.length) {
       AiSystemMoveOrFightDone = true;
       return false;
@@ -1109,23 +1116,25 @@ function AiSystemExecute_FightOrMoveUnitsStep(player) {
          if (_loc3_ != null) {
             if (compat.World.CitiesIsProductionFacility(_loc3_)) {
                if (player.getGold() > compat.World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry)) {
-                  didFight = AiToolsBattle(unit);
-                  if (unit.hp) {
+                  const { didFight, killedEnemyIndex } = AiToolsBattle(unit);
+                  if (killedEnemyIndex !== null && killedEnemyIndex < UnitCounter) UnitCounter--
+                  if (unit.hp > 0) {
                      UnitCounter++;
                   }
                   return didFight;
                }
             }
          }
-         didFight = AiToolsBattle(unit);
-         if (unit.hp) {
+         const { didFight, killedEnemyIndex } = AiToolsBattle(unit);
+         if (killedEnemyIndex !== null && killedEnemyIndex < UnitCounter) UnitCounter--
+         if (unit.hp > 0) {
             UnitCounter++;
          }
          return didFight;
       }
    }
    UnitCounter++;
-   return didFight;
+   return false;
 }
 
 function AiSystemExecute_StandardUnitsStep(player, score, range) {
@@ -1155,8 +1164,9 @@ function AiSystemExecute_StandardUnitsWait(player, score, range) {
    const unit = compat.World.unitList[UnitCounter];
    if (unit.getState() != Unit_State_Finished) {
       console.log("attack");
-      let didFight = AiToolsBattle(unit);
-      if (unit.hp) {
+      const { didFight, killedEnemyIndex } = AiToolsBattle(unit);
+      if (killedEnemyIndex !== null && killedEnemyIndex < UnitCounter) UnitCounter--
+      if (unit.hp > 0) {
          UnitCounter++;
          unit.state = Unit_State_Finished;
       }
