@@ -81,7 +81,7 @@ export function onFight (attacker, defender, attackerDamage, defenderDamage) {
   document.getElementById('fight-defender-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bgd}.png"`
   document.getElementById('fight').classList.add('visible')
   animateFight(attacker.hp + attackerDamage, attackerDamage, defender.hp + defenderDamage, defenderDamage, 8)
-  playFightSound(attacker.type)
+  playFightSound(attacker.type, defender.type)
 }
 
 function findUnitBackground (unitType, field) {

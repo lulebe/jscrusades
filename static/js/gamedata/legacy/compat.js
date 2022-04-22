@@ -42,6 +42,7 @@ export function initWithGame(g) {
   baseGame = g
 }
 
+
 export class World {
 
   get unitList () {
