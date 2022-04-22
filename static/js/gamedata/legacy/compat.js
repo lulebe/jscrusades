@@ -37,20 +37,10 @@ const unitCategoryExamples = {
 }
 
 let baseGame = null
-let endTurnHandler = null
 
-export function initWithGame(g, endTurnCb) {
+export function initWithGame(g) {
   baseGame = g
-  endTurnHandler = endTurnCb
 }
-
-export const AI_STEP_TYPE = {
-   END_TURN: 0,
-   NOTHING: 1,
-   RECRUIT: 2,
-   MOVE: 3,
-   ATTACK: 4
- }
 
 export class World {
 
@@ -325,6 +315,10 @@ export class Unit {
     return this.base.posX
   }
 
+  get hp () {
+    return this.base.hp
+  }
+
   get player () {
     return new Player(baseGame.players[this.base.faction])
   }
@@ -544,10 +538,6 @@ export class Game {
   constructor(baseGame) {
     this.base = baseGame
     this.Marker = new Marker()
-  }
-
-  nextTurn () {
-    endTurnHandler()
   }
 }
 
