@@ -40,8 +40,15 @@ const fightSounds = [
 let turnPlaying = null
 let playAudio = true
 
+audios.turnMusic.forEach(audio => {
+  audio.addEventListener('ended', () => {
+    playTurnMusic()
+  })
+})
+
 export function playTurnMusic () {
   if (turnPlaying) {
+    if (turnPlaying.currentTime < 60) return
     turnPlaying.pause()
   }
   const song = pickTurnMusic()
@@ -52,10 +59,12 @@ export function playTurnMusic () {
     song.play()
 }
 
-export function playFightSound (unitType) {
-  fightSounds[unitType].currentTime = 0
-  if (playAudio)
-    fightSounds[unitType].play()
+export function playFightSound (attackerType, defenderType) {
+  if (!playAudio) return
+  fightSounds[attackerType].currentTime = 0
+  fightSounds[defenderType].currentTime = 0
+  fightSounds[attackerType].play()
+  fightSounds[defenderType].play()
 }
 
 export function toggleAudio () {
