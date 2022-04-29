@@ -38,7 +38,7 @@ export function updateGame(g) {
   gameCanvas.fightOptionsDisplay = fightOptions = []
   gameCanvas.selectedPos = null
   gameCanvas.loadGame(game, gameAssets)
-  if (game.finished) gameOver()
+  if (game.winner) gameOver()
   renderUi()
 }
 
@@ -73,8 +73,6 @@ export function onFight (attacker, defender, attackerDamage, defenderDamage) {
   if (!isFastMode) {
     const bga = findUnitBackground(attacker.type, game.map.fields[attacker.posY][attacker.posX])
     const bgd = findUnitBackground(defender.type, game.map.fields[defender.posY][defender.posX])
-    document.getElementById('fight-attacker-health').innerHTML = ('' + attacker.hp + attackerDamage).padStart(2, '0')
-    document.getElementById('fight-defender-health').innerHTML = ('' + defender.hp + defenderDamage).padStart(2, '0')
     document.getElementById('fight-attacker-img').classList.remove('att-flipped')
     if (!UNIT_DATA[attacker.type].flipDefender[attacker.faction])
       document.getElementById('fight-attacker-img').classList.add('att-flipped')
@@ -114,7 +112,7 @@ async function makeAITurnIfNecessary () {
   await makeAITurn(game, gameCanvas, isFastMode)
   renderUi()
   gameCanvas.drawGame()
-  if (game.finished) gameOver()
+  if (game.winner) gameOver()
 }
 
 function fieldClick (location) {
@@ -170,7 +168,7 @@ function endTurn () {
   renderUi()
   if (game.type === Game.GAME_TYPE.ONLINE_MP)
     sendGame()
-  if (game.finished) return gameOver()
+  if (game.winner) return gameOver()
   makeAITurnIfNecessary()
   playTurnMusic()
 }

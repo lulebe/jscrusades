@@ -23,7 +23,7 @@ export default class Game {
     this.crusaderPlayer = crusader
     this.saracenPlayer = saracen
     this.saveNum = saveNum
-    this.finished = false
+    this.winner = 0
     this.#fightListener = null
     this.actionCount = actionCount
     this.turnNum = turnNum
@@ -40,20 +40,6 @@ export default class Game {
 
   get currentPlayer () {
     return this.players[this.#currentTurn]
-  }
-
-  get winner () {
-    let winner = null
-    this.map.fields.find((row, y) => {
-      return row.find((field, x) => {
-        if (field.building === BUILDING.HQ && field.owner === null) {
-          winner = this.players[this.findUnitAt(x, y).faction]
-          return true
-        }
-        return false
-      })
-    })
-    return winner
   }
 
   set onFight (listener) {
@@ -218,9 +204,8 @@ export default class Game {
         else {
           unitField.owner = null
           unit.changeHP(-1, this)
-          if (unitField.building === BUILDING.HQ) {
-            this.finished = true
-          }
+          if (unitField.building === BUILDING.HQ)
+            this.winner = unit.faction
         }
       } else if (unitField.owner === this.#currentTurn && BUILDING_INFO[unitField.building].supports.includes(unit.type)) { //heal
         unit.heal()
@@ -311,7 +296,7 @@ export default class Game {
     const data = this.serialize()
     if (window.localStorage.saves) {
       const saves = JSON.parse(window.localStorage.saves)
-      if (this.finished) {
+      if (this.winner) {
         saves.splice(this.saveNum, 1)
         window.localStorage.saves = JSON.stringify(saves)
         return
