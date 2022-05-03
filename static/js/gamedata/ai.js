@@ -7,17 +7,12 @@ export default async function makeAITurn(game, gameCanvas, isFastMode) {
   do {
     turnResult = makeTurn()
     gameCanvas.drawGame()
-    if (!isFastMode) {
-      console.log("Maybe wait because not in fast mode")
-      await wait(turnResult)
-    } else {
-      console.log("In fast mode!!!")
-    }
+    if (!isFastMode) await maybeWaitForActionToComplete(turnResult)
   } while (turnResult > 0)
   game.endTurn()
 }
 
-async function wait(turnResult) {
+async function maybeWaitForActionToComplete(turnResult) {
   switch (turnResult) {
     case AI_STEP_TYPE.MOVE:
       await timer(750)
