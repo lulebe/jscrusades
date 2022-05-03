@@ -1,13 +1,18 @@
 import { startLegacyAi, AI_STEP_TYPE } from './legacy/ai.js'
 
 
-export async function makeAITurn(game, gameCanvas, isFastMode) {
+export default async function makeAITurn(game, gameCanvas, isFastMode) {
   const makeTurn = startLegacyAi(game)
   let turnResult
   do {
     turnResult = makeTurn()
     gameCanvas.drawGame()
-    if (!isFastMode) wait(turnResult);
+    if (!isFastMode) {
+      console.log("Maybe wait because not in fast mode")
+      await wait(turnResult)
+    } else {
+      console.log("In fast mode!!!")
+    }
   } while (turnResult > 0)
   game.endTurn()
 }
