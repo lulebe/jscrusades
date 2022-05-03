@@ -102,10 +102,14 @@ export default class Unit {
     })
   }
 
-  move (x, y, path, game) {
+  move (x, y, path, game, isFastMode) {
     this.food > 0 && this.food--
     this.didMove = true
-    this.animationMove = {started: false, curX: this.posX, curY: this.posY, fieldsToGoTo: path.concat([{x,y}])}
+    if (!isFastMode) {
+      this.animationMove = {started: false, curX: this.posX, curY: this.posY, fieldsToGoTo: path.concat([{x,y}])}
+    } else {
+      this.animationMove = null
+    }
     this.posX = x
     this.posY = y
     if (this.fightfind(game).length) this.hasFightOptions = true
