@@ -1,6 +1,6 @@
 import GameCanvas from './canvas.js'
 import Game from './gamedata/game.js'
-import makeAITurn from './gamedata/ai.js'
+import { makeAITurn } from './gamedata/ai.js'
 import { UNIT_DATA, UNIT_TYPES, BUILDING } from './gamedata/gameInfo.js'
 import { playTurnMusic, playFightSound, toggleAudio } from './audio.js'
 
@@ -15,6 +15,7 @@ let focusedUnit = null
 let selectedLocation = null
 let moveOptions = []
 let fightOptions = []
+let isFastMode = false
 
 export function UIController (g, ga, mp) {
   game = g
@@ -47,6 +48,7 @@ function initUiHandlers () {
   document.getElementById('zoom-in').addEventListener('click', () => gameCanvas.zoomIn())
   document.getElementById('zoom-out').addEventListener('click', () => gameCanvas.zoomOut())
   document.getElementById('toggle-audio').addEventListener('click', () => toggleAudio())
+  document.getElementById('toggle-fast-mode').addEventListener('click', () => {isFastMode = !isFastMode})
   document.getElementById('end-turn').addEventListener('click', endTurn)
   gameCanvas.initCanvas()
   canvasEl.addEventListener('fieldClicked', e => fieldClick(e.detail))
@@ -80,8 +82,10 @@ export function onFight (attacker, defender, attackerDamage, defenderDamage) {
   document.getElementById('fight-attacker-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bga}.png"`
   document.getElementById('fight-defender-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bgd}.png"`
   document.getElementById('fight').classList.add('visible')
-  animateFight(attacker.hp + attackerDamage, attackerDamage, defender.hp + defenderDamage, defenderDamage, 8)
-  playFightSound(attacker.type, defender.type)
+  if (!isFastMode) {
+    animateFight(attacker.hp + attackerDamage, attackerDamage, defender.hp + defenderDamage, defenderDamage, 8)
+    playFightSound(attacker.type, defender.type)
+  }
 }
 
 function findUnitBackground (unitType, field) {
@@ -104,7 +108,7 @@ function animateFight (attackerHPnow, attackerDamage, defenderHPnow, defenderDam
 
 async function makeAITurnIfNecessary () {
   if (game.type !== Game.GAME_TYPE.LOCAL_SP || game.myTurn) return
-  await makeAITurn(game, gameCanvas)
+  await makeAITurn(game, gameCanvas, isFastMode)
   renderUi()
   gameCanvas.drawGame()
   if (game.finished) gameOver()
