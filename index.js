@@ -24,6 +24,14 @@ app.get('/game', (req, res) => {
   twing.render('game.twig', {gameName: game ? game.name : null}).then(rendered => res.end(rendered))
 })
 
+app.get('/mapedit', (req, res) => {
+  twing.render('mapeditor.twig').then(rendered => res.end(rendered))
+})
+
+app.get('/importmap', (req, res) => {
+  res.status(404).send()
+})
+
 app.use('/static', express.static('./static'))
 
 http.listen(process.env.PORT || 8080, () => {console.log("running...")})

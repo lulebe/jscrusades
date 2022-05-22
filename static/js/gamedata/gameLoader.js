@@ -19,7 +19,7 @@ export async function loadGame (gameData) {
     gameData.buildingOwners.forEach(b => {
       game.map.fields[b.y][b.x].owner = b.owner
     })
-  const gameAssets = new GameAssets(game)
+  const gameAssets = new GameAssets(mapNum)
   await gameAssets.load()
   return {game, gameAssets}
 }
