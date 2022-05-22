@@ -128,5 +128,5 @@ export function buildingActions (location, game) {
 }
 
 export function winInfo (game) {
-  return LOC.FACTION_NAMES[game.winner.faction] + LOC.WORDS.WINS
+  return LOC.FACTION_NAMES[game.winner] + LOC.WORDS.WINS
 }
