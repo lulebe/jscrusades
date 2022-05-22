@@ -1,7 +1,6 @@
-import { UNIT_DATA, UNIT_TYPES } from "./unitInfo.js"
+import { UNIT_DATA, UNIT_TYPES, BUILDING_INFO, BUILDING, FIELD } from "./gameInfo.js"
 import GameMap from './map.js'
 import { FACTION } from './gameConstants.js'
-import { BUILDING_INFO, BUILDING, FIELD } from "./mapInfo.js"
 
 export default class Unit {
 
@@ -32,6 +31,11 @@ export default class Unit {
     return !this.didFight && (!this.didMove || UNIT_DATA[this.type].moveAndFight)
   }
 
+  get movementPoints () {
+    if (this.food !== 0) return UNIT_DATA[this.type].movementPoints
+    return 1
+  }
+
   heal () {
     if (this.hp == UNIT_DATA[this.type].hp) return
     this.hp++
@@ -39,7 +43,6 @@ export default class Unit {
   }
 
   resupply () {
-    //TODO how does this work? refill all at once or one per round?
     this.ammo = UNIT_DATA[this.type].ammo
     this.food = UNIT_DATA[this.type].food
     this.startEffectAnimation()
@@ -49,21 +52,19 @@ export default class Unit {
     this.animationEffect = {started: false, progress: 0}
   }
 
-  pathfind (game) {
+  pathfind (game, enemiesBlock=true) {
     if (this.didMove) return []
     const fieldsToCalculate = [Math.round(this.posX + this.posY*game.map.sizeX)]
     const pathFindMap = [...Array(game.map.sizeY)].map(x=>Array(game.map.sizeX))
-    pathFindMap[this.posY][this.posX] = {left: UNIT_DATA[this.type].movementPoints, path: [], canStop: false}
-    let firstCheck = true
-    while (fieldsToCalculate.length && (firstCheck || this.food)) {
-      firstCheck = false
+    pathFindMap[this.posY][this.posX] = {left: this.movementPoints, path: [], canStop: false}
+    while (fieldsToCalculate.length) {
       const intField = fieldsToCalculate.pop()
       const fieldY = Math.floor(intField / game.map.sizeX)
       const fieldX = intField % game.map.sizeX
-      if (fieldX < game.map.sizeX-1) this.#pathfindToField(fieldX, fieldY, fieldX+1, fieldY, game, pathFindMap, fieldsToCalculate)
-      if (fieldY < game.map.sizeY-1) this.#pathfindToField(fieldX, fieldY, fieldX, fieldY+1, game, pathFindMap, fieldsToCalculate)
-      if (fieldX > 0) this.#pathfindToField(fieldX, fieldY, fieldX-1, fieldY, game, pathFindMap, fieldsToCalculate)
-      if (fieldY > 0) this.#pathfindToField(fieldX, fieldY, fieldX, fieldY-1, game, pathFindMap, fieldsToCalculate)
+      if (fieldX < game.map.sizeX-1) this.#pathfindToField(fieldX, fieldY, fieldX+1, fieldY, game, pathFindMap, fieldsToCalculate, enemiesBlock)
+      if (fieldY < game.map.sizeY-1) this.#pathfindToField(fieldX, fieldY, fieldX, fieldY+1, game, pathFindMap, fieldsToCalculate, enemiesBlock)
+      if (fieldX > 0) this.#pathfindToField(fieldX, fieldY, fieldX-1, fieldY, game, pathFindMap, fieldsToCalculate, enemiesBlock)
+      if (fieldY > 0) this.#pathfindToField(fieldX, fieldY, fieldX, fieldY-1, game, pathFindMap, fieldsToCalculate, enemiesBlock)
     }
     const pathFindFields = []
     pathFindMap.forEach((row, y) => {
@@ -77,7 +78,7 @@ export default class Unit {
     return pathFindFields
   }
 
-  #pathfindToField (fromX, fromY, toX, toY, game, pathFindMap, fieldsToCalculate) {
+  #pathfindToField (fromX, fromY, toX, toY, game, pathFindMap, fieldsToCalculate, enemiesBlock=true) {
     let cost = UNIT_DATA[this.type].movementCosts[game.map.fields[toY][toX].terrain]
     if (game.map.fields[toY][toX].building === BUILDING.HARBOUR) cost = UNIT_DATA[this.type].movementCosts[FIELD.SOIL]
     if (cost === -1) return
@@ -85,7 +86,7 @@ export default class Unit {
     const movementPointsLeft = pathFieldCurrent.left - cost
     if (movementPointsLeft < 0) return
     const unitOnField = game.findUnitAt(toX, toY)
-    if (unitOnField && unitOnField.faction !== this.faction) return
+    if (unitOnField && unitOnField.faction !== this.faction && enemiesBlock) return
     const canStop = !unitOnField
     const pathFieldTo = pathFindMap[toY][toX] || {left: -1, path: [], canStop}
     if (movementPointsLeft <= pathFieldTo.left) return
@@ -101,10 +102,14 @@ export default class Unit {
     })
   }
 
-  move (x, y, path, game) {
-    this.food && this.food--
+  move (x, y, path, game, isFastMode) {
+    this.food > 0 && this.food--
     this.didMove = true
-    this.animationMove = {started: false, curX: this.posX, curY: this.posY, fieldsToGoTo: path.concat([{x,y}])}
+    if (!isFastMode) {
+      this.animationMove = {started: false, curX: this.posX, curY: this.posY, fieldsToGoTo: path.concat([{x,y}])}
+    } else {
+      this.animationMove = null
+    }
     this.posX = x
     this.posY = y
     if (this.fightfind(game).length) this.hasFightOptions = true

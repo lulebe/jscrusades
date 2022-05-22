@@ -1,46 +1,116 @@
-let compat = {
-   World: new World() // TODO
+import { initWithGame, World, Player, Profile } from './compat.js'
+
+
+const compat = {
+   World: null
 };
+
+export const AI_STEP_TYPE = {
+   END_TURN: 0,
+   NOTHING: 1,
+   RECRUIT: 2,
+   MOVE: 3,
+   ATTACK: 4
+ }
+
+export function startLegacyAi (game, endTurnCallback) {
+   initWithGame(game, endTurnCallback);
+   compat.World = new World(game);
+   const aiPlayer = new Player(game.currentPlayer)
+   resetAllAIVars();
+   AiSystemCreate();
+   AiSystemExecute();
+   return () => {
+      return AiSystemExecuteStep(aiPlayer)
+   }
+}
+
+function resetAllAIVars () {
+   aiWishlist_counter = 0;
+   aiWishlist_profiles = new Array(AiWishlist_Max);
+   AIexecutionState = 0;
+   AiSystemDone = false;
+   AiSystemMoveWeakUnitsDone = false;
+   AiSystemMoveOrFightDone = false;
+   AiSystemStandardUnitsDone = false;
+   UnitCounter = 0;
+   StandardUnitMoving = true;
+   gameMap_influence = [];
+   gameMap_marker = [];
+   gameMap_fortify = [];
+   gameMap_threat = [];
+   report = { human: 0, soft: 0, hard: 0, air: 0, water: 0 };
+   score = 0;
+   neighbour = 0;
+   AiSystemExecuteINT = null;
+   AiSystemExecute_MoveWeakUnitsINT = null;
+   DisplayBattleINT = null;
+   AiSystemExecute_StandardUnitsINT = null;
+}
+
+
+
+//---------------------
+// modofied old AI code
+//---------------------
+
+const UnitDataObjects = new Array(13).fill(0).map((_, i) => new Profile(i + 1));
 
 const AiWishlist_Max = 1000;
 let aiWishlist_counter = 0;
-const aiWishlist_profiles = new Array(AiWishlist_Max);
+let aiWishlist_profiles = new Array(AiWishlist_Max);
 
 const AiInfluence_Aggressive = 0;
 const AiInfluence_Passive = 1;
 
+let gameInfluence_baseBehaviour = AiInfluence_Aggressive;
+
+let AIexecutionState = 0;
+let AiSystemDone = false;
+
+
+let AiSystemMoveWeakUnitsDone = false;
+let AiSystemMoveOrFightDone = false;
+let AiSystemStandardUnitsDone = false;
+
+let UnitCounter = 0;
+let StandardUnitMoving = true;
+
 const Ai_InvalidValue = -1000;
 const GameMovement_BlockedField = -1;
 
-const gameMap_influence = [];
-const gameMap_marker = [];
-const gameMap_fortify = [];
-const gameMap_threat = [];
+let gameMap_influence = [];
+let gameMap_marker = [];
+let gameMap_fortify = [];
+let gameMap_threat = [];
 
-const DataUnit_ProfileId_Infantry = _root.Spearman; // TODO
+const DataUnit_ProfileId_Infantry = new Profile(2);
 
 const Unit_State_WaitingForOrder = 0;
 const Unit_State_FinishedMoving = 1; // Seems unused.
 const Unit_State_Finished = 2;
 
-const report = { human: 0, soft: 0, hard: 0, air: 0, water: 0 };
+let report = { human: 0, soft: 0, hard: 0, air: 0, water: 0 };
 
 // Vars which were previously global but w/o declaration
 let score = 0;
 let neighbour = 0;
 
+// intervals
+let AiSystemExecuteINT = null;
+let AiSystemExecute_MoveWeakUnitsINT = null;
+let DisplayBattleINT = null;
+let AiSystemExecute_StandardUnitsINT = null;
+
 
 function AiWishlistCreate() {
-   console.log("AiWishlistCreate()");
    AiWishlistReset();
 }
 
 function AiWishlistDestroy() {
-   console.log("AiWishlistDestroy()");
 }
 
 function AiWishlistReset() {
-   console.log("AiWishlistReset()");
    let i = 0;
    while (i < AiWishlist_Max)
    {
@@ -51,8 +121,6 @@ function AiWishlistReset() {
 }
 
 function AiWishlistAdd(profile) {
-   // TODO (?) param unclear; dtype is wishlist_profiles' content
-   // dtype can likely be ignored
    if (aiWishlist_counter >= AiWishlist_Max) {
       console.log("list full!");
    } else {
@@ -120,7 +188,7 @@ function AiInfluencePrepareMap_Supply(unit /* compat.Unit */) {
          _loc8_ = false;
          if (_loc4_ != null) {
             if (_loc4_.getPlayer() == null && compat.World.DataUnitsCanCaptureCity(_loc7_)) {
-               if (_loc6_ == unit) { // TODO obj identity comparison?
+               if (_loc6_.equals(unit)) {
                   gameMap_influence[_loc3_][_loc2_] = 1000;
                   gameMap_marker[_loc3_][_loc2_] = 2;
                }
@@ -194,7 +262,7 @@ function AiInfluencePrepareMap_Fight(unit) {
                         if (_loc6_ == null) {
                            _loc2_ = _loc2_ + _loc7_;
                         }
-                        else if (_loc6_ == unit) { // TODO we want obj identity comparison here
+                        else if (_loc6_.equals(unit)) {
                            _loc2_ = _loc2_ + _loc7_ + 5;
                         }
                         else if (compat.World.PlayerAreEnemies(_loc6_.getPlayer(), unit.getPlayer())) {
@@ -285,7 +353,7 @@ function AiInfluenceComputeMap(item) {
       }
       _loc5_ = 0; // row
       while (_loc5_ < compat.World.rows) {
-         _loc3_ = 0; // col
+         let _loc3_ = 0; // col
          while (_loc3_ < compat.World.cols) {
             if (gameMap_influence[_loc5_][_loc3_] != Ai_InvalidValue && gameMap_marker[_loc5_][_loc3_] == 0) {
                gameMap_marker[_loc5_][_loc3_] = 1;
@@ -365,14 +433,14 @@ function AiInfluence_GetScoreForNeutralCity_NotOccupied(item, city) {
 }
 
 function AiInfluence_GetScoreForNeutralCity_Occupied(item, city, conqueror) {
-   if (conqueror == item) {
+   if (conqueror.equals(item)) {
       if (compat.World.DataUnitsCanCaptureCity(compat.World.UnitsGetProfile(conqueror))) {
          return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 2;
       }
       return Ai_InvalidValue;
    }
    if (compat.World.PlayerAreEnemies(conqueror.getPlayer(), item.getPlayer())) {
-      return compat.World.DataCitiesGetScore(World.CitiesGetProfile(city)) * 1.05;
+      return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 1.05;
    }
    if (compat.World.DataUnitsCanCaptureCity(compat.World.UnitsGetProfile(conqueror))) {
       return Ai_InvalidValue;
@@ -402,7 +470,7 @@ function AiInfluence_GetScoreForFriendlyCity_Occupied(item, city, conqueror) {
       return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city));
    }
    if (gameMap_fortify[city.row][city.col] > 0) {
-      if (item == conqueror) {
+      if (item.equals(conqueror)) {
          if (compat.World.CitiesIsProductionFacility(city)) {
             if (item.getPlayer().getGold() > compat.World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry)) {
                return compat.World.DataCitiesGetScore(compat.World.CitiesGetProfile(city)) * 0.3;
@@ -531,7 +599,12 @@ function AiInfluenceCreateThreatRing(row, col, range, threat) {
    while (i < range) {
       // The argument 3 is potentially a bug.
       // Why only create a threat ring to the left? (Maybe that's the strength?)
-      _loc1_ = compat.World.NeighboursSelect(3, _loc1_.row, _loc1_.col);
+      // CODE CHANGED
+      // _loc1_ = compat.World.NeighboursSelect(3, _loc1_.row, _loc1_.col);
+      let temp = compat.World.NeighboursSelect(3, _loc1_.row, _loc1_.col);
+      if (temp != null)
+      _loc1_ = temp
+      // END OF CHANGE
       i++;
    }
    let neighbour = 0;
@@ -555,7 +628,7 @@ function AiInfluenceCreateThreatRing(row, col, range, threat) {
                _loc1_.col = _loc1_.col - 1;
                _loc1_.row = _loc1_.row - 1;
          }
-         if (_loc1_.row >= 0 && _loc1_.row <= compat.World.rows && _loc1_.col >= 0 && _loc1_.col <= compat.World.cols) {
+         if (_loc1_.row >= 0 && _loc1_.row < compat.World.rows && _loc1_.col >= 0 && _loc1_.col < compat.World.cols) {
             gameMap_threat[_loc1_.row][_loc1_.col] = gameMap_threat[_loc1_.row][_loc1_.col] + threat;
          }
          i++;
@@ -593,23 +666,37 @@ function AiToolsMove(item, range) {
    if (compat.World.map.units[_loc7_][_loc6_] == null) {
       compat.World.game.Marker.setPos(_loc7_, _loc6_);
       item.move(_loc7_, _loc6_);
+      return true;
    }
+   return false;
 }
 
 function AiToolsBattle(item) {
+   let didFight = false
+   let killedEnemyIndex = null
    compat.World.createBattle(item);
    console.log("BattleDescription: " + compat.World.BattleDescription[0]);
    const _loc1_ = AiToolsSearchBestBattleDescription(item, false);
-   console.log(_loc1_[0] + " " + _loc1_[1] + " " + _loc1_[2].type);
+   // accesses nullable before null-check:
+   //console.log(_loc1_[0] + " " + _loc1_[1] + " " + _loc1_[2].type);
    if (_loc1_ != null) {
       compat.World.game.Marker.setPos(_loc1_[0], _loc1_[1]);
+      compat.World.unitList.find((u, index) => {
+         if (u.equals(_loc1_[2])) {
+            killedEnemyIndex = index
+            return true
+         }
+      })
       compat.World.executeBattle(item, _loc1_[2]);
+      didFight = true;
+      if (_loc1_[2].hp) killedEnemyIndex = null
       console.log(_loc1_[0] + " " + _loc1_[1] + " " + _loc1_[2].type);
       if (compat.World.map.units[_loc1_[0]][_loc1_[1]] == null) {
          AiInfluencePrepareMap_Fortify(item.player);
       }
    }
    compat.World.destroyBattle();
+   return { didFight, killedEnemyIndex }
 }
 
 function AiToolsSearchBestUnit_GameUnitsItem(player, category) {
@@ -618,7 +705,7 @@ function AiToolsSearchBestUnit_GameUnitsItem(player, category) {
    let _loc2_ = Ai_InvalidValue;
    for (let i = 0; i < compat.World.unitList.length; i++) {
       const _loc1_ = compat.World.unitList[i];
-      if (_loc1_.player == player && _loc1_.state == Unit_State_WaitingForOrder && _loc1_.getTypeCat() == category) {
+      if (_loc1_.player.equals(player) && _loc1_.state == Unit_State_WaitingForOrder && _loc1_.getTypeCat() == category) {
          _loc2_ = gameMap_influence[_loc1_.row][_loc1_.col];
          if (_loc2_ > _loc3_) {
             _loc3_ = _loc2_;
@@ -633,8 +720,8 @@ function AiToolsSearchBestBattleDescription(attacker, farRangeAttack) {
    let _loc6_ = null;
    let _loc4_ = 0;
    let _loc1_ = 0;
-   for (let i = 0; i < World.BattleDescription.length; i++) {
-      const _loc3_ = World.BattleDescription[i];
+   for (let i = 0; i < compat.World.BattleDescription.length; i++) {
+      const _loc3_ = compat.World.BattleDescription[i];
       const _loc2_ = _loc3_[2];
       console.log("defender " + _loc2_.type);
       _loc1_ = AiInfluenceGetScoreForEnemyUnit(attacker, _loc2_) + 50;
@@ -728,51 +815,43 @@ function AiBuyUnitsDestroy() {
 
 // This is where the second expedition ran out of energy bars (Apr 14, 2022).
 
-function AiBuyUnitsExecute(player)
-{
-   if(player.getGold() < 10)
-   {
-      return undefined;
+function AiBuyUnitsExecute(player) {
+   let boughtUnit = false
+   if (player.getGold() < 10) {
+      return boughtUnit;
    }
    AiWishlistReset();
-   if(World.CitiesCanProduceUnit(player,"Human"))
-   {
-      var _loc9_ = World.CitiesCountNeutral(player,"Town");
-      var _loc7_ = World.UnitsCount(player,"Human");
-      if(_loc9_ > _loc7_)
-      {
-         AiBuyUnitsAddToWishlist(player,"Human");
-         AiBuyUnitsFromWishlist("rule1",player);
-         return undefined;
+   if (compat.World.CitiesCanProduceUnit(player, "Human")) {
+      const _loc9_ = compat.World.CitiesCountNeutral(player, "Town");
+      const _loc7_ = compat.World.UnitsCount(player, "Human");
+      if (_loc9_ > _loc7_) {
+         AiBuyUnitsAddToWishlist(player, "Human");
+         let boughtNow = AiBuyUnitsFromWishlist("rule1", player);
+         boughtUnit = boughtUnit || boughtNow;
+         return boughtUnit;
       }
-      var _loc8_ = World.CitiesCountOccupied(player,"Town");
-      if(_loc8_ > _loc7_)
-      {
-         AiBuyUnitsAddToWishlist(player,"Human");
-         AiBuyUnitsFromWishlist("rule2",player);
+      const _loc8_ = compat.World.CitiesCountOccupied(player, "Town");
+      if (_loc8_ > _loc7_) {
+         AiBuyUnitsAddToWishlist(player, "Human");
+         let boughtNow = AiBuyUnitsFromWishlist("rule2", player);
+         boughtUnit = boughtUnit || boughtNow;
       }
    }
-   catCount = 0;
-   while(catCount < _root.UnitTypes.length)
-   {
-      var _loc4_ = _root.UnitTypes[catCount];
-      var _loc6_ = World.UnitsCountEnemyHitpoints(player,_loc4_);
-      var _loc5_ = World.UnitsCountCounterHitpoints(player,_loc4_);
-      if(_loc5_ < _loc6_)
-      {
-         profCount = 0;
-         while(profCount < _root.UnitDataObjects.length)
-         {
-            var _loc3_ = _root.UnitDataObjects[profCount];
-            if(World.DataUnitsIsValid(_loc3_))
-            {
-               if(World.DataUnitsGetPrice(_loc3_) < player.getGold() && World.DataUnitsGetQuality(_loc3_) > 0)
-               {
-                  if(World.CitiesCanProduceUnit(player,_loc3_.type))
-                  {
-                     strength = 1;
-                     while(strength < World.DataUnitsGetAttackStrengthAgainstCategory(_loc3_,_loc4_))
-                     {
+   let catCount = 0;
+   const unitCategories = ["Human", "Hard", "Soft", "Water", "Air"];
+   while (catCount < unitCategories) {
+      const _loc4_ = unitCategories[catCount]; // unit category
+      const _loc6_ = compat.World.UnitsCountEnemyHitpoints(player, _loc4_);
+      const _loc5_ = compat.World.UnitsCountCounterHitpoints(player, _loc4_);
+      if (_loc5_ < _loc6_) {
+         let profCount = 0;
+         while (profCount < UnitDataObjects.length) {
+            const _loc3_ = UnitDataObjects[profCount];
+            if (_loc3_) {
+               if (compat.World.DataUnitsGetPrice(_loc3_) < player.getGold() && compat.World.DataUnitsGetQuality(_loc3_) > 0) {
+                  if (compat.World.CitiesCanProduceUnit(player, _loc3_.type)) {
+                     let strength = 1;
+                     while (strength < compat.World.DataUnitsGetAttackStrengthAgainstCategory(_loc3_, _loc4_)) {
                         AiWishlistAdd(_loc3_);
                         strength++;
                      }
@@ -784,26 +863,20 @@ function AiBuyUnitsExecute(player)
       }
       catCount++;
    }
-   if(AiWishlistIsEmpty() == false)
-   {
-      AiBuyUnitsFromWishlist("rule3",player);
-      return undefined;
+   if (AiWishlistIsEmpty() == false) {
+      let boughtNow = AiBuyUnitsFromWishlist("rule3", player);
+      boughtUnit = boughtUnit || boughtNow;
+      return boughtUnit;
    }
-   if(player.getGold() > 60 || myRnd(0,100) > 80)
-   {
-      profCount = 0;
-      while(profCount < _root.UnitDataObjects.length)
-      {
-         _loc3_ = _root.UnitDataObjects[profCount];
-         if(World.DataUnitsIsValid(_loc3_))
-         {
-            if(World.DataUnitsGetPrice(_loc3_) < player.getGold())
-            {
-               if(World.CitiesCanProduceUnit(player,_loc3_))
-               {
-                  quality = 1;
-                  while(quality < World.DataUnitsGetQuality(_loc3_))
-                  {
+   if (player.getGold() > 60 || myRnd(0, 100) > 80) {
+      let profCount = 0;
+      while (profCount < UnitDataObjects.length) {
+         const _loc3_ = UnitDataObjects[profCount];
+         if (_loc3_) {
+            if (compat.World.DataUnitsGetPrice(_loc3_) < player.getGold()) {
+               if (compat.World.CitiesCanProduceUnit(player, _loc3_)) {
+                  let quality = 1;
+                  while (quality < compat.World.DataUnitsGetQuality(_loc3_)) {
                      AiWishlistAdd(_loc3_);
                      quality++;
                   }
@@ -812,49 +885,43 @@ function AiBuyUnitsExecute(player)
          }
          profCount++;
       }
-      AiBuyUnitsFromWishlist("rule4",player);
+      let boughtNow = AiBuyUnitsFromWishlist("rule4", player);
+      boughtUnit = boughtUnit || boughtNow;
    }
+   return boughtUnit;
 }
-function AiBuyUnitsFromWishlist(rule, player)
-{
-   if(AiWishlistIsEmpty())
-   {
-      return undefined;
+
+function AiBuyUnitsFromWishlist(rule, player) {
+   if (AiWishlistIsEmpty()) {
+      return false;
    }
-   var _loc3_ = AiWishlistGetRandomProfile();
-   for(i in World.cityList)
-   {
-      var _loc1_ = World.cityList[i];
-      if(_loc1_.getPlayer() == player)
-      {
-         var _loc2_ = World.DataUnitsGetProduction(_loc3_);
-         if(_loc1_.type == _loc2_.name && World.map.units[_loc1_.row][_loc1_.col] == null)
-         {
-            World.game.Marker.setPos(_loc1_.row,_loc1_.col);
-            player.buyUnit(_loc3_.name,_loc1_.row,_loc1_.col);
-            return undefined;
+   const _loc3_ = AiWishlistGetRandomProfile(); // profile
+   for (let i = 0; i < compat.World.cityList.length; i++) {
+      const _loc1_ = compat.World.cityList[i];
+      if (_loc1_.getPlayer() && _loc1_.getPlayer().equals(player)) {
+         const _loc2_ = compat.World.DataUnitsGetProduction(_loc3_);
+         if (_loc1_.type == _loc2_ && compat.World.map.units[_loc1_.row][_loc1_.col] == null) {
+            compat.World.game.Marker.setPos(_loc1_.row ,_loc1_.col);
+            player.buyUnit(_loc3_.name, _loc1_.row, _loc1_.col);
+            return true;
          }
       }
    }
+   return false;
 }
-function AiBuyUnitsAddToWishlist(player, category)
-{
-   if(World.game.Round < 6 && category == "Human")
-   {
+
+function AiBuyUnitsAddToWishlist(player, category) {
+   if (compat.World.game.Round < 6 && category == "Human") {
       AiWishlistAdd(DataUnit_ProfileId_Infantry);
-      return undefined;
+      return;
    }
-   profCount = 0;
-   while(profCount < _root.UnitDataObjects.length)
-   {
-      var _loc2_ = _root.UnitDataObjects[profCount];
-      if(World.DataUnitsIsValid(_loc2_))
-      {
-         if(World.DataUnitsGetCategory(_loc2_) == category && World.DataUnitsGetPrice(_loc2_) < player.getGold())
-         {
-            quality = 1;
-            while(quality < World.DataUnitsGetQuality(_loc2_))
-            {
+   let profCount = 0;
+   while (profCount < UnitDataObjects.length) {
+      var _loc2_ = UnitDataObjects[profCount];
+      if (_loc2_) {
+         if (compat.World.DataUnitsGetCategory(_loc2_) == category && compat.World.DataUnitsGetPrice(_loc2_) < player.getGold()) {
+            let quality = 1;
+            while (quality < compat.World.DataUnitsGetQuality(_loc2_)) {
                AiWishlistAdd(_loc2_);
                quality++;
             }
@@ -863,322 +930,248 @@ function AiBuyUnitsAddToWishlist(player, category)
       profCount++;
    }
 }
-function myRnd(min, max)
-{
-   result = min + Math.floor(Math.random() * (max + 1 - min));
-   return result;
+
+function myRnd(min, max) {
+   return min + Math.floor(Math.random() * (max + 1 - min));
 }
-function AiSystemCreate(world)
-{
+
+function AiSystemCreate() {
    console.log("AiSystemCreate( world )");
-   World = world;
    AiBuyUnitsCreate();
 }
-function AiSystemDestroy()
-{
+
+function AiSystemDestroy() {
    console.log("AiSystemDestroy()");
    AiBuyUnitsDestroy();
 }
-function AiSystemExecute(player)
-{
+
+function AiSystemExecute() {
    AIexecutionState = 0;
    AiSystemDone = false;
-   _root.AiSystemExecuteINT = setInterval(AiSystemExecuteStep,500,player);
 }
-function AiSystemExecuteStep(player)
-{
-   switch(AIexecutionState)
-   {
+
+function AiSystemExecuteStep(player) {
+   let boughtUnits = false
+   switch (AIexecutionState) {
       case 0:
-         AiBuyUnitsExecute(player);
-         AiSystemExecute_BehaviourHandling(player);
-         AiSystemExecute_MoveWeakUnits(player);
-         break;
+         boughtUnits = AiBuyUnitsExecute(player);
+         AIexecutionState = 1;
+         return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
       case 1:
-         if(!AiSystemMoveWeakUnitsDone)
-         {
-            return undefined;
-         }
-         AiInfluencePrepareMap_Fortify(player);
-         AiSystemExecute_FightOrMoveUnits(player);
-         break;
-      case 2:
-         if(!AiSystemMoveOrFightDone)
-         {
-            return undefined;
-         }
-         AiSystemExecute_StandardUnits(player,10,1);
-         break;
-      case 3:
-         if(!AiSystemStandardUnitsDone)
-         {
-            return undefined;
-         }
-         AiBuyUnitsExecute(player);
-         AiSystemExecute_StandardUnits(player,100,0);
-         break;
-      case 4:
-         if(!AiSystemStandardUnitsDone)
-         {
-            return undefined;
-         }
-         AiSystemExecute_StandardUnits(player,60,0);
-         break;
+         UnitCounter = 0;
+         AiSystemMoveWeakUnitsDone = false;
+         AIexecutionState = 5;
+         return AI_STEP_TYPE.NOTHING;
       case 5:
-         if(!AiSystemStandardUnitsDone)
-         {
-            return undefined;
+         if (AiSystemMoveWeakUnitsDone) {
+            AIexecutionState = 10;
+            return AI_STEP_TYPE.NOTHING
          }
-         AiBuyUnitsExecute(player);
-         AiSystemExecute_BehaviourHandling(player);
-         AiSystemExecute_StandardUnits(player,30,0);
-         break;
-      case 6:
-         if(!AiSystemStandardUnitsDone)
-         {
-            return undefined;
+         return AiSystemExecute_MoveWeakUnitsStep(player) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+      case 10:
+         AiInfluencePrepareMap_Fortify(player);
+         UnitCounter = 0;
+         AiSystemMoveOrFightDone = false;
+         AIexecutionState = 11;
+         return AI_STEP_TYPE.NOTHING;
+      case 11:
+         if (AiSystemMoveOrFightDone) {
+            AIexecutionState = 20;
+            return AI_STEP_TYPE.NOTHING;
          }
-         AiBuyUnitsExecute(player);
-         AiSystemExecute_StandardUnits(player,Ai_InvalidValue,0);
-         break;
-      case 7:
-         if(!AiSystemStandardUnitsDone)
-         {
-            return undefined;
+         return AiSystemExecute_FightOrMoveUnitsStep(player) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 20:
+         UnitCounter = 0;
+         AiSystemStandardUnitsDone = false;
+         StandardUnitMoving = true;
+         AIexecutionState = 21;
+      case 21:
+         if (AiSystemStandardUnitsDone) {
+            AIexecutionState = 30;
+            return AI_STEP_TYPE.NOTHING;
          }
-         AiBuyUnitsExecute(player);
-         clearInterval(_root.AiSystemExecuteINT);
+         if (StandardUnitMoving)
+            return AiSystemExecute_StandardUnitsStep(player, 10, 1) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+         else
+            return AiSystemExecute_StandardUnitsWait(player, 10, 1) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 30:
+         boughtUnits = AiBuyUnitsExecute(player);
+         AiSystemStandardUnitsDone = false;
+         StandardUnitMoving = true;
+         UnitCounter = 0;
+         AIexecutionState = 31;
+         return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
+      case 31:
+         if (AiSystemStandardUnitsDone) {
+            AIexecutionState = 40;
+            return AI_STEP_TYPE.NOTHING;
+         }
+         if (StandardUnitMoving)
+            return AiSystemExecute_StandardUnitsStep(player, 100, 0) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+         else
+            return AiSystemExecute_StandardUnitsWait(player, 100, 0) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 40:
+         AiSystemStandardUnitsDone = false;
+         StandardUnitMoving = true;
+         UnitCounter = 0;
+         AIexecutionState = 41;
+         return AI_STEP_TYPE.NOTHING;
+      case 41:
+         if (AiSystemStandardUnitsDone) {
+            AIexecutionState = 50;
+            return AI_STEP_TYPE.NOTHING;
+         }
+         if (StandardUnitMoving)
+            return AiSystemExecute_StandardUnitsStep(player, 60, 0) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+         else
+            return AiSystemExecute_StandardUnitsWait(player, 60, 0) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 50:
+         boughtUnits = AiBuyUnitsExecute(player);
+         AiSystemStandardUnitsDone = false;
+         StandardUnitMoving = true;
+         UnitCounter = 0;
+         AIexecutionState = 51;
+         return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
+      case 51:
+         if (AiSystemStandardUnitsDone) {
+            AIexecutionState = 60;
+            return AI_STEP_TYPE.NOTHING;
+         }
+         if (StandardUnitMoving)
+            return AiSystemExecute_StandardUnitsStep(player, 30, 0) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+         else
+            return AiSystemExecute_StandardUnitsWait(player, 30, 0) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 60:
+         boughtUnits = AiBuyUnitsExecute(player);
+         AiSystemStandardUnitsDone = false;
+         StandardUnitMoving = true;
+         UnitCounter = 0;
+         AIexecutionState = 61;
+         return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
+      case 61:
+         if (AiSystemStandardUnitsDone) {
+            AIexecutionState = 70;
+            return AI_STEP_TYPE.NOTHING;
+         }
+         if (StandardUnitMoving)
+            return AiSystemExecute_StandardUnitsStep(player, Ai_InvalidValue, 0) ? AI_STEP_TYPE.MOVE : AI_STEP_TYPE.NOTHING;
+         else
+            return AiSystemExecute_StandardUnitsWait(player, Ai_InvalidValue, 0) ? AI_STEP_TYPE.ATTACK : AI_STEP_TYPE.NOTHING;
+      case 70:
+         boughtUnits = AiBuyUnitsExecute(player);
+         AIexecutionState = 71;
+         return boughtUnits ? AI_STEP_TYPE.RECRUIT : AI_STEP_TYPE.NOTHING;
+      case 71:
          AiSystemDone = true;
-         World.game.nextTurn();
-         break;
-      default:
-         console.log("AIexecutionState ERROR!");
+         AiSystemDestroy();
+         return AI_STEP_TYPE.END_TURN;
    }
    AIexecutionState++;
+   return AI_STEP_TYPE.NOTHING
 }
-function AiSystemExecute_BehaviourHandling(player)
-{
-   if(AiReportHasAdvantage(player))
-   {
-      AiInfluenceSetBaseBehaviour(AiInfluence_Aggressive);
-   }
-   else
-   {
-      AiInfluenceSetBaseBehaviour(AiInfluence_Passive);
-   }
-}
-function AiSystemExecute_MoveWeakUnits(player)
-{
-   UnitCounter = 0;
-   AiSystemMoveWeakUnitsDone = false;
-   AiSystemExecute_MoveWeakUnitsStep(player);
-}
-function AiSystemExecute_MoveWeakUnitsStep(player)
-{
-   if(UnitCounter >= World.unitList.length)
-   {
+
+function AiSystemExecute_MoveWeakUnitsStep(player) {
+   if (UnitCounter >= compat.World.unitList.length) {
       AiSystemMoveWeakUnitsDone = true;
+      return false;
    }
-   else
-   {
-      unit = World.unitList[UnitCounter];
-      console.log("unit.type: " + unit.type);
-      if(unit.getPlayer() == player)
-      {
-         if(unit.getState() == Unit_State_WaitingForOrder)
-         {
-            var _loc2_ = false;
-            if(unit.GetHitpointsInPercent() < 45)
-            {
-               _loc2_ = true;
-            }
-            if(unit.GetAmmoInPercent() < 25)
-            {
-               _loc2_ = true;
-            }
-            if(unit.GetFuelInPercent() < 25)
-            {
-               _loc2_ = true;
-            }
-            if(_loc2_ && unit.getState() != Unit_State_Finished)
-            {
-               AiInfluencePrepareMap_Supply(unit);
-               AiInfluenceComputeMap(unit);
-               AiInfluenceFinalizeMap(unit);
-               AiToolsMove(unit,unit.getMovement());
-               _root.AiSystemExecute_MoveWeakUnitsINT = setInterval(AiSystemExecute_MoveWeakUnitsWait,500,unit);
-               return undefined;
-            }
+   const unit = compat.World.unitList[UnitCounter];
+   if (unit.getPlayer().equals(player)) {
+      if (unit.getState() == Unit_State_WaitingForOrder) {
+         let _loc2_ = false;
+         if (unit.GetHitpointsInPercent() < 45) {
+            _loc2_ = true;
+         }
+         if (unit.GetAmmoInPercent() < 25) {
+            _loc2_ = true;
+         }
+         if (unit.GetFuelInPercent() < 25) {
+            _loc2_ = true;
+         }
+         if (_loc2_ && unit.getState() != Unit_State_Finished) {
+            AiInfluencePrepareMap_Supply(unit);
+            AiInfluenceComputeMap(unit);
+            AiInfluenceFinalizeMap(unit);
+            let didMove = AiToolsMove(unit, unit.getMovement());
+            unit.state = Unit_State_Finished;
+            UnitCounter++;
+            return didMove;
          }
       }
-      UnitCounter++;
-      AiSystemExecute_MoveWeakUnitsStep(player);
    }
+   UnitCounter++;
+   return false;
 }
-function AiSystemExecute_MoveWeakUnitsWait(unit)
-{
-   if(!unit.isMoving)
-   {
-      clearInterval(_root.AiSystemExecute_MoveWeakUnitsINT);
-      unit.state = Unit_State_Finished;
-      UnitCounter++;
-      AiSystemExecute_MoveWeakUnitsStep(unit.player);
-   }
-}
-function AiSystemExecute_FightOrMoveUnits(player)
-{
-   UnitCounter = 0;
-   AiSystemMoveOrFightDone = false;
-   AiSystemExecute_FightOrMoveUnitsStep(player);
-}
-function AiSystemExecute_FightOrMoveUnitsStep(player)
-{
-   if(UnitCounter >= World.unitList.length)
-   {
+
+function AiSystemExecute_FightOrMoveUnitsStep(player) {
+   if (UnitCounter >= compat.World.unitList.length) {
       AiSystemMoveOrFightDone = true;
+      return false;
    }
-   else
-   {
-      unit = World.unitList[UnitCounter];
-      if(unit.getPlayer() == player && unit.getState() == Unit_State_WaitingForOrder)
-      {
-         var _loc4_ = unit.getBehavior();
-         if(_loc4_ == "FightOrMove")
-         {
-            console.log("unit found" + unit.type);
-            var _loc3_ = World.getCity(unit.row,unit.col);
-            if(_loc3_ != null)
-            {
-               if(World.CitiesIsProductionFacility(_loc3_))
-               {
-                  if(player.getGold() > World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry))
-                  {
-                     AiToolsBattle(unit);
-                     if(BATTLEWINDOW)
-                     {
-                        _root.DisplayBattleINT = setInterval(AiSystemExecute_FightOrMoveUnitsStepDone,4000,player,unit);
-                     }
-                     else
-                     {
-                        _root.DisplayBattleINT = setInterval(AiSystemExecute_FightOrMoveUnitsStepDone,2000,player,unit);
-                     }
-                     return undefined;
+   const unit = compat.World.unitList[UnitCounter];
+   if (unit.getPlayer().equals(player) && unit.getState() == Unit_State_WaitingForOrder) {
+      const _loc4_ = unit.getBehavior();
+      if (_loc4_ == "FightOrMove") {
+         const _loc3_ = compat.World.getCity(unit.row, unit.col);
+         if (_loc3_ != null) {
+            if (compat.World.CitiesIsProductionFacility(_loc3_)) {
+               if (player.getGold() > compat.World.DataUnitsGetPrice(DataUnit_ProfileId_Infantry)) {
+                  const { didFight, killedEnemyIndex } = AiToolsBattle(unit);
+                  if (killedEnemyIndex !== null && killedEnemyIndex < UnitCounter) UnitCounter--
+                  if (unit.hp > 0) {
+                     UnitCounter++;
                   }
+                  return didFight;
                }
             }
-            AiToolsBattle(unit);
-            if(BATTLEWINDOW)
-            {
-               _root.DisplayBattleINT = setInterval(AiSystemExecute_FightOrMoveUnitsStepDone,4000,player,unit);
-            }
-            else
-            {
-               _root.DisplayBattleINT = setInterval(AiSystemExecute_FightOrMoveUnitsStepDone,2000,player,unit);
-            }
-            return undefined;
          }
+         const { didFight, killedEnemyIndex } = AiToolsBattle(unit);
+         if (killedEnemyIndex !== null && killedEnemyIndex < UnitCounter) UnitCounter--
+         if (unit.hp > 0) {
+            UnitCounter++;
+         }
+         return didFight;
       }
-      UnitCounter++;
-      AiSystemExecute_FightOrMoveUnitsStep(player);
    }
+   UnitCounter++;
+   return false;
 }
-function AiSystemExecute_FightOrMoveUnitsStepDone(player, unit)
-{
-   clearInterval(_root.DisplayBattleINT);
-   if(unit != undefined)
-   {
-      UnitCounter++;
-   }
-   AiSystemExecute_FightOrMoveUnitsStep(player);
-}
-function AiSystemExecute_StandardUnits(player, score, range)
-{
-   console.log("AiSystemExecute_StandardUnits()");
-   UnitCounter = 0;
-   AiSystemStandardUnitsDone = false;
-   AiSystemExecute_StandardUnitsStep(player,score,range);
-}
-function AiSystemExecute_StandardUnitsStep(player, score, range)
-{
-   if(UnitCounter >= World.unitList.length)
-   {
+
+function AiSystemExecute_StandardUnitsStep(player, score, range) {
+   if (UnitCounter >= compat.World.unitList.length) {
       AiSystemStandardUnitsDone = true;
+      return false;
    }
-   else
-   {
-      unit = World.unitList[UnitCounter];
-      if(unit.getPlayer() == player && unit.getState() == Unit_State_WaitingForOrder && unit.getRange() > range)
-      {
-         console.log("try to fight");
-         AiInfluencePrepareMap_Fight(unit);
-         AiInfluenceComputeMap(unit);
-         AiInfluenceFinalizeMap(unit);
-         var _loc2_ = gameMap_influence[unit.row][unit.col];
-         console.log("influence = " + _loc2_);
-         console.log("score = " + score);
-         if(_loc2_ >= score)
-         {
-            AiToolsMove(unit,unit.getMovement());
-            _root.AiSystemExecute_StandardUnitsINT = setInterval(AiSystemExecute_StandardUnitsWait,500,unit,score,range);
-            return undefined;
-         }
+   const unit = compat.World.unitList[UnitCounter];
+   if (unit.getPlayer().equals(player) && unit.getState() == Unit_State_WaitingForOrder && unit.getRange() > range) {
+      console.log("try to fight");
+      AiInfluencePrepareMap_Fight(unit);
+      AiInfluenceComputeMap(unit);
+      AiInfluenceFinalizeMap(unit);
+      const _loc2_ = gameMap_influence[unit.row][unit.col];
+      if (_loc2_ >= score) {
+         let didMove = AiToolsMove(unit, unit.getMovement());
+         StandardUnitMoving = false;
+         return didMove;
       }
-      UnitCounter++;
-      AiSystemExecute_StandardUnitsStep(player,score,range);
    }
+   UnitCounter++;
+   return false;
 }
-function AiSystemExecute_StandardUnitsWait(unit, score, range)
-{
-   if(!unit.isMoving)
-   {
-      var _loc3_ = unit.player;
-      clearInterval(_root.AiSystemExecute_StandardUnitsINT);
-      if(unit.getState() != Unit_State_Finished)
-      {
-         console.log("attack");
-         AiToolsBattle(unit);
-         if(BATTLEWINDOW)
-         {
-            _root.DisplayBattleINT = setInterval(AiSystemExecute_StandardUnitsAttackDone,4000,_loc3_,score,range,unit);
-         }
-         else
-         {
-            _root.DisplayBattleINT = setInterval(AiSystemExecute_StandardUnitsAttackDone,2000,_loc3_,score,range,unit);
-         }
-         return undefined;
+
+function AiSystemExecute_StandardUnitsWait(player, score, range) {
+   StandardUnitMoving = true;
+   const unit = compat.World.unitList[UnitCounter];
+   if (unit.getState() != Unit_State_Finished) {
+      console.log("attack");
+      const { didFight, killedEnemyIndex } = AiToolsBattle(unit);
+      if (killedEnemyIndex !== null && killedEnemyIndex < UnitCounter) UnitCounter--
+      if (unit.hp > 0) {
+         UnitCounter++;
+         unit.state = Unit_State_Finished;
       }
-      UnitCounter++;
-      AiSystemExecute_StandardUnitsStep(_loc3_,score,range);
+      return didFight;
    }
+   UnitCounter++;
+   return false;
 }
-function AiSystemExecute_StandardUnitsAttackDone(player, score, range, unit)
-{
-   clearInterval(_root.DisplayBattleINT);
-   if(unit != undefined)
-   {
-      UnitCounter++;
-      unit.state = Unit_State_Finished;
-   }
-   AiSystemExecute_StandardUnitsStep(player,score,range);
-}
-var AiWishlist_Max = 1000;  // MOVED
-var aiWishlist_counter = 0;  // MOVED
-var aiWishlist_profiles = new Array(AiWishlist_Max);  // MOVED
-var AiInfluence_AttackBonus = 10;
-var AiInfluence_Aggressive = 0;
-var AiInfluence_Passive = 1;
-var gameMap_influence = [];
-var gameMap_marker = [];
-var gameMap_fortify = [];
-var gameMap_threat = [];
-var GameMovement_BlockedField = -1;
-var gameInfluence_baseBehaviour = AiInfluence_Aggressive;
-var Ai_InvalidValue = -1000;
-var World;
-var AIexecutionState = 0;
-var AiSystemDone = false;
-var AiSystemMoveWeakUnitsDone = false;
-var AiSystemMoveOrFightDone = false;
-var AiSystemStandardUnitsDone = false;
-var DataUnit_ProfileId_Infantry = _root.Spearman;
-var UnitCounter = 0;

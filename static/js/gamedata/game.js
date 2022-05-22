@@ -1,6 +1,5 @@
 import { FACTION } from './gameConstants.js'
-import { BUILDING, BUILDING_INFO, HBONUSES } from './mapInfo.js'
-import { UNIT_DATA } from './unitInfo.js'
+import { BUILDING, BUILDING_INFO, HBONUSES, UNIT_DATA } from './gameInfo.js'
 import Unit from './unit.js'
 import GameMap from './map.js'
 
@@ -16,7 +15,7 @@ export default class Game {
   #me
   #fightListener
 
-  constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum, actionCount=0) {
+  constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum, actionCount=0, turnNum=0) {
     this.map = map
     this.type = type
     this.#me = type === Game.GAME_TYPE.LOCAL_MP ? null : (myFaction || FACTION.CRUSADER)
@@ -24,9 +23,10 @@ export default class Game {
     this.crusaderPlayer = crusader
     this.saracenPlayer = saracen
     this.saveNum = saveNum
-    this.finished = false
+    this.winner = 0
     this.#fightListener = null
     this.actionCount = actionCount
+    this.turnNum = turnNum
     this.#currentTurn = typeof currentTurn === 'number' ? currentTurn : FACTION.CRUSADER
   }
 
@@ -40,18 +40,6 @@ export default class Game {
 
   get currentPlayer () {
     return this.players[this.#currentTurn]
-  }
-
-  get winner () {
-    let winner = null
-    this.map.fields.find(row => {
-      return row.find(field => {
-        if (field.building !== BUILDING.HQ || field.owner === field.buildingFaction) return false
-        winner = this.otherPlayer(field.buildingFaction)
-        return true
-      })
-    })
-    return winner
   }
 
   set onFight (listener) {
@@ -87,7 +75,7 @@ export default class Game {
     let attackerInitiative = UNIT_DATA[attacker.type].initiative
     let defenderInitiative = UNIT_DATA[defender.type].initiative
     if(GameMap.getDistance(attacker.posX, attacker.posY, defender.posX, defender.posY) > 1) { //Distance attack, attacker will not get hurt
-      defenderDamage = this.#computeDamage(attacker,defender)
+      defenderDamage = this.computeDamage(attacker,defender)
       if (attacker.ammo > 0)
           attacker.ammo--
       defender.changeHP(-defenderDamage, this)
@@ -98,8 +86,8 @@ export default class Game {
       //depending on initiative, one starts the fight first or both at the same time
       //lower initiative starts the fight (what?!)
       if(attackerInitiative === defenderInitiative) {
-        defenderDamage = this.#computeDamage(attacker,defender)
-        attackerDamage = this.#computeDamage(defender,attacker)
+        defenderDamage = this.computeDamage(attacker,defender)
+        attackerDamage = this.computeDamage(defender,attacker)
         if (attacker.ammo > 0)
           attacker.ammo--
         if (defender.ammo > 0)
@@ -107,23 +95,23 @@ export default class Game {
         defender.changeHP(-defenderDamage, this)
         attacker.changeHP(-attackerDamage, this)
       } else if(attackerInitiative < defenderInitiative) {
-        defenderDamage = this.#computeDamage(attacker,defender)
+        defenderDamage = this.computeDamage(attacker,defender)
         if (attacker.ammo > 0)
           attacker.ammo--
         defender.changeHP(-defenderDamage, this)
         if(defender.hp > 0) {
-          attackerDamage = this.#computeDamage(defender,attacker)
+          attackerDamage = this.computeDamage(defender,attacker)
           if (defender.ammo > 0)
             defender.ammo--
           attacker.changeHP(-attackerDamage, this)
         }
       } else if(attackerInitiative > defenderInitiative) {
-        attackerDamage = this.#computeDamage(defender,attacker)
+        attackerDamage = this.computeDamage(defender,attacker)
         if (defender.ammo > 0)
           defender.ammo--
         attacker.changeHP(-attackerDamage, this)
         if(attacker.hp > 0) {
-          defenderDamage = this.#computeDamage(attacker,defender)
+          defenderDamage = this.computeDamage(attacker,defender)
           if (attacker.ammo > 0)
             attacker.ammo--
           defender.changeHP(-defenderDamage, this)
@@ -137,7 +125,7 @@ export default class Game {
       this.#fightListener(attacker, defender, attackerDamage, defenderDamage)
   }
 
-  #computeDamage (attacker, defender) {
+  computeDamage (attacker, defender) {
     let damage = 0
     const distance = GameMap.getDistance(attacker.posX, attacker.posY, defender.posX, defender.posY)
     for (let i = 0; i < 6; i++) {
@@ -198,11 +186,13 @@ export default class Game {
     this.#currentTurn = this.#currentTurn === FACTION.CRUSADER ? FACTION.SARACEN : FACTION.CRUSADER
     this.#startOfTurnCalculations()
     this.actionCount++
+    this.turnNum++
     this.#saveGame()
   }
 
   #startOfTurnCalculations () {
     //conquer buildings & heal/resupply units
+    this.currentPlayer.units.forEach(unit => this.#resupplyUnit(unit))
     this.currentPlayer.units.forEach(unit => {
       unit.didMove = false
       unit.didFight = false
@@ -214,13 +204,11 @@ export default class Game {
         else {
           unitField.owner = null
           unit.changeHP(-1, this)
-          if (unitField.building === BUILDING.HQ) {
-            this.finished = true
-          }
+          if (unitField.building === BUILDING.HQ)
+            this.winner = unit.faction
         }
-      } else if (unitField.owner === this.#currentTurn && BUILDING_INFO[unitField.building].supports.includes(unit.type)) { //heal & resupply
+      } else if (unitField.owner === this.#currentTurn && BUILDING_INFO[unitField.building].supports.includes(unit.type)) { //heal
         unit.heal()
-        unit.resupply()
       }
     })
     //earn money
@@ -233,6 +221,22 @@ export default class Game {
     this.currentPlayer.money += earnings
   }
 
+  #resupplyUnit(unit) {
+    const fields = [{x: unit.posX, y: unit.posY}]
+    if (unit.posX > 0) fields.push({x: unit.posX - 1, y: unit.posY})
+    if (unit.posY > 0) fields.push({x: unit.posX, y: unit.posY - 1})
+    if (unit.posX < (this.map.sizeX - 1)) fields.push({x: unit.posX + 1, y: unit.posY})
+    if (unit.posY < (this.map.sizeY - 1)) fields.push({x: unit.posX, y: unit.posY + 1})
+    fields.some(f => this.#resupplyOnField(unit, f.x, f.y))
+  }
+
+  #resupplyOnField(unit, x, y) {
+    if (!this.map.fields[y][x].building || this.map.fields[y][x].owner !== this.#currentTurn) return false
+    if (!BUILDING_INFO[this.map.fields[y][x].building].supports.includes(unit.type)) return false
+    unit.resupply()
+    return true
+  }
+
   serialize () {
     const buildingOwners = []
     this.map.fields.forEach((row, y) => {
@@ -243,6 +247,7 @@ export default class Game {
     })
     const data = {
       version: 2,
+      turnNum: this.turnNum,
       actionCount: this.actionCount,
       time: (new Date()).toJSON(),
       mapNum: this.map.mapNum,
@@ -291,7 +296,7 @@ export default class Game {
     const data = this.serialize()
     if (window.localStorage.saves) {
       const saves = JSON.parse(window.localStorage.saves)
-      if (this.finished) {
+      if (this.winner) {
         saves.splice(this.saveNum, 1)
         window.localStorage.saves = JSON.stringify(saves)
         return

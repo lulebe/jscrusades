@@ -1,4 +1,4 @@
-import { BUILDING_INFO } from "./mapInfo.js"
+import { BUILDING_INFO } from "./gameInfo.js"
 
 export default class Field {
 

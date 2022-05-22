@@ -1,8 +1,7 @@
 import GameCanvas from './canvas.js'
 import Game from './gamedata/game.js'
 import makeAITurn from './gamedata/ai.js'
-import { UNIT_DATA, UNIT_TYPES } from './gamedata/unitInfo.js'
-import { BUILDING } from './gamedata/mapInfo.js'
+import { UNIT_DATA, UNIT_TYPES, BUILDING } from './gamedata/gameInfo.js'
 import { playTurnMusic, playFightSound, toggleAudio } from './audio.js'
 
 import { displayHoverInfo, buildingActions, turnInfo, winInfo } from './ui.js'
@@ -16,6 +15,7 @@ let focusedUnit = null
 let selectedLocation = null
 let moveOptions = []
 let fightOptions = []
+let isFastMode = false
 
 export function UIController (g, ga, mp) {
   game = g
@@ -38,7 +38,7 @@ export function updateGame(g) {
   gameCanvas.fightOptionsDisplay = fightOptions = []
   gameCanvas.selectedPos = null
   gameCanvas.loadGame(game, gameAssets)
-  if (game.finished) gameOver()
+  if (game.winner) gameOver()
   renderUi()
 }
 
@@ -48,6 +48,7 @@ function initUiHandlers () {
   document.getElementById('zoom-in').addEventListener('click', () => gameCanvas.zoomIn())
   document.getElementById('zoom-out').addEventListener('click', () => gameCanvas.zoomOut())
   document.getElementById('toggle-audio').addEventListener('click', () => toggleAudio())
+  document.getElementById('toggle-fast-mode').addEventListener('click', () => {isFastMode = !isFastMode})
   document.getElementById('end-turn').addEventListener('click', endTurn)
   gameCanvas.initCanvas()
   canvasEl.addEventListener('fieldClicked', e => fieldClick(e.detail))
@@ -65,24 +66,27 @@ function initUiHandlers () {
 }
 
 export function onFight (attacker, defender, attackerDamage, defenderDamage) {
-  if (game.type === Game.GAME_TYPE.ONLINE_MP && game.myTurn) sendFight(attacker, defender, attackerDamage, defenderDamage)
-  const bga = findUnitBackground(attacker.type, game.map.fields[attacker.posY][attacker.posX])
-  const bgd = findUnitBackground(defender.type, game.map.fields[defender.posY][defender.posX])
-  document.getElementById('fight-attacker-health').innerHTML = ('' + attacker.hp + attackerDamage).padStart(2, '0')
-  document.getElementById('fight-defender-health').innerHTML = ('' + defender.hp + defenderDamage).padStart(2, '0')
-  document.getElementById('fight-attacker-img').classList.remove('att-flipped')
-  if (!UNIT_DATA[attacker.type].flipDefender[attacker.faction])
-    document.getElementById('fight-attacker-img').classList.add('att-flipped')
-  document.getElementById('fight-defender-img').classList.remove('def-flipped')
-  if (UNIT_DATA[defender.type].flipDefender[defender.faction])
-    document.getElementById('fight-defender-img').classList.add('def-flipped')
-  document.getElementById('fight-defender-img').src = `/static/imgs/unitThumbs/${defender.type}_${defender.faction}.png`
-  document.getElementById('fight-attacker-img').src = `/static/imgs/unitThumbs/${attacker.type}_${attacker.faction}.png`
-  document.getElementById('fight-attacker-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bga}.png"`
-  document.getElementById('fight-defender-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bgd}.png"`
-  document.getElementById('fight').classList.add('visible')
-  animateFight(attacker.hp + attackerDamage, attackerDamage, defender.hp + defenderDamage, defenderDamage, 8)
-  playFightSound(attacker.type)
+  if (game.type === Game.GAME_TYPE.ONLINE_MP && game.myTurn) {
+    sendFight(attacker, defender, attackerDamage, defenderDamage)
+  }
+
+  if (!isFastMode) {
+    const bga = findUnitBackground(attacker.type, game.map.fields[attacker.posY][attacker.posX])
+    const bgd = findUnitBackground(defender.type, game.map.fields[defender.posY][defender.posX])
+    document.getElementById('fight-attacker-img').classList.remove('att-flipped')
+    if (!UNIT_DATA[attacker.type].flipDefender[attacker.faction])
+      document.getElementById('fight-attacker-img').classList.add('att-flipped')
+    document.getElementById('fight-defender-img').classList.remove('def-flipped')
+    if (UNIT_DATA[defender.type].flipDefender[defender.faction])
+      document.getElementById('fight-defender-img').classList.add('def-flipped')
+    document.getElementById('fight-defender-img').src = `/static/imgs/unitThumbs/${defender.type}_${defender.faction}.png`
+    document.getElementById('fight-attacker-img').src = `/static/imgs/unitThumbs/${attacker.type}_${attacker.faction}.png`
+    document.getElementById('fight-attacker-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bga}.png"`
+    document.getElementById('fight-defender-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bgd}.png"`
+    document.getElementById('fight').classList.add('visible')
+    animateFight(attacker.hp + attackerDamage, attackerDamage, defender.hp + defenderDamage, defenderDamage, 8)
+    playFightSound(attacker.type, defender.type)
+  }
 }
 
 function findUnitBackground (unitType, field) {
@@ -105,10 +109,10 @@ function animateFight (attackerHPnow, attackerDamage, defenderHPnow, defenderDam
 
 async function makeAITurnIfNecessary () {
   if (game.type !== Game.GAME_TYPE.LOCAL_SP || game.myTurn) return
-  await makeAITurn(game, gameCanvas)
+  await makeAITurn(game, gameCanvas, isFastMode)
   renderUi()
   gameCanvas.drawGame()
-  if (game.finished) gameOver()
+  if (game.winner) gameOver()
 }
 
 function fieldClick (location) {
@@ -126,7 +130,7 @@ function fieldClick (location) {
   if (moveOptions.length) {
     const moveOption = moveOptions.find(move => move.x === location.x && move.y === location.y)
     if (moveOption) {
-      focusedUnit.move(moveOption.x, moveOption.y, moveOption.path, game)
+      focusedUnit.move(moveOption.x, moveOption.y, moveOption.path, game, isFastMode)
       //MP
       if (game.type === Game.GAME_TYPE.ONLINE_MP) {
         sendGame()
@@ -164,7 +168,7 @@ function endTurn () {
   renderUi()
   if (game.type === Game.GAME_TYPE.ONLINE_MP)
     sendGame()
-  if (game.finished) return gameOver()
+  if (game.winner) return gameOver()
   makeAITurnIfNecessary()
   playTurnMusic()
 }

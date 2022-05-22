@@ -14,7 +14,7 @@ export async function loadGame (gameData) {
   if (!gameData.crusaderPlayer) loadDefaultUnits(mapData, crusaderPlayer)
   const saracenPlayer = Player.createFromSave(gameData.saracenPlayer, 2)
   if (!gameData.saracenPlayer) loadDefaultUnits(mapData, saracenPlayer)
-  const game = new Game(map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, gameData.saveNum, gameData.actionCount)
+  const game = new Game(map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, gameData.saveNum, gameData.actionCount, gameData.turnNum)
   if (gameData.buildingOwners)
     gameData.buildingOwners.forEach(b => {
       game.map.fields[b.y][b.x].owner = b.owner
@@ -29,7 +29,7 @@ export function updateGame (oldGame, gameData) {
   if (oldGame.actionCount >= gameData.actionCount) return oldGame //don't overwrite with older game
   const crusaderPlayer = Player.createFromSave(gameData.crusaderPlayer, 1)
   const saracenPlayer = Player.createFromSave(gameData.saracenPlayer, 2)
-  const game = new Game(oldGame.map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, oldGame.saveNum, gameData.actionCount)
+  const game = new Game(oldGame.map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, oldGame.saveNum, gameData.actionCount, gameData.turnNum)
   gameData.buildingOwners.forEach(b => {
     game.map.fields[b.y][b.x].owner = b.owner
   })
