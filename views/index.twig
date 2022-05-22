@@ -20,6 +20,7 @@
         <a class="btn disabled" id="load-sp">Singleplayer</a>
         <a class="btn disabled" id="load-lmp">Local Multiplayer</a>
         <a class="btn disabled" id="load-omp">Online Multiplayer</a>
+        <a class="btn disabled" id="load-ai">AI Arena</a>
       </div>
     </div>
     <h1>Join Online Multiplayer</h1>
@@ -33,6 +34,7 @@
         <a class="btn disabled" id="start-sp">Singleplayer</a>
         <a class="btn disabled" id="start-lmp">Local Multiplayer</a>
         <a class="btn disabled" id="start-omp">Online Multiplayer</a>
+        <a class="btn disabled" id="start-ai">AI Arena</a>
       </div>
       <div class="map-pick-grid" id="map-picker">
         <img data-mapnum="1" src="/static/imgs/mapPreviews/map1_preview.png">
@@ -93,6 +95,7 @@
             document.getElementById('load-sp').classList.add('disabled')
             document.getElementById('load-lmp').classList.add('disabled')
             document.getElementById('load-omp').classList.add('disabled')
+            document.getElementById('load-ai').classList.add('disabled')
             renderSavesList()
           })
         }
@@ -107,9 +110,11 @@
             document.getElementById('load-sp').href = `/game#save=${e.target.dataset.save};mode=2`
             document.getElementById('load-lmp').href = `/game#save=${e.target.dataset.save};mode=1`
             document.getElementById('load-omp').href = `/game?mp=1#save=${e.target.dataset.save};mode=3`
+            document.getElementById('load-ai').href = `/game#save=${e.target.dataset.save};mode=4`
             document.getElementById('load-sp').classList.remove('disabled')
             document.getElementById('load-lmp').classList.remove('disabled')
             document.getElementById('load-omp').classList.remove('disabled')
+            document.getElementById('load-ai').classList.remove('disabled')
             return false
           })
         }
@@ -129,9 +134,11 @@
       document.getElementById('start-sp').href = `/game#save=-1;map=${mapnum};mode=2`
       document.getElementById('start-lmp').href = `/game#save=-1;map=${mapnum};mode=1`
       document.getElementById('start-omp').href = `/game?mp=1#save=-1;map=${mapnum};mode=3`
+      document.getElementById('start-ai').href = `/game?mp=1#save=-1;map=${mapnum};mode=4`
       document.getElementById('start-sp').classList.remove('disabled')
       document.getElementById('start-lmp').classList.remove('disabled')
       document.getElementById('start-omp').classList.remove('disabled')
+      document.getElementById('start-ai').classList.remove('disabled')
     })
   </script>
 </body>

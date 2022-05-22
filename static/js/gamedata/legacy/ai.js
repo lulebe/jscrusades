@@ -20,9 +20,7 @@ export function startLegacyAi (game, endTurnCallback) {
    resetAllAIVars();
    AiSystemCreate();
    AiSystemExecute();
-   return () => {
-      return AiSystemExecuteStep(aiPlayer)
-   }
+   return () => AiSystemExecuteStep(aiPlayer)
 }
 
 function resetAllAIVars () {

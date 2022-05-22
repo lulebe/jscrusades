@@ -16,6 +16,7 @@ let selectedLocation = null
 let moveOptions = []
 let fightOptions = []
 let isFastMode = false
+let isNextTurnEnabled = false
 
 export function UIController (g, ga, mp) {
   game = g
@@ -55,7 +56,7 @@ function initUiHandlers () {
     isFastMode = !isFastMode
     document.getElementById('toggle-fast-mode').innerHTML = `<span class="iconify" data-icon="mdi:cctv${isFastMode ? '-off' : ''}"></span>`
   })
-  document.getElementById('end-turn').addEventListener('click', endTurn)
+  document.getElementById('end-turn').addEventListener('click', () => {if (isNextTurnEnabled) endTurn()})
   gameCanvas.initCanvas()
   canvasEl.addEventListener('fieldClicked', e => fieldClick(e.detail))
   canvasEl.addEventListener('fieldHovered', e => displayHoverInfo(e.detail, game))
@@ -114,11 +115,23 @@ function animateFight (attackerHPnow, attackerDamage, defenderHPnow, defenderDam
 }
 
 async function makeAITurnIfNecessary () {
-  if (game.type !== Game.GAME_TYPE.LOCAL_SP || game.myTurn) return
-  await makeAITurn(game, gameCanvas, isFastMode)
-  renderUi()
-  gameCanvas.drawGame()
-  if (game.winner) gameOver()
+  const isAiGame = game.type === Game.GAME_TYPE.AI_ARENA
+  const isSinglePlayerComputersTurn = game.type === Game.GAME_TYPE.LOCAL_SP && !game.myTurn
+  if (isAiGame) {
+    setNextTurnEnabled(false)
+    await makeAITurn(game, gameCanvas, isFastMode)
+    renderUi()
+    gameCanvas.drawGame()
+    if (game.winner) gameOver()
+    setNextTurnEnabled(true)
+  }
+  if (isSinglePlayerComputersTurn) {
+    await makeAITurn(game, gameCanvas, isFastMode)
+    game.endTurn()
+    renderUi()
+    gameCanvas.drawGame()
+    if (game.winner) gameOver()
+  }
 }
 
 function fieldClick (location) {
@@ -165,7 +178,7 @@ function fieldClick (location) {
 }
 
 function endTurn () {
-  if (!game.myTurn) return
+  if (!game.myTurn && game.type !== Game.GAME_TYPE.AI_ARENA) return
   gameCanvas.moveOptionsDisplay = moveOptions = []
   gameCanvas.fightOptionsDisplay = fightOptions = []
   gameCanvas.selectedPos = null
@@ -187,4 +200,10 @@ function renderUi () {
 function gameOver () {
   document.getElementById('game-over').innerHTML = winInfo(game)
   document.getElementById('game-over').style.display = 'flex'
+}
+
+function setNextTurnEnabled(isEnabled) {
+  isNextTurnEnabled = isEnabled
+  if (isEnabled) document.getElementById('end-turn').classList.remove('disabled')
+  else document.getElementById('end-turn').classList.add('disabled')
 }
