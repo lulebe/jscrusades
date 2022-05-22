@@ -70,19 +70,16 @@ export function randomMap (sizeX, sizeY) {
   return Array.from(Array(sizeX * sizeY)).map(() => intToBase64style(fieldToNum(generateRandomField()))).join('')
 }
 
-export function compressedStringToMap (strCompressed) {
+export async function stringToMap (strCompressed) {
   // Inverse to mapToString.
-  return decompress(strCompressed).then(stringToMap);
-}
-
-export async function stringToMap (str) {
-  return {sizeX: parseInt(str.substr(0, 2)), sizeY: parseInt(str.substr(2, 2)), data: (str.substr(4).match(/.{1,3}/g) || []).map(field => numToField(base64StyleToInt(field)))}
+  const s = await decompress(strCompressed)
+  return {sizeX: parseInt(s.substr(0, 2)), sizeY: parseInt(s.substr(2, 2)), data: (s.substr(4).match(/.{1,3}/g) || []).map(field => numToField(base64StyleToInt(field)))}
 }
 
 export async function mapToString (m, sizeX, sizeY) {
   // Converts a map into a compressed string. Inverse to compressedStringToMap.
-  const str = (''+sizeX).padStart(2, '0') + (''+sizeY).padStart(2, '0') + m.map(field => intToBase64style(fieldToNum(field))).join('')
-  return await compress(str)
+  const s = (''+sizeX).padStart(2, '0') + (''+sizeY).padStart(2, '0') + m.map(field => intToBase64style(fieldToNum(field))).join('')
+  return await compress(s)
 }
 
 // Compression algorithm to shorten the map info in the URL
