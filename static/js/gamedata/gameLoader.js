@@ -2,13 +2,13 @@ import GameMap from './map.js'
 import Game from './game.js'
 import GameAssets from './gameAssets.js'
 import Player from './player.js'
-import { stringToMap } from './mapLoader.js'
+import { compressedStringToMap } from './mapLoader.js'
 import DEFAULT_MAPS from './defaultMapData.js'
 import Unit from './unit.js'
 
 export async function loadGame (gameData) {
   const mapNum = gameData.mapNum
-  const mapData = await stringToMap(DEFAULT_MAPS[mapNum].data)
+  const mapData = await compressedStringToMap(DEFAULT_MAPS[mapNum].data)
   const map = GameMap.fromData(mapData.data, mapNum, mapData.sizeX, mapData.sizeY)
   const crusaderPlayer = Player.createFromSave(gameData.crusaderPlayer, 1)
   if (!gameData.crusaderPlayer) loadDefaultUnits(mapData, crusaderPlayer)

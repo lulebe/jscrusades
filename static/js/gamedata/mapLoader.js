@@ -75,14 +75,14 @@ export function compressedStringToMap (strCompressed) {
   return decompress(strCompressed).then(stringToMap);
 }
 
-export function stringToMap (str) {
-  return Promise.resolve({sizeX: parseInt(str.substr(0, 2)), sizeY: parseInt(str.substr(2, 2)), data: (str.substr(4).match(/.{1,3}/g) || []).map(field => numToField(base64StyleToInt(field)))})
+export async function stringToMap (str) {
+  return {sizeX: parseInt(str.substr(0, 2)), sizeY: parseInt(str.substr(2, 2)), data: (str.substr(4).match(/.{1,3}/g) || []).map(field => numToField(base64StyleToInt(field)))}
 }
 
-export function mapToString (m, sizeX, sizeY) {
+export async function mapToString (m, sizeX, sizeY) {
   // Converts a map into a compressed string. Inverse to compressedStringToMap.
   const str = (''+sizeX).padStart(2, '0') + (''+sizeY).padStart(2, '0') + m.map(field => intToBase64style(fieldToNum(field))).join('')
-  return compress(str)
+  return await compress(str)
 }
 
 // Compression algorithm to shorten the map info in the URL
@@ -91,23 +91,43 @@ export function mapToString (m, sizeX, sizeY) {
 // Empirically determined 'deflate' to be superior to 'gzip' with our data.
 const ENCODING = 'deflate';
 
-function compress (string) {
-  const byteArray = new TextEncoder().encode(string)
+// Character replacement to make the URL look nicer.
+// Direction is forward, i.e., after compression keys will be mapped to values.
+const CHAR_REPLACEMENT_MAP = {
+  '/': '_',
+  '=': '-',
+}
+
+async function compress (s) {
+  const byteArray = new TextEncoder().encode(s)
   const compressionStream = new CompressionStream(ENCODING)
   const writer = compressionStream.writable.getWriter()
   writer.write(byteArray)
   writer.close()
-  return new Response(compressionStream.readable).arrayBuffer()
+  s = await new Response(compressionStream.readable).arrayBuffer()
     .then(arrayBufferToBase64)
+  return replaceChars(s, true)
 }
 
-function decompress (string) {
+function decompress (s) {
+  s = replaceChars(s, false)
   const cs = new DecompressionStream(ENCODING)
   const writer = cs.writable.getWriter()
-  writer.write(base64ToArrayBuffer(string))
+  writer.write(base64ToArrayBuffer(s))
   writer.close()
   return new Response(cs.readable).arrayBuffer()
     .then(arrayBuffer => new TextDecoder().decode(arrayBuffer));
+}
+
+function replaceChars (s, isForward) {
+  for (const [c1, c2] of Object.entries(CHAR_REPLACEMENT_MAP)) {
+    if (isForward) {
+      s = s.replaceAll(c1, c2)
+    } else {
+      s = s.replaceAll(c2, c1)
+    }
+  }
+  return s
 }
 
 function arrayBufferToBase64 (buffer) {
@@ -116,10 +136,12 @@ function arrayBufferToBase64 (buffer) {
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i])
   }
+  // Do not use buf.toString('base64').
   return btoa(binary)
 }
 
 function base64ToArrayBuffer (base64) {
+  // Do not use Buffer.from(data, 'base64').
   const binaryString = atob(base64)
   const len = binaryString.length
   const bytes = new Uint8Array(len)
