@@ -38,13 +38,17 @@ const fightSounds = [
 ]
 
 let turnPlaying = null
-let playAudio = true
+let playAudio = false
 
 audios.turnMusic.forEach(audio => {
   audio.addEventListener('ended', () => {
     playTurnMusic()
   })
 })
+
+export function isMuted () {
+  return !playAudio
+}
 
 export function playTurnMusic () {
   if (turnPlaying) {
@@ -69,6 +73,7 @@ export function playFightSound (attackerType, defenderType) {
 
 export function toggleAudio () {
   playAudio = !playAudio
+  if (!turnPlaying) playTurnMusic()
   if (!playAudio) turnPlaying.pause()
   if (playAudio) turnPlaying.play()
 }
