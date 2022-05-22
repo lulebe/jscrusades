@@ -2,7 +2,7 @@ import GameCanvas from './canvas.js'
 import Game from './gamedata/game.js'
 import makeAITurn from './gamedata/ai.js'
 import { UNIT_DATA, UNIT_TYPES, BUILDING } from './gamedata/gameInfo.js'
-import { playTurnMusic, playFightSound, toggleAudio } from './audio.js'
+import { playTurnMusic, playFightSound, toggleAudio, isMuted } from './audio.js'
 
 import { displayHoverInfo, buildingActions, turnInfo, winInfo } from './ui.js'
 import { sendGame, sendFight } from './mp.js'
@@ -48,8 +48,14 @@ function initUiHandlers () {
   const canvasEl = document.getElementById('game-canvas')
   document.getElementById('zoom-in').addEventListener('click', () => gameCanvas.zoomIn())
   document.getElementById('zoom-out').addEventListener('click', () => gameCanvas.zoomOut())
-  document.getElementById('toggle-audio').addEventListener('click', () => toggleAudio())
-  document.getElementById('toggle-fast-mode').addEventListener('click', () => {isFastMode = !isFastMode})
+  document.getElementById('toggle-audio').addEventListener('click', () => {
+    toggleAudio()
+    document.getElementById('toggle-audio').innerHTML = `<span class="iconify" data-icon="bxs:volume-${isMuted() ? 'mute' : 'full'}"></span>`
+  })
+  document.getElementById('toggle-fast-mode').addEventListener('click', () => {
+    isFastMode = !isFastMode
+    document.getElementById('toggle-fast-mode').innerHTML = `<span class="iconify" data-icon="mdi:cctv${isFastMode ? '-off' : ''}"></span>`
+  })
   document.getElementById('end-turn').addEventListener('click', () => {if (isNextTurnEnabled) endTurn()})
   gameCanvas.initCanvas()
   canvasEl.addEventListener('fieldClicked', e => fieldClick(e.detail))
