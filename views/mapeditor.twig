@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kreuzzüge</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://code.iconify.design/2/2.2.0/iconify.min.js"></script>
+</head>
+<body style="background: #c5bb9f;">
+  <div id="gamebody">
+    <section id="canvas-container">
+      <canvas id="game-canvas"></canvas>
+    </section>
+    <aside id="infobar">
+      <div style="font-family: Source Code Pro; font-weight: 600;"> <!-- load font! --></div>
+      <div id="logo"><img src="/static/imgs/coverart.png" /></div>
+      <br>
+      <button id="zoom-in"><span class="iconify" data-icon="bxs:zoom-in"></span></button>
+      <button id="zoom-out"><span class="iconify" data-icon="bxs:zoom-out"></span></button>
+      <br><br>
+      <div id="editor-field-info">
+      </div>
+    </aside>
+    <template id="fieldInfoTemplate">
+    </template>
+  </div>
+  <script type="module">
+    import EditorCanvas from '/static/js/mapeditor/editorcanvas.js'
+    import GameAssets from '/static/js/gamedata/gameAssets.js'
+    import { FIELD, BUILDING, UNIT_TYPES } from '/static/js/gamedata/gameInfo.js'
+
+    function fieldInfoTemplate () {
+      return eval("`"+document.getElementById('fieldInfoTemplate').innerHTML+"`")
+    }
+
+    function renderFieldInfo () {
+      const terrainOptions = Object.keys(FIELD).reduce((s, k) => s+`<option value="${FIELD[k]}">${k}</option>`, "")
+      document.getElementById('editor-field-info').innerHTML = `
+        <select id="select-terrain">
+          ${terrainOptions}
+        </select>
+      `
+    }
+
+    renderFieldInfo()
+
+    const mapData = {
+      sizeX: 10,
+      sizeY: 10,
+      fields: new Array(10).fill(null).map(_ => new Array(10).fill(null).map(_ => ({
+        terrain: Math.floor(Math.random() * 8) + 1,
+        building: 1,
+        buildingFaction: 1,
+        owner: 1,
+        unitType: 1,
+        unitFaction: 1,
+        unitHP: 10
+      })))
+    }
+
+    const assets = new GameAssets(null)
+    assets.loadGraphics(false)
+    .then(() => {
+      const canvas = new EditorCanvas(document.getElementById('game-canvas'), mapData, assets)
+      canvas.initCanvas()
+    })
+  </script>
+</body>
+</html>
