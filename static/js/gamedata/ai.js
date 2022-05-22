@@ -9,7 +9,6 @@ export default async function makeAITurn(game, gameCanvas, isFastMode) {
     gameCanvas.drawGame()
     if (!isFastMode) await waitForActionToComplete(turnResult)
   } while (turnResult > 0)
-  game.endTurn()
 }
 
 async function waitForActionToComplete(turnResult) {
