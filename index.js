@@ -26,4 +26,5 @@ app.get('/game', (req, res) => {
 
 app.use('/static', express.static('./static'))
 
-http.listen(process.env.PORT || 8080, () => {console.log("running...")})
+const port = process.env.PORT || 8080
+http.listen(port, () => {console.log(`running... visit http://localhost:${port}`)})
