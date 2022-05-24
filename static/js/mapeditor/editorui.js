@@ -1,7 +1,7 @@
 import EditorCanvas from './editorcanvas.js'
 import GameAssets from '/static/js/gamedata/gameAssets.js'
 import { FIELD, BUILDING, UNIT_TYPES, UNIT_DATA } from '/static/js/gamedata/gameInfo.js'
-import { mapData, resize, saveMap } from './editordata.js'
+import { mapData, resize, saveMap, getShareLink } from './editordata.js'
 
 const drawTool = {
   terrain: null,
@@ -17,6 +17,11 @@ export default function initUI () {
     canvas?.drawGame()
   })
   document.getElementById('save').addEventListener('click', e => saveMap())
+  document.getElementById('btn-share').addEventListener('click', e => {
+    getShareLink().then(link => {
+      document.getElementById('share-link').innerHTML = `<a href="${link}">${link}</a>`
+    })
+  })
   { // init UI dropdowns
     const terrainOptions = Object.keys(FIELD).reduce((s, k) => s+`<option value="${FIELD[k]}">${k}</option>`, '<option value="0">---</option>')
     const buildingOptions= Object.keys(BUILDING).reduce(
