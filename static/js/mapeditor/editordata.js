@@ -8,6 +8,10 @@ export const mapData = {
 
 let storageId = null
 
+export function getShareLink () {
+  return mapToString(mapData.fields.flat(), mapData.sizeX, mapData.sizeY)
+}
+
 export async function loadMap (sid) {
   storageId = sid
   const storedMap = JSON.parse(window.localStorage.getItem('customMaps'))[storageId]
