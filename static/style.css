@@ -3,6 +3,12 @@
   display: inline-block;
 }
 
+#share-link {
+  font-family: monospace;
+  padding: 12px 0;
+  word-break: break-word;
+}
+
 * {
   box-sizing: border-box;
 }
