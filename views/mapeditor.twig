@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kreuzzüge</title>
   <link rel="stylesheet" href="/static/style.css">
-  <script src="https://code.iconify.design/2/2.2.0/iconify.min.js"></script>
+  <script src="https://code.iconify.design/2/2.2.0/iconify.min.js" defer></script>
 </head>
 <body style="background: #c5bb9f;">
   <div id="gamebody">
@@ -20,52 +20,24 @@
       <button id="zoom-in"><span class="iconify" data-icon="bxs:zoom-in"></span></button>
       <button id="zoom-out"><span class="iconify" data-icon="bxs:zoom-out"></span></button>
       <br><br>
-      <div id="editor-field-info">
+      <div class="editor-options">
+        <label for="input-rows">Rows</label><input type="number" id="input-rows" min="1" max="30" step="1" value="10"><br>
+        <label for="input-cols">Cols</label><input type="number" id="input-cols" min="1" max="30" step="1" value="10"><br>
+        <button id="btn-resize">resize</button>
+      </div>
+      <div id="editor-dropdowns" class="editor-options">
       </div>
     </aside>
-    <template id="fieldInfoTemplate">
-    </template>
   </div>
   <script type="module">
-    import EditorCanvas from '/static/js/mapeditor/editorcanvas.js'
-    import GameAssets from '/static/js/gamedata/gameAssets.js'
-    import { FIELD, BUILDING, UNIT_TYPES } from '/static/js/gamedata/gameInfo.js'
+    import initUI from '/static/js/mapeditor/editorui.js'
+    import { loadMap } from './editordata.js'
 
-    function fieldInfoTemplate () {
-      return eval("`"+document.getElementById('fieldInfoTemplate').innerHTML+"`")
-    }
-
-    function renderFieldInfo () {
-      const terrainOptions = Object.keys(FIELD).reduce((s, k) => s+`<option value="${FIELD[k]}">${k}</option>`, "")
-      document.getElementById('editor-field-info').innerHTML = `
-        <select id="select-terrain">
-          ${terrainOptions}
-        </select>
-      `
-    }
-
-    renderFieldInfo()
-
-    const mapData = {
-      sizeX: 10,
-      sizeY: 10,
-      fields: new Array(10).fill(null).map(_ => new Array(10).fill(null).map(_ => ({
-        terrain: Math.floor(Math.random() * 8) + 1,
-        building: 1,
-        buildingFaction: 1,
-        owner: 1,
-        unitType: 1,
-        unitFaction: 1,
-        unitHP: 10
-      })))
-    }
-
-    const assets = new GameAssets(null)
-    assets.loadGraphics(false)
-    .then(() => {
-      const canvas = new EditorCanvas(document.getElementById('game-canvas'), mapData, assets)
-      canvas.initCanvas()
-    })
+    if (location.hash && !isNan(parseInt(location.hash)) && window.localStorage.getItem('custom-maps')) {
+      loadMap(parseInt(location.hash)).then(() => {
+        initUI()
+      })
+    } else initUI()
   </script>
 </body>
 </html>

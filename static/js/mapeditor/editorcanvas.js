@@ -1,4 +1,4 @@
-const terrainColorTable = ['#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffbb00', '#00bbff', '#999999', '#ffff00', '#33ffff']
+const terrainColorTable = ['#ffffff', '#0000ff', '#ffffaa', '#88ff88', '#33bb33', '#888888', '#bbbb99', '#6666ff', '#']
 
 export default class EditorCanvas {
 
@@ -72,6 +72,7 @@ export default class EditorCanvas {
   }
   
   drawGame () {
+    console.log(this.mapData)
     this.#ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     this.#ctx.translate(this.#translateX, this.#translateY)
     this.#ctx.scale(this.#scale, this.#scale)
@@ -103,33 +104,35 @@ export default class EditorCanvas {
   #drawMap () {
     this.mapData.fields.forEach((row, rowIndex) => {
       row.forEach((field, fieldIndex) => {
-        // TODO draw field background
         this.#ctx.fillStyle = terrainColorTable[field.terrain]
         this.#ctx.fillRect(fieldIndex * this.#tileSize, rowIndex * this.#tileSize, this.#tileSize, this.#tileSize)
-        if (field.unit) this.#drawUnit(field.unit, fieldIndex, rowIndex)
-        if (!field.building) return
-        this.#ctx.drawImage(
-          this.assets.buildings[field.buildingFaction][field.building],
-          fieldIndex * this.#tileSize,
-          rowIndex * this.#tileSize,
-          this.#tileSize,
-          this.#tileSize
-        )
-        if (!field.owner) return
-        this.#ctx.drawImage(
-          this.assets.flags[field.owner],
-          (fieldIndex + 1) * this.#tileSize - this.#tileSize / 3,
-          rowIndex * this.#tileSize,
-          this.#tileSize / 3,
-          this.#tileSize / 3
-        )
+        if (field.building) this.#drawBuilding(field, fieldIndex, rowIndex)
+        if (field.unitType) this.#drawUnit(field, fieldIndex, rowIndex)
       })
     })
   }
 
-  #drawUnit (unit, x, y) {
+  #drawBuilding (field, x, y) {
     this.#ctx.drawImage(
-      this.assets.units[unit.faction][unit.type],
+      this.assets.buildings[field.buildingFaction][field.building],
+      x * this.#tileSize,
+      y * this.#tileSize,
+      this.#tileSize,
+      this.#tileSize
+    )
+    if (!field.owner) return
+    this.#ctx.drawImage(
+      this.assets.flags[field.owner],
+      (x + 1) * this.#tileSize - this.#tileSize / 3,
+      y * this.#tileSize,
+      this.#tileSize / 3,
+      this.#tileSize / 3
+    )
+  }
+
+  #drawUnit (field, x, y) {
+    this.#ctx.drawImage(
+      this.assets.units[field.unitFaction][field.unitType],
       x * this.#tileSize,
       y * this.#tileSize,
       this.#tileSize,
