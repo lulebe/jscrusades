@@ -8,19 +8,21 @@ import Unit from './unit.js'
 
 export async function loadGame (gameData) {
   const mapNum = gameData.mapNum
-  const mapData = await stringToMap(DEFAULT_MAPS[mapNum].data)
+  const isCustomMap = mapNum > 30
+  if (isCustomMap && !gameData.mapData) gameData.mapData = loadCustomMapData(mapNum - 31)
+  const mapData = await stringToMap(isCustomMap ? gameData.mapData : DEFAULT_MAPS[mapNum].data)
   const map = GameMap.fromData(mapData.data, mapNum, mapData.sizeX, mapData.sizeY)
   const crusaderPlayer = Player.createFromSave(gameData.crusaderPlayer, 1)
   if (!gameData.crusaderPlayer) loadDefaultUnits(mapData, crusaderPlayer)
   const saracenPlayer = Player.createFromSave(gameData.saracenPlayer, 2)
   if (!gameData.saracenPlayer) loadDefaultUnits(mapData, saracenPlayer)
-  const game = new Game(map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, gameData.saveNum, gameData.actionCount, gameData.turnNum)
+  const game = new Game(map, crusaderPlayer, saracenPlayer, gameData.type, gameData.me, gameData.currentTurn, gameData.saveNum, gameData.actionCount, gameData.turnNum, gameData.mapData)
   if (gameData.buildingOwners)
     gameData.buildingOwners.forEach(b => {
       game.map.fields[b.y][b.x].owner = b.owner
     })
-  const gameAssets = new GameAssets(mapNum)
-  await gameAssets.load()
+  const gameAssets = new GameAssets(mapNum, mapData)
+  await gameAssets.load(true)
   return {game, gameAssets}
 }
 
@@ -48,4 +50,11 @@ function loadDefaultUnits (mapData, player) {
       }))
     }
   })
+}
+
+function loadCustomMapData (storedId) {
+  if (!window.localStorage.customMaps) throw new Error("Custom Maps don't exist")
+  const customMaps = JSON.parse(window.localStorage.customMaps)
+  if (!customMaps[storedId]) throw new Error("Map doesn't exist")
+  return customMaps[storedId]
 }

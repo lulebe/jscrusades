@@ -1,4 +1,4 @@
-const terrainColorTable = ['#ffffff', '#0000ff', '#ffffaa', '#88ff88', '#33bb33', '#888888', '#bbbb99', '#6666ff', '#']
+const terrainColorTable = ['#ffffff', '#0000ff', '#ffffaa', '#88ff88', '#33bb33', '#888888', '#bbbb99', '#6666ff', '#336655']
 
 export default class EditorCanvas {
 

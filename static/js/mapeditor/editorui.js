@@ -82,7 +82,7 @@ export default function initUI () {
     })
   }
   
-  const assets = new GameAssets(null)
+  const assets = new GameAssets()
   assets.loadGraphics(false)
   .then(() => {
     const canvasEl = document.getElementById('game-canvas')

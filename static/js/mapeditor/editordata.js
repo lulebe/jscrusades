@@ -26,7 +26,7 @@ export async function loadMap (sid) {
 export async function saveMap () {
   if (!window.localStorage.getItem('customMaps')) window.localStorage.setItem('customMaps', '[]')
   const savedMaps = JSON.parse(window.localStorage.getItem('customMaps'))
-  if (!storageId) storageId = savedMaps.length
+  if (storageId === null) storageId = savedMaps.length
   const storedMap = await mapToString(mapData.fields.flat(), mapData.sizeX, mapData.sizeY)
   savedMaps[storageId] = storedMap
   window.localStorage.setItem('customMaps', JSON.stringify(savedMaps))
