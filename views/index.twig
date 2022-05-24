@@ -75,7 +75,7 @@
   <script type="module">
     function renderSavesList () {
       if (window.localStorage.saves) {
-        const saves = JSON.parse(window.localStorage.saves).filter(save => save.version === 2)
+        const saves = JSON.parse(window.localStorage.saves).filter(save => save.version === 3)
         window.localStorage.saves = JSON.stringify(saves)
         document.getElementById('save-list').innerHTML = saves.reduce((str, save, i) =>
           str + `
