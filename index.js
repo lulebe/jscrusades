@@ -29,7 +29,7 @@ app.get('/mapedit', (req, res) => {
 })
 
 app.get('/importmap', (req, res) => {
-  res.status(404).send()
+  twing.render('importmap.twig').then(rendered => res.end(rendered))
 })
 
 app.use('/static', express.static('./static'))
