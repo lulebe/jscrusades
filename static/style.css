@@ -1,3 +1,8 @@
+.editor-options > label {
+  width: 5rem;
+  display: inline-block;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -242,10 +247,18 @@ button[disabled]:hover, button.disabled:hover, .btn[disabled]:hover, .btn.disabl
   transform: initial;
 }
 
-input[type=text] {
+input[type=text], input[type=number] {
   border-radius: 4px;
   border: 1px solid black;
   padding: 6px;
+  margin: 4px 0;
+  font-size: 1rem;
+}
+
+select {
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin: 4px 0;
   font-size: 1rem;
 }
 
