@@ -1,7 +1,7 @@
 import EditorCanvas from './editorcanvas.js'
 import GameAssets from '/static/js/gamedata/gameAssets.js'
 import { FIELD, BUILDING, UNIT_TYPES, UNIT_DATA } from '/static/js/gamedata/gameInfo.js'
-import { mapData, resize } from './editordata.js'
+import { mapData, resize, saveMap } from './editordata.js'
 
 const drawTool = {
   terrain: null,
@@ -16,6 +16,7 @@ export default function initUI () {
     resize(parseInt(document.getElementById('input-cols').value), parseInt(document.getElementById('input-rows').value))
     canvas?.drawGame()
   })
+  document.getElementById('save').addEventListener('click', e => saveMap())
   { // init UI dropdowns
     const terrainOptions = Object.keys(FIELD).reduce((s, k) => s+`<option value="${FIELD[k]}">${k}</option>`, '<option value="0">---</option>')
     const buildingOptions= Object.keys(BUILDING).reduce(
