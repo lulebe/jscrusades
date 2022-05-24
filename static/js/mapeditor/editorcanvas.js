@@ -72,7 +72,6 @@ export default class EditorCanvas {
   }
   
   drawGame () {
-    console.log(this.mapData)
     this.#ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     this.#ctx.translate(this.#translateX, this.#translateY)
     this.#ctx.scale(this.#scale, this.#scale)
