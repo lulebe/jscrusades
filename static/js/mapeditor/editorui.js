@@ -17,6 +17,7 @@ export default function initUI () {
     canvas?.drawGame()
   })
   document.getElementById('save').addEventListener('click', e => saveMap())
+  document.getElementById('save').addEventListener('click', e => deleteMap())
   document.getElementById('btn-share').addEventListener('click', e => {
     getShareLink().then(link => {
       document.getElementById('share-link').innerHTML = `<a href="${link}">${link}</a>`

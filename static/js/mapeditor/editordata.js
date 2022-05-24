@@ -32,6 +32,15 @@ export async function saveMap () {
   window.localStorage.setItem('customMaps', JSON.stringify(savedMaps))
 }
 
+export function deleteMap () {
+  if (storageId) {
+    const savedMaps = JSON.parse(window.localStorage.getItem('customMaps'))
+    savedMaps.splice(storageId, 1)
+    window.localStorage.setItem('customMaps', JSON.stringify(savedMaps))
+  }
+  window.location.pathname = '/'
+}
+
 export function resize (x, y) {
   if (mapData.sizeX < x) {
     mapData.fields.forEach((row, i) => {
