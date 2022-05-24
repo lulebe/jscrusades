@@ -16,11 +16,11 @@ let selectedLocation = null
 let moveOptions = []
 let fightOptions = []
 let isFastMode = false
-let isNextTurnEnabled = false
+let isNextTurnEnabled = true
 
 export function UIController (g, ga, mp) {
   game = g
-  console.log(g)
+  if (game.type === Game.GAME_TYPE.AI_ARENA) setNextTurnEnabled(false)
   gameAssets = ga
   mpName = mp
   const canvasEl = document.getElementById('game-canvas')
@@ -126,8 +126,10 @@ async function makeAITurnIfNecessary () {
     setNextTurnEnabled(true)
   }
   if (isSinglePlayerComputersTurn) {
+    setNextTurnEnabled(false)
     await makeAITurn(game, gameCanvas, isFastMode)
     game.endTurn()
+    setNextTurnEnabled(true)
     renderUi()
     gameCanvas.drawGame()
     if (game.winner) gameOver()
