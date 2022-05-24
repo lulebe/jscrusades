@@ -27,7 +27,11 @@ export default class GameAssets {
           colorSpaceConversion: 'none'
         })
       } else {
-        // TODO create Map Background for custom map
+        const mapJpg = await (await fetch(`/rendermapbg`, {method: 'POST', body: JSON.stringify({mapString: mapNum})})).blob()
+        this.mapBackground = await createImageBitmap(mapJpg, {
+          premultiplyAlpha: 'none',
+          colorSpaceConversion: 'none'
+        })
       }
     }
     // load Buildings
