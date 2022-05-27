@@ -22,7 +22,7 @@ export default class GameAssets {
     // load Map Background
     if (loadMapBackground) {
       if (this.mapNum <= 30) {
-        const mapJpg = await (await fetch(`${config.STATIC_URL}/imgs/mapBackgrounds/map${mapNum}.jpg`)).blob()
+        const mapJpg = await (await fetch(`${config.STATIC_URL}/imgs/mapBackgrounds/map${this.mapNum}.jpg`)).blob()
         this.mapBackground = await createImageBitmap(mapJpg, {
           premultiplyAlpha: 'none',
           colorSpaceConversion: 'none'
