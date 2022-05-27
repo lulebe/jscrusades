@@ -2,8 +2,9 @@ import config from '../config.js'
 
 export default class GameAssets {
 
-  constructor(game) {
-    this.game = game
+  constructor(mapNum, mapData) {
+    this.mapNum = mapNum || null
+    this.mapData = mapData || null
     // arrays of ImageBitmaps for each faction (1=crusaders, 2=saracen):
     this.buildings = [null, [], []]
     this.units = [null, [], []]
@@ -13,17 +14,30 @@ export default class GameAssets {
     this.flags = []
   }
 
-  async load() {
-    await this.loadGraphics()
+  async load(loadMapBackground) {
+    await this.loadGraphics(loadMapBackground)
   }
 
-  async loadGraphics() {
+  async loadGraphics(loadMapBackground) {
     // load Map Background
-    const mapJpg = await (await fetch(`${config.STATIC_URL}/imgs/mapBackgrounds/map${this.game.map.mapNum}.jpg`)).blob()
-    this.mapBackground = await createImageBitmap(mapJpg, {
-      premultiplyAlpha: 'none',
-      colorSpaceConversion: 'none'
-    })
+    if (loadMapBackground) {
+      if (this.mapNum <= 30) {
+        const mapJpg = await (await fetch(`${config.STATIC_URL}/imgs/mapBackgrounds/map${mapNum}.jpg`)).blob()
+        this.mapBackground = await createImageBitmap(mapJpg, {
+          premultiplyAlpha: 'none',
+          colorSpaceConversion: 'none'
+        })
+      } else {
+        const mapJpg = await (await fetch(
+          `/rendermapbg`,
+          {method: 'POST', body: JSON.stringify(this.mapData), headers: {'Content-Type': 'application/json'}}
+          )).blob()
+        this.mapBackground = await createImageBitmap(mapJpg, {
+          premultiplyAlpha: 'none',
+          colorSpaceConversion: 'none'
+        })
+      }
+    }
     // load Buildings
     const cBuildingsFetches = []
     const sBuildingsFetches = []

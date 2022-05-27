@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kreuzzuege</title>
+</head>
+<body>
+  <script type="module">
+    if (location.hash) {
+      if (!window.localStorage.getItem('savedMaps')) window.localStorage.setItem('savedMaps', '[]')
+      const savedMaps = JSON.parse(window.localStorage.getItem('savedMaps'))
+      savedMaps.push(location.hash.substr(1))
+      window.localStorage.setItem('savedMaps', JSON.stringify(savedMaps))
+    }
+    window.location.pathname = '/'
+  </script>
+</body>
+</html>

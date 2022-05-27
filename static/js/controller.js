@@ -195,6 +195,7 @@ function endTurn () {
 }
 
 function renderUi () {
+  document.getElementById('game-loading').style.display = 'none'
   document.getElementById('turn-info').innerHTML = turnInfo(game)
   document.getElementById('mp-name').innerHTML = mpName ? ("Mutiplayer ID: " + mpName) : ''
 }
