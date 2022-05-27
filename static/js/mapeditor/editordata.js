@@ -15,7 +15,7 @@ export async function getShareLink () {
 
 export async function loadMap (sid) {
   storageId = sid
-  const storedMap = JSON.parse(window.localStorage.getItem('customMaps'))[storageId]
+  const storedMap = JSON.parse(window.localStorage.getItem('customMaps'))[storageId].map
   if (!storedMap) return
   const map = await stringToMap(storedMap)
   mapData.sizeX = map.sizeX
@@ -29,7 +29,11 @@ export async function saveMap () {
   const savedMaps = JSON.parse(window.localStorage.getItem('customMaps'))
   if (storageId === null) storageId = savedMaps.length
   const storedMap = await mapToString(mapData.fields.flat(), mapData.sizeX, mapData.sizeY)
-  savedMaps[storageId] = storedMap
+  const thumb = await (await fetch(
+    `/rendermapbg?thumbnail=true`,
+    {method: 'POST', body: JSON.stringify({sizeX: mapData.sizeX, sizeY: mapData.sizeY, data: mapData.fields.flat()}), headers: {'Content-Type': 'application/json'}}
+    )).text()
+  savedMaps[storageId] = {map: storedMap, thumb}
   window.localStorage.setItem('customMaps', JSON.stringify(savedMaps))
 }
 

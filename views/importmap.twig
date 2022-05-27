@@ -7,14 +7,23 @@
   <title>Kreuzzuege</title>
 </head>
 <body>
+  <h1 style="margin: 20vh auto 0 auto; font-family: sans-serif;">Importing your map...</h1>
   <script type="module">
-    if (location.hash) {
-      if (!window.localStorage.getItem('savedMaps')) window.localStorage.setItem('savedMaps', '[]')
-      const savedMaps = JSON.parse(window.localStorage.getItem('savedMaps'))
-      savedMaps.push(location.hash.substr(1))
-      window.localStorage.setItem('savedMaps', JSON.stringify(savedMaps))
-    }
-    window.location.pathname = '/'
+    import { stringToMap } from '/static/js/gamedata/mapLoader.js'
+    (async function () {
+      if (location.hash) {
+        if (!window.localStorage.getItem('customMaps')) window.localStorage.setItem('customMaps', '[]')
+        const savedMaps = JSON.parse(window.localStorage.getItem('customMaps'))
+        const mapString = location.hash.substr(1)
+        const thumb = await (await fetch(
+          `/rendermapbg?thumbnail=true`,
+          {method: 'POST', body: JSON.stringify(await stringToMap(mapString)), headers: {'Content-Type': 'application/json'}}
+          )).text()
+        savedMaps.push({map: mapString, thumb})
+        window.localStorage.setItem('customMaps', JSON.stringify(savedMaps))
+      }
+      window.location.pathname = '/'
+    })()
   </script>
 </body>
 </html>

@@ -4,6 +4,7 @@ const Image = require('canvas').Image
 const joinPath = require('path').join
 
 const TILE_SIZE = 100
+const THUMB_SIZE = 8
 const OVERLAP = 0.3
 const HARBOUR = 7
 const texturePath = './static/imgs/mapTextures/'
@@ -21,7 +22,18 @@ module.exports = async function (req, res) {
   await renderField(ctx, mapData, 6)
   await renderField(ctx, mapData, 7)
   await renderField(ctx, mapData, 8)
+  if (req.query.thumbnail) {
+    sendThumb(canvas, mapData, res)
+    return
+  }
   canvas.createJPEGStream().pipe(res)
+}
+
+function sendThumb (canvas, mapData, res) {
+  const thumbCanvas = createCanvas(THUMB_SIZE * mapData.sizeX, THUMB_SIZE * mapData.sizeY)
+  const ctx = thumbCanvas.getContext('2d')
+  ctx.drawImage(canvas, 0, 0, THUMB_SIZE * mapData.sizeX, THUMB_SIZE * mapData.sizeY)
+  res.end(thumbCanvas.toDataURL('image/jpeg', 0.5))
 }
 
 async function perFieldOfType (type, mapData, fn) {
