@@ -9,7 +9,7 @@ const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 require('./socket').init(io)
 
-const rendermapbg = require('./rendermapbg')
+const rendermapbg = require('./mapbgrenderer/rendermapbg')
 
 app.use(bodyparser.json())
 app.use(bodyparser.urlencoded({extended: false}))

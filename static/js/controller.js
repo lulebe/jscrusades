@@ -20,7 +20,6 @@ let isNextTurnEnabled = false
 
 export function UIController (g, ga, mp) {
   game = g
-  console.log(g)
   gameAssets = ga
   mpName = mp
   const canvasEl = document.getElementById('game-canvas')
@@ -193,6 +192,7 @@ function endTurn () {
 }
 
 function renderUi () {
+  document.getElementById('game-loading').style.display = 'none'
   document.getElementById('turn-info').innerHTML = turnInfo(game)
   document.getElementById('mp-name').innerHTML = mpName ? ("Mutiplayer ID: " + mpName) : ''
 }
