@@ -56,5 +56,5 @@ function loadCustomMapData (storedId) {
   if (!window.localStorage.customMaps) throw new Error("Custom Maps don't exist")
   const customMaps = JSON.parse(window.localStorage.customMaps)
   if (!customMaps[storedId]) throw new Error("Map doesn't exist")
-  return customMaps[storedId]
+  return customMaps[storedId].map
 }

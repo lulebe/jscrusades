@@ -1,7 +1,7 @@
 import EditorCanvas from './editorcanvas.js'
 import GameAssets from '/static/js/gamedata/gameAssets.js'
 import { FIELD, BUILDING, UNIT_TYPES, UNIT_DATA } from '/static/js/gamedata/gameInfo.js'
-import { mapData, resize, saveMap, getShareLink } from './editordata.js'
+import { mapData, resize, saveMap, deleteMap, getShareLink } from './editordata.js'
 
 const drawTool = {
   terrain: null,
@@ -11,13 +11,23 @@ const drawTool = {
 
 let canvas = null
 
+
 export default function initUI () {
+  document.getElementById('input-cols').value = mapData.sizeX
+  document.getElementById('input-rows').value = mapData.sizeY
   document.getElementById('btn-resize').addEventListener('click', e => {
     resize(parseInt(document.getElementById('input-cols').value), parseInt(document.getElementById('input-rows').value))
     canvas?.drawGame()
   })
-  document.getElementById('save').addEventListener('click', e => saveMap())
-  document.getElementById('save').addEventListener('click', e => deleteMap())
+  document.getElementById('save').addEventListener('click', async e => {
+    document.getElementById('save').disabled = true
+    document.getElementById('info').display = 'block'
+    showInfo('Saving... please wait!')
+    await saveMap()
+    document.getElementById('save').disabled = false
+    showInfo('Saved your map!')
+  })
+  document.getElementById('delete').addEventListener('click', e => deleteMap())
   document.getElementById('btn-share').addEventListener('click', e => {
     getShareLink().then(link => {
       document.getElementById('share-link').innerHTML = `<a href="${link}">${link}</a>`
@@ -117,4 +127,12 @@ function fieldClick ({x, y}) {
     clickedField.unitHP = drawTool.unit.unitHP
   }
   canvas?.drawGame()
+}
+
+let infoTimeout = null
+function showInfo (text) {
+  infoTimeout && clearTimeout(infoTimeout)
+  document.getElementById('info').style.display = 'flex'
+  document.getElementById('info-content').innerHTML = text
+  infoTimeout = setTimeout(() => {document.getElementById('info').style.display = 'none'}, 2000)
 }

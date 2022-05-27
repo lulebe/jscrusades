@@ -127,7 +127,7 @@
       if (!window.localStorage.customMaps) return
       const customMaps = JSON.parse(window.localStorage.customMaps)
       customMaps.forEach((map, i) => {
-        document.getElementById('map-picker').innerHTML += `<img data-mapnum="${31 + i}" src="/static/imgs/mapPreviews/no_preview.jpg">`
+        document.getElementById('map-picker').innerHTML += `<img data-mapnum="${31 + i}" src="${map.thumb}">`
       })
     }
 

@@ -8,3 +8,19 @@
   padding: 12px 0;
   word-break: break-word;
 }
+
+#info {
+  position: fixed;
+  bottom: 16px;
+  width: 100%;
+  display: none;
+  justify-content: center;
+}
+
+#info-content {
+  color: white;
+  font-size: 1.2rem;
+  background: #cc6600;
+  border-radius: 8px;
+  padding: 8px 16px;
+}
