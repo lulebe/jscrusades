@@ -4,7 +4,6 @@ const Image = require('canvas').Image
 const joinPath = require('path').join
 
 const TILE_SIZE = 100
-const THUMB_SIZE = 8
 const OVERLAP = 0.3
 const HARBOUR = 7
 const texturePath = './static/imgs/mapTextures/'
@@ -30,9 +29,10 @@ module.exports = async function (req, res) {
 }
 
 function sendThumb (canvas, mapData, res) {
-  const thumbCanvas = createCanvas(THUMB_SIZE * mapData.sizeX, THUMB_SIZE * mapData.sizeY)
+  const thumbSize = Math.floor(Math.min(95.0 / mapData.sizeX, 95.0 / mapData.sizeY))
+  const thumbCanvas = createCanvas(thumbSize * mapData.sizeX, thumbSize * mapData.sizeY)
   const ctx = thumbCanvas.getContext('2d')
-  ctx.drawImage(canvas, 0, 0, THUMB_SIZE * mapData.sizeX, THUMB_SIZE * mapData.sizeY)
+  ctx.drawImage(canvas, 0, 0, thumbSize * mapData.sizeX, thumbSize * mapData.sizeY)
   res.end(thumbCanvas.toDataURL('image/jpeg', 0.5))
 }
 
