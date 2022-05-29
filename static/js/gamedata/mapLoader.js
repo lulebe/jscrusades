@@ -1,3 +1,5 @@
+import { deflateSync, inflateSync, strToU8, strFromU8 } from '../lib/compression.mjs'
+
 //efficient map data saving including units (type, faction, hp)
 //takes base64-like string to return field array or field array to return b64-like str
 //field array spec:
@@ -85,8 +87,6 @@ export async function mapToString (m, sizeX, sizeY) {
 // Compression algorithm to shorten the map info in the URL
 // Functions are copied together from a bunch of SO answers
 
-// Empirically determined 'deflate' to be superior to 'gzip' with our data.
-const ENCODING = 'deflate';
 
 // Character replacement to make the URL look nicer.
 // Direction is forward, i.e., after compression keys will be mapped to values.
@@ -96,24 +96,12 @@ const CHAR_REPLACEMENT_MAP = {
 }
 
 async function compress (s) {
-  const byteArray = new TextEncoder().encode(s)
-  const compressionStream = new CompressionStream(ENCODING)
-  const writer = compressionStream.writable.getWriter()
-  writer.write(byteArray)
-  writer.close()
-  s = await new Response(compressionStream.readable).arrayBuffer()
-    .then(arrayBufferToBase64)
-  return replaceChars(s, true)
+  return replaceChars(Uint8ToBase64(deflateSync(strToU8(s))), true)
 }
 
 function decompress (s) {
-  s = replaceChars(s, false)
-  const cs = new DecompressionStream(ENCODING)
-  const writer = cs.writable.getWriter()
-  writer.write(base64ToArrayBuffer(s))
-  writer.close()
-  return new Response(cs.readable).arrayBuffer()
-    .then(arrayBuffer => new TextDecoder().decode(arrayBuffer));
+  const compressed = base64ToUint8(replaceChars(s, false))
+  return strFromU8(inflateSync(compressed))
 }
 
 function replaceChars (s, isForward) {
@@ -127,9 +115,8 @@ function replaceChars (s, isForward) {
   return s
 }
 
-function arrayBufferToBase64 (buffer) {
+function Uint8ToBase64 (bytes) {
   let binary = ''
-  const bytes = new Uint8Array( buffer )
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i])
   }
@@ -137,7 +124,7 @@ function arrayBufferToBase64 (buffer) {
   return btoa(binary)
 }
 
-function base64ToArrayBuffer (base64) {
+function base64ToUint8 (base64) {
   // Do not use Buffer.from(data, 'base64').
   const binaryString = atob(base64)
   const len = binaryString.length
@@ -145,5 +132,5 @@ function base64ToArrayBuffer (base64) {
   for (let i = 0; i < len; i++) {
     bytes[i] = binaryString.charCodeAt(i)
   }
-  return bytes.buffer
+  return bytes
 }
