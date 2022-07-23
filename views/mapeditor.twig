@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kreuzzüge</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://code.iconify.design/2/2.2.0/iconify.min.js" defer></script>
+</head>
+<body style="background: #c5bb9f;">
+  <div id="gamebody">
+    <section id="canvas-container">
+      <canvas id="game-canvas"></canvas>
+    </section>
+    <aside id="infobar">
+      <div style="font-family: Source Code Pro; font-weight: 600;"> <!-- load font! --></div>
+      <div id="logo"><img src="/static/imgs/coverart.png" /></div>
+      <br>
+      <button id="zoom-in"><span class="iconify" data-icon="bxs:zoom-in"></span></button>
+      <button id="zoom-out"><span class="iconify" data-icon="bxs:zoom-out"></span></button>
+      <button id="save"><span class="iconify" data-icon="bxs:save"></span></button>
+      <button id="delete"><span class="iconify" data-icon="bxs:trash"></span></button>
+      <br><br>
+      <div class="editor-options">
+        <label for="input-rows">Rows</label><input type="number" id="input-rows" min="1" max="30" step="1" value="10"><br>
+        <label for="input-cols">Cols</label><input type="number" id="input-cols" min="1" max="30" step="1" value="10"><br>
+        <button id="btn-resize">resize</button><br>
+      </div>
+      <div id="editor-dropdowns" class="editor-options">
+      </div>
+      <div>
+        <button id="btn-share">Share</button>
+        <div id="share-link"></div>
+      </div>
+    </aside>
+    <div id="info"><div id="info-content"></div></div>
+  </div>
+  <script type="module">
+    import initUI from '/static/js/mapeditor/editorui.js'
+    import { loadMap } from '/static/js/mapeditor/editordata.js'
+
+    if (location.hash.length && !isNaN(parseInt(location.hash.substr(1))) && window.localStorage.getItem('customMaps')) {
+      console.log('load')
+      loadMap(parseInt(location.hash.substr(1))).then(() => {
+        initUI()
+      })
+    } else initUI()
+  </script>
+</body>
+</html>

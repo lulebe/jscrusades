@@ -15,8 +15,9 @@ export default class Game {
   #currentTurn
   #me
   #fightListener
+  #mapData
 
-  constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum, actionCount=0, turnNum=0) {
+  constructor(map, crusader, saracen, type, myFaction, currentTurn, saveNum, actionCount=0, turnNum=0, mapData=null) {
     this.map = map
     this.type = type
     this.#me = type === Game.GAME_TYPE.LOCAL_MP ? null : (myFaction || FACTION.CRUSADER)
@@ -28,6 +29,7 @@ export default class Game {
     this.#fightListener = null
     this.actionCount = actionCount
     this.turnNum = turnNum
+    this.#mapData = mapData
     this.#currentTurn = typeof currentTurn === 'number' ? currentTurn : FACTION.CRUSADER
   }
 
@@ -247,7 +249,8 @@ export default class Game {
       })
     })
     const data = {
-      version: 2,
+      version: 3,
+      mapData: this.#mapData,
       turnNum: this.turnNum,
       actionCount: this.actionCount,
       time: (new Date()).toJSON(),
