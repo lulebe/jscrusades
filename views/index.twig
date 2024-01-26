@@ -35,45 +35,47 @@
         <a class="btn disabled" id="start-lmp">Local Multiplayer</a>
         <a class="btn disabled" id="start-omp">Online Multiplayer</a>
         <a class="btn disabled" id="start-ai">AI Arena</a>
+        <a class="btn disabled" id="start-editor">edit</a>
       </div>
       <div class="map-pick-grid" id="map-picker">
         <img data-mapnum="1" src="/static/imgs/mapPreviews/map1_preview.png">
-        <img  data-mapnum="2" src="/static/imgs/mapPreviews/map2_preview.png">
-        <img  data-mapnum="3" src="/static/imgs/mapPreviews/map3_preview.png">
-        <img  data-mapnum="4" src="/static/imgs/mapPreviews/map4_preview.png">
-        <img  data-mapnum="5" src="/static/imgs/mapPreviews/map5_preview.png">
-        <img  data-mapnum="6" src="/static/imgs/mapPreviews/map6_preview.png">
-        <img  data-mapnum="7" src="/static/imgs/mapPreviews/map7_preview.png">
-        <img  data-mapnum="8" src="/static/imgs/mapPreviews/map8_preview.png">
-        <img  data-mapnum="9" src="/static/imgs/mapPreviews/map9_preview.png">
-        <img  data-mapnum="10" src="/static/imgs/mapPreviews/map10_preview.png">
-        <img  data-mapnum="11" src="/static/imgs/mapPreviews/map11_preview.png">
-        <img  data-mapnum="12" src="/static/imgs/mapPreviews/map12_preview.png">
-        <img  data-mapnum="13" src="/static/imgs/mapPreviews/map13_preview.png">
-        <img  data-mapnum="14" src="/static/imgs/mapPreviews/map14_preview.png">
-        <img  data-mapnum="15" src="/static/imgs/mapPreviews/map15_preview.png">
-        <img  data-mapnum="16" src="/static/imgs/mapPreviews/map16_preview.png">
-        <img  data-mapnum="17" src="/static/imgs/mapPreviews/map17_preview.png">
-        <img  data-mapnum="18" src="/static/imgs/mapPreviews/map18_preview.png">
-        <img  data-mapnum="19" src="/static/imgs/mapPreviews/map19_preview.png">
-        <img  data-mapnum="20" src="/static/imgs/mapPreviews/map20_preview.png">
-        <img  data-mapnum="21" src="/static/imgs/mapPreviews/map21_preview.png">
-        <img  data-mapnum="22" src="/static/imgs/mapPreviews/map22_preview.png">
-        <img  data-mapnum="23" src="/static/imgs/mapPreviews/map23_preview.png">
-        <img  data-mapnum="24" src="/static/imgs/mapPreviews/map24_preview.png">
-        <img  data-mapnum="25" src="/static/imgs/mapPreviews/map25_preview.png">
-        <img  data-mapnum="26" src="/static/imgs/mapPreviews/map26_preview.png">
-        <img  data-mapnum="27" src="/static/imgs/mapPreviews/map27_preview.png">
-        <img  data-mapnum="28" src="/static/imgs/mapPreviews/map28_preview.png">
-        <img  data-mapnum="29" src="/static/imgs/mapPreviews/map29_preview.png">
-        <img  data-mapnum="30" src="/static/imgs/mapPreviews/map30_preview.png">
+        <img data-mapnum="2" src="/static/imgs/mapPreviews/map2_preview.png">
+        <img data-mapnum="3" src="/static/imgs/mapPreviews/map3_preview.png">
+        <img data-mapnum="4" src="/static/imgs/mapPreviews/map4_preview.png">
+        <img data-mapnum="5" src="/static/imgs/mapPreviews/map5_preview.png">
+        <img data-mapnum="6" src="/static/imgs/mapPreviews/map6_preview.png">
+        <img data-mapnum="7" src="/static/imgs/mapPreviews/map7_preview.png">
+        <img data-mapnum="8" src="/static/imgs/mapPreviews/map8_preview.png">
+        <img data-mapnum="9" src="/static/imgs/mapPreviews/map9_preview.png">
+        <img data-mapnum="10" src="/static/imgs/mapPreviews/map10_preview.png">
+        <img data-mapnum="11" src="/static/imgs/mapPreviews/map11_preview.png">
+        <img data-mapnum="12" src="/static/imgs/mapPreviews/map12_preview.png">
+        <img data-mapnum="13" src="/static/imgs/mapPreviews/map13_preview.png">
+        <img data-mapnum="14" src="/static/imgs/mapPreviews/map14_preview.png">
+        <img data-mapnum="15" src="/static/imgs/mapPreviews/map15_preview.png">
+        <img data-mapnum="16" src="/static/imgs/mapPreviews/map16_preview.png">
+        <img data-mapnum="17" src="/static/imgs/mapPreviews/map17_preview.png">
+        <img data-mapnum="18" src="/static/imgs/mapPreviews/map18_preview.png">
+        <img data-mapnum="19" src="/static/imgs/mapPreviews/map19_preview.png">
+        <img data-mapnum="20" src="/static/imgs/mapPreviews/map20_preview.png">
+        <img data-mapnum="21" src="/static/imgs/mapPreviews/map21_preview.png">
+        <img data-mapnum="22" src="/static/imgs/mapPreviews/map22_preview.png">
+        <img data-mapnum="23" src="/static/imgs/mapPreviews/map23_preview.png">
+        <img data-mapnum="24" src="/static/imgs/mapPreviews/map24_preview.png">
+        <img data-mapnum="25" src="/static/imgs/mapPreviews/map25_preview.png">
+        <img data-mapnum="26" src="/static/imgs/mapPreviews/map26_preview.png">
+        <img data-mapnum="27" src="/static/imgs/mapPreviews/map27_preview.png">
+        <img data-mapnum="28" src="/static/imgs/mapPreviews/map28_preview.png">
+        <img data-mapnum="29" src="/static/imgs/mapPreviews/map29_preview.png">
+        <img data-mapnum="30" src="/static/imgs/mapPreviews/map30_preview.png">
       </div>
+      <a href="/mapedit" class="btn">new custom map</a>
     </div>
   </div>
   <script type="module">
     function renderSavesList () {
       if (window.localStorage.saves) {
-        const saves = JSON.parse(window.localStorage.saves).filter(save => save.version === 2)
+        const saves = JSON.parse(window.localStorage.saves).filter(save => save.version === 3)
         window.localStorage.saves = JSON.stringify(saves)
         document.getElementById('save-list').innerHTML = saves.reduce((str, save, i) =>
           str + `
@@ -121,7 +123,17 @@
       }
     }
 
+    function renderCustomMaps () {
+      if (!window.localStorage.customMaps) return
+      const customMaps = JSON.parse(window.localStorage.customMaps)
+      customMaps.forEach((map, i) => {
+        document.getElementById('map-picker').innerHTML += `<img data-mapnum="${31 + i}" src="${map.thumb}">`
+      })
+    }
+
     renderSavesList()
+
+    renderCustomMaps()
 
     document.getElementById('game-name-inp').addEventListener('change', e => {
       document.getElementById('join-form').action = '/game#mode=3;remote=' + e.target.value
@@ -135,10 +147,15 @@
       document.getElementById('start-lmp').href = `/game#save=-1;map=${mapnum};mode=1`
       document.getElementById('start-omp').href = `/game?mp=1#save=-1;map=${mapnum};mode=3`
       document.getElementById('start-ai').href = `/game#save=-1;map=${mapnum};mode=4`
+      document.getElementById('start-editor').href = `/mapedit#${mapnum - 31}`
       document.getElementById('start-sp').classList.remove('disabled')
       document.getElementById('start-lmp').classList.remove('disabled')
       document.getElementById('start-omp').classList.remove('disabled')
       document.getElementById('start-ai').classList.remove('disabled')
+      if (mapnum > 30)
+        document.getElementById('start-editor').classList.remove('disabled')
+      else
+        document.getElementById('start-editor').classList.add('disabled')
     })
   </script>
 </body>

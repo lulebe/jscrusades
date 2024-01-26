@@ -9,6 +9,8 @@ const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 require('./socket').init(io)
 
+const rendermapbg = require('./mapbgrenderer/rendermapbg')
+
 app.use(bodyparser.json())
 app.use(bodyparser.urlencoded({extended: false}))
 
@@ -23,6 +25,16 @@ app.get('/game', (req, res) => {
     game = mp.makeGame()
   twing.render('game.twig', {gameName: game ? game.name : null}).then(rendered => res.end(rendered))
 })
+
+app.get('/mapedit', (req, res) => {
+  twing.render('mapeditor.twig').then(rendered => res.end(rendered))
+})
+
+app.get('/importmap', (req, res) => {
+  twing.render('importmap.twig').then(rendered => res.end(rendered))
+})
+
+app.post('/rendermapbg', rendermapbg)
 
 app.use('/static', express.static('./static'))
 
