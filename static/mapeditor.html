@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kreuzzüge</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/style.css">
   <script src="https://code.iconify.design/2/2.2.0/iconify.min.js" defer></script>
 </head>
 <body style="background: #c5bb9f;">
@@ -15,7 +15,7 @@
     </section>
     <aside id="infobar">
       <div style="font-family: Source Code Pro; font-weight: 600;"> <!-- load font! --></div>
-      <div id="logo"><img src="/static/imgs/coverart.png" /></div>
+      <div id="logo"><img src="/imgs/coverart.png" /></div>
       <br>
       <button id="zoom-in"><span class="iconify" data-icon="bxs:zoom-in"></span></button>
       <button id="zoom-out"><span class="iconify" data-icon="bxs:zoom-out"></span></button>
@@ -37,11 +37,10 @@
     <div id="info"><div id="info-content"></div></div>
   </div>
   <script type="module">
-    import initUI from '/static/js/mapeditor/editorui.js'
-    import { loadMap } from '/static/js/mapeditor/editordata.js'
+    import initUI from '/js/mapeditor/editorui.js'
+    import { loadMap } from '/js/mapeditor/editordata.js'
 
     if (location.hash.length && !isNaN(parseInt(location.hash.substr(1))) && window.localStorage.getItem('customMaps')) {
-      console.log('load')
       loadMap(parseInt(location.hash.substr(1))).then(() => {
         initUI()
       })

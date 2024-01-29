@@ -21,7 +21,7 @@ function unitInfo (unit) {
     attackDistance += ' - ' + UNIT_DATA[unit.type].maxAttackDistance
   return `
   <div class="center-inside">
-    <img src="/static/imgs/unitThumbs/${unit.type}_${unit.faction}.png" class="unit-preview"><br>
+    <img src="/imgs/unitThumbs/${unit.type}_${unit.faction}.png" class="unit-preview"><br>
     ${LOC.UNIT_NAMES[unit.type || 0]}
   </div>
   <br>

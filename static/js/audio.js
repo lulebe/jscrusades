@@ -1,22 +1,22 @@
 const audios = {
   fight: {
-    infantry: new Audio('/static/sounds/infantry.mp3'),
-    archer: new Audio('/static/sounds/archer.mp3'),
-    horses: new Audio('/static/sounds/horses.mp3'),
-    catapult: new Audio('/static/sounds/catapult.mp3'),
-    ballista: new Audio('/static/sounds/ballista.mp3'),
-    shiptower: new Audio('/static/sounds/ship or tower.mp3'),
-    airship: new Audio('/static/sounds/air or ship.mp3')
+    infantry: new Audio('/sounds/infantry.mp3'),
+    archer: new Audio('/sounds/archer.mp3'),
+    horses: new Audio('/sounds/horses.mp3'),
+    catapult: new Audio('/sounds/catapult.mp3'),
+    ballista: new Audio('/sounds/ballista.mp3'),
+    shiptower: new Audio('/sounds/ship or tower.mp3'),
+    airship: new Audio('/sounds/air or ship.mp3')
   },
   turnMusic: [
-    new Audio('/static/sounds/turn1.mp3'),
-    new Audio('/static/sounds/turn2.mp3'),
-    new Audio('/static/sounds/turn3.mp3')
+    new Audio('/sounds/turn1.mp3'),
+    new Audio('/sounds/turn2.mp3'),
+    new Audio('/sounds/turn3.mp3')
   ],
   win: [
     null,
-    new Audio('/static/sounds/win1.mp3'),
-    new Audio('/static/sounds/win2.mp3')
+    new Audio('/sounds/win1.mp3'),
+    new Audio('/sounds/win2.mp3')
   ]
 }
 

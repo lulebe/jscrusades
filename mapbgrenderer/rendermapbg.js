@@ -6,7 +6,7 @@ const joinPath = require('path').join
 const TILE_SIZE = 100
 const OVERLAP = 0.3
 const HARBOUR = 7
-const texturePath = './static/imgs/mapTextures/'
+const texturePath = './imgs/mapTextures/'
 
 
 module.exports = async function (req, res) {

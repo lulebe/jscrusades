@@ -86,10 +86,10 @@ export function onFight (attacker, defender, attackerDamage, defenderDamage) {
     document.getElementById('fight-defender-img').classList.remove('def-flipped')
     if (UNIT_DATA[defender.type].flipDefender[defender.faction])
       document.getElementById('fight-defender-img').classList.add('def-flipped')
-    document.getElementById('fight-defender-img').src = `/static/imgs/unitThumbs/${defender.type}_${defender.faction}.png`
-    document.getElementById('fight-attacker-img').src = `/static/imgs/unitThumbs/${attacker.type}_${attacker.faction}.png`
-    document.getElementById('fight-attacker-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bga}.png"`
-    document.getElementById('fight-defender-background').style.backgroundImage = `url("/static/imgs/fightBgs/${bgd}.png"`
+    document.getElementById('fight-defender-img').src = `/imgs/unitThumbs/${defender.type}_${defender.faction}.png`
+    document.getElementById('fight-attacker-img').src = `/imgs/unitThumbs/${attacker.type}_${attacker.faction}.png`
+    document.getElementById('fight-attacker-background').style.backgroundImage = `url("/imgs/fightBgs/${bga}.png"`
+    document.getElementById('fight-defender-background').style.backgroundImage = `url("/imgs/fightBgs/${bgd}.png"`
     document.getElementById('fight').classList.add('visible')
     animateFight(attacker.hp + attackerDamage, attackerDamage, defender.hp + defenderDamage, defenderDamage, 8)
     playFightSound(attacker.type, defender.type)

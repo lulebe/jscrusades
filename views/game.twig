@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kreuzzüge</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@600&display=swap" rel="stylesheet">
@@ -20,11 +20,11 @@
   <div id="game-over"></div>
   <div id="fight">
     <div id="fight-attacker-background" class="unit">
-      <img id="fight-attacker-img" src="/static/imgs/unitThumbs/8_2.png" />
+      <img id="fight-attacker-img" src="/imgs/unitThumbs/8_2.png" />
       <span id="fight-attacker-health">05</span>
     </div>
     <div id="fight-defender-background" class="unit">
-      <img id="fight-defender-img" src="/static/imgs/unitThumbs/2_1.png" />
+      <img id="fight-defender-img" src="/imgs/unitThumbs/2_1.png" />
       <span id="fight-defender-health">05</span>
     </div>
   </div>
@@ -34,7 +34,7 @@
     </section>
     <aside id="infobar">
       <div style="font-family: Source Code Pro; font-weight: 600;"> <!-- load font! --></div>
-      <div id="logo"><img src="/static/imgs/coverart.png" /></div>
+      <div id="logo"><img src="/imgs/coverart.png" /></div>
       <div id="turn-info"></div>
       <br>
       <button id="zoom-in"><span class="iconify" data-icon="bxs:zoom-in"></span></button>
@@ -50,7 +50,7 @@
     </aside>
   </div>
   <script type="module">
-    import App from '/static/js/app.js'
+    import App from '/js/app.js'
     App('{{gameName}}')
   </script>
 </body>

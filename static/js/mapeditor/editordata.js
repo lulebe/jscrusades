@@ -10,7 +10,7 @@ export const mapData = {
 let storageId = null
 
 export async function getShareLink () {
-  return config.BASE_URL + '/importmap#' + (await mapToString(mapData.fields.flat(), mapData.sizeX, mapData.sizeY))
+  return config.BASE_URL + '/importmap.html#' + (await mapToString(mapData.fields.flat(), mapData.sizeX, mapData.sizeY))
 }
 
 export async function loadMap (sid) {

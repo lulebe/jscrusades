@@ -9,7 +9,7 @@
 <body>
   <h1 style="margin: 20vh auto 0 auto; font-family: sans-serif;">Importing your map...</h1>
   <script type="module">
-    import { stringToMap } from '/static/js/gamedata/mapLoader.js'
+    import { stringToMap } from '/js/gamedata/mapLoader.js'
     (async function () {
       if (location.hash) {
         if (!window.localStorage.getItem('customMaps')) window.localStorage.setItem('customMaps', '[]')
