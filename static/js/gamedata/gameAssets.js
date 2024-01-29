@@ -1,4 +1,4 @@
-import config from '../config.js'
+import renderMapBackground from './rendermapbg.js'
 
 export default class GameAssets {
 
@@ -22,17 +22,14 @@ export default class GameAssets {
     // load Map Background
     if (loadMapBackground) {
       if (this.mapNum <= 30) {
-        const mapJpg = await (await fetch(`${config.STATIC_URL}/imgs/mapBackgrounds/map${this.mapNum}.jpg`)).blob()
+        const mapJpg = await (await fetch(`/imgs/mapBackgrounds/map${this.mapNum}.jpg`)).blob()
         this.mapBackground = await createImageBitmap(mapJpg, {
           premultiplyAlpha: 'none',
           colorSpaceConversion: 'none'
         })
       } else {
-        const mapJpg = await (await fetch(
-          `/rendermapbg`,
-          {method: 'POST', body: JSON.stringify(this.mapData), headers: {'Content-Type': 'application/json'}}
-          )).blob()
-        this.mapBackground = await createImageBitmap(mapJpg, {
+        const mapBgCanvas = await renderMapBackground(this.mapData, false)
+        this.mapBackground = await createImageBitmap(mapBgCanvas, {
           premultiplyAlpha: 'none',
           colorSpaceConversion: 'none'
         })
@@ -42,8 +39,8 @@ export default class GameAssets {
     const cBuildingsFetches = []
     const sBuildingsFetches = []
     for (let i = 1; i <= 8; i++) {
-      cBuildingsFetches.push(fetch(`${config.STATIC_URL}/imgs/buildings/${i}_c.png`).then(res => res.blob()).then(blob2Img))
-      sBuildingsFetches.push(fetch(`${config.STATIC_URL}/imgs/buildings/${i}_s.png`).then(res => res.blob()).then(blob2Img))
+      cBuildingsFetches.push(fetch(`/imgs/buildings/${i}_c.png`).then(res => res.blob()).then(blob2Img))
+      sBuildingsFetches.push(fetch(`/imgs/buildings/${i}_s.png`).then(res => res.blob()).then(blob2Img))
     }
     const cBuildingsResponses = await Promise.all(cBuildingsFetches)
     const sBuildingsResponses = await Promise.all(sBuildingsFetches)
@@ -53,16 +50,16 @@ export default class GameAssets {
     const cUnitsFetches = []
     const sUnitsFetches = []
     for (let i = 1; i <= 13; i++) {
-      cUnitsFetches.push(fetch(`${config.STATIC_URL}/imgs/units/${i}_c.png`).then(res => res.blob()).then(blob2Img))
-      sUnitsFetches.push(fetch(`${config.STATIC_URL}/imgs/units/${i}_s.png`).then(res => res.blob()).then(blob2Img))
+      cUnitsFetches.push(fetch(`/imgs/units/${i}_c.png`).then(res => res.blob()).then(blob2Img))
+      sUnitsFetches.push(fetch(`/imgs/units/${i}_s.png`).then(res => res.blob()).then(blob2Img))
     }
     const cUnitsResponses = await Promise.all(cUnitsFetches)
     const sUnitsResponses = await Promise.all(sUnitsFetches)
     cUnitsResponses.forEach((img, i) => this.units[1][i+1] = img)
     sUnitsResponses.forEach((img, i) => this.units[2][i+1] = img)
     // load Flags
-    this.flags[1] = await fetch(`${config.STATIC_URL}/imgs/other/ic_1.png`).then(res => res.blob()).then(blob2Img)
-    this.flags[2] = await fetch(`${config.STATIC_URL}/imgs/other/ic_2.png`).then(res => res.blob()).then(blob2Img)
+    this.flags[1] = await fetch(`/imgs/other/ic_1.png`).then(res => res.blob()).then(blob2Img)
+    this.flags[2] = await fetch(`/imgs/other/ic_2.png`).then(res => res.blob()).then(blob2Img)
   }
 
 }

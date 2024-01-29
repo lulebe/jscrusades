@@ -3,14 +3,14 @@ import { UIController } from './controller.js'
 import Game from './gamedata/game.js'
 import { connectHost, connectRemote } from './mp.js'
 
-export default function (mpHostGameName) {
+export default function () {
   const gameToLoad = {}
   let gameData
   window.location.hash.substring(1).split(';').forEach(kv => {
     const split = kv.split('=')
     gameToLoad[split[0]] = split[0] != 'remote' ? parseInt(split[1]) : split[1]
   })
-  if (gameToLoad.mode === Game.GAME_TYPE.ONLINE_MP &&gameToLoad.remote) {
+  if (gameToLoad.mode === Game.GAME_TYPE.ONLINE_MP && gameToLoad.remote) {
     connectRemote(gameToLoad.remote)
     return
   }
@@ -25,8 +25,20 @@ export default function (mpHostGameName) {
     gameData.type = gameToLoad.mode
     gameData.saveNum = gameToLoad.save
   }
-  if (mpHostGameName) {
-    connectHost(mpHostGameName, gameData)
+  if (gameToLoad.mode === Game.GAME_TYPE.ONLINE_MP) {
+    fetch('/mpgame')
+    .then(res => {
+      if (res.ok) {
+        return res.json()
+      }
+    })
+    .then(mpData => {
+      console.log(mpData)
+      connectHost(mpData.gameName, gameData)
+    })
+    .catch(e => {
+      alert(e.message)
+    })
     return
   }
   loadGame(gameData)

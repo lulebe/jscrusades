@@ -5,8 +5,8 @@ const audios = {
     horses: new Audio('/sounds/horses.mp3'),
     catapult: new Audio('/sounds/catapult.mp3'),
     ballista: new Audio('/sounds/ballista.mp3'),
-    shiptower: new Audio('/sounds/ship or tower.mp3'),
-    airship: new Audio('/sounds/air or ship.mp3')
+    shiptower: new Audio('/sounds/ship_or_tower.mp3'),
+    airship: new Audio('/sounds/air_or_ship.mp3')
   },
   turnMusic: [
     new Audio('/sounds/turn1.mp3'),

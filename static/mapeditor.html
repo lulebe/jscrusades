@@ -7,6 +7,11 @@
   <title>Kreuzzüge</title>
   <link rel="stylesheet" href="/style.css">
   <script src="https://code.iconify.design/2/2.2.0/iconify.min.js" defer></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+    }
+  </script>
 </head>
 <body style="background: #c5bb9f;">
   <div id="gamebody">

@@ -8,17 +8,12 @@ const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 require('./socket').init(io)
 
-const rendermapbg = require('./mapbgrenderer/rendermapbg')
-
 app.use(bodyparser.json())
 app.use(bodyparser.urlencoded({extended: false}))
 
-//TODO
 app.get('/mpgame', (req, res) => {
-  res.send({gameName: mp.makeGame().name})
+  res.json({gameName: mp.makeGame().name})
 })
-
-app.post('/rendermapbg', rendermapbg)
 
 app.use('/', express.static('./static'))
 

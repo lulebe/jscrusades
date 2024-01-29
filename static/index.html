@@ -7,6 +7,11 @@
   <title>Kreuzzüge</title>
   <link rel="stylesheet" href="/style.css">
   <script src="https://code.iconify.design/2/2.2.0/iconify.min.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+    }
+  </script>
 </head>
 <body style="background: #c5bb9f;">
   <div id="menu-body">
@@ -23,11 +28,13 @@
         <a class="btn disabled" id="load-ai">AI Arena</a>
       </div>
     </div>
-    <h1>Join Online Multiplayer</h1>
-    <form method="GET" action="" id="join-form">
-      <input type="text" placeholder="game code" id="game-name-inp" />
-      <input type="submit" value="join" />
-    </form>
+    <div id="join-online-form">
+      <h1>Join Online Multiplayer</h1>
+      <form method="GET" action="" id="join-form">
+        <input type="text" placeholder="game code" id="game-name-inp" />
+        <input type="submit" value="join" />
+      </form>
+    </div>
     <div class="card">
       <h1>New Game</h1>
       <div style="text-align: center; padding-bottom: 16px;">
@@ -73,6 +80,11 @@
     </div>
   </div>
   <script type="module">
+    if (!navigator.onLine) {
+      document.getElementById('join-online-form').style.display = 'none'
+      document.getElementById('start-omp').style.display = 'none'
+      document.getElementById('load-omp').style.display = 'none'
+    }
     function renderSavesList () {
       if (window.localStorage.saves) {
         const saves = JSON.parse(window.localStorage.saves).filter(save => save.version === 3)
@@ -109,10 +121,10 @@
             const previous = document.getElementById('save-list').querySelector('.selected')
             if (previous) previous.classList.remove('selected')
             e.target.parentElement.classList.add('selected')
-            document.getElementById('load-sp').href = `/game#save=${e.target.dataset.save};mode=2`
-            document.getElementById('load-lmp').href = `/game#save=${e.target.dataset.save};mode=1`
-            document.getElementById('load-omp').href = `/game?mp=1#save=${e.target.dataset.save};mode=3`
-            document.getElementById('load-ai').href = `/game#save=${e.target.dataset.save};mode=4`
+            document.getElementById('load-sp').href = `/game.html#save=${e.target.dataset.save};mode=2`
+            document.getElementById('load-lmp').href = `/game.html#save=${e.target.dataset.save};mode=1`
+            document.getElementById('load-omp').href = `/game.html?mp=1#save=${e.target.dataset.save};mode=3`
+            document.getElementById('load-ai').href = `/game.html#save=${e.target.dataset.save};mode=4`
             document.getElementById('load-sp').classList.remove('disabled')
             document.getElementById('load-lmp').classList.remove('disabled')
             document.getElementById('load-omp').classList.remove('disabled')
@@ -136,17 +148,17 @@
     renderCustomMaps()
 
     document.getElementById('game-name-inp').addEventListener('change', e => {
-      document.getElementById('join-form').action = '/game#mode=3;remote=' + e.target.value
+      document.getElementById('join-form').action = '/game.html#mode=3;remote=' + e.target.value
     })
     document.getElementById('map-picker').addEventListener('click', e => {
       const previous = document.getElementById('map-picker').querySelector('.selected')
       if (previous) previous.classList.remove('selected')
       e.target.classList.add('selected')
       const mapnum = e.target.dataset.mapnum
-      document.getElementById('start-sp').href = `/game#save=-1;map=${mapnum};mode=2`
-      document.getElementById('start-lmp').href = `/game#save=-1;map=${mapnum};mode=1`
-      document.getElementById('start-omp').href = `/game?mp=1#save=-1;map=${mapnum};mode=3`
-      document.getElementById('start-ai').href = `/game#save=-1;map=${mapnum};mode=4`
+      document.getElementById('start-sp').href = `/game.html#save=-1;map=${mapnum};mode=2`
+      document.getElementById('start-lmp').href = `/game.html#save=-1;map=${mapnum};mode=1`
+      document.getElementById('start-omp').href = `/game.html?mp=1#save=-1;map=${mapnum};mode=3`
+      document.getElementById('start-ai').href = `/game.html#save=-1;map=${mapnum};mode=4`
       document.getElementById('start-editor').href = `/mapeditor.html#${mapnum - 31}`
       document.getElementById('start-sp').classList.remove('disabled')
       document.getElementById('start-lmp').classList.remove('disabled')
