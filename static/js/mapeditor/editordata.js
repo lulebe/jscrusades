@@ -36,7 +36,7 @@ export async function saveMap () {
 }
 
 export function deleteMap () {
-  if (storageId) {
+  if (storageId !== null) {
     const savedMaps = JSON.parse(window.localStorage.getItem('customMaps'))
     savedMaps.splice(storageId, 1)
     window.localStorage.setItem('customMaps', JSON.stringify(savedMaps))

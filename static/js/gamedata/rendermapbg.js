@@ -35,19 +35,17 @@ export default async function (mapData, thumbnail) {
   await renderField(ctx, mapData, 6)
   await renderField(ctx, mapData, 7)
   await renderField(ctx, mapData, 8)
-  if (thumbnail) {
-    sendThumb(canvas, mapData, res)
-    return
-  }
+  if (thumbnail)
+    return makeThumb(canvas, mapData)
   return canvas
 }
 
-function sendThumb (canvas, mapData, res) {
+function makeThumb (canvas, mapData) {
   const thumbSize = Math.floor(Math.min(95.0 / mapData.sizeX, 95.0 / mapData.sizeY))
   const thumbCanvas = createCanvas(thumbSize * mapData.sizeX, thumbSize * mapData.sizeY)
   const ctx = thumbCanvas.getContext('2d')
   ctx.drawImage(canvas, 0, 0, thumbSize * mapData.sizeX, thumbSize * mapData.sizeY)
-  thumbCanvas.toDataURL('image/jpeg', 0.5)
+  return thumbCanvas.toDataURL('image/jpeg', 0.5)
 }
 
 async function perFieldOfType (type, mapData, fn) {

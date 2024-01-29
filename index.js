@@ -15,7 +15,7 @@ app.get('/mpgame', (req, res) => {
   res.json({gameName: mp.makeGame().name})
 })
 
-app.use('/', express.static('./static'))
+app.use(express.static('./static'))
 
 const port = process.env.PORT || 8080
 http.listen(port, () => {console.log(`running... visit http://localhost:${port}`)})
