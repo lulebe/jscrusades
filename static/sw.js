@@ -250,10 +250,29 @@ self.addEventListener("activate", (event) => {
 })
 
 self.addEventListener('fetch', event => {
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request)))
+  event.respondWith(fetch(event.request).catch(() => {
+    if (event.request.url.startsWith('https://api.iconify.design/')) {
+      return handleFontRequest(event.request)
+    }
+    return caches.match(event.request)
+  }))
 })
 
 async function fillCache () {
   const cache = await caches.open(CACHE_NAME)
   await cache.addAll(CACHE_ASSETS)
+}
+
+async function handleFontRequest (request) {
+  const url = new URL(request.url)
+  const path = url.pathname
+  const icons = decodeURIComponent(url.search.replace('?icons=', '')).split(',')
+  const iconResponses = await Promise.all(icons.map(icon => caches.match(`https://api.iconify.design${path}?icons=${icon}`).then(r => r.json())))
+  const body = iconResponses[0]
+  iconResponses.slice(1).forEach(ir => {
+    Object.keys(ir.icons).forEach(k => {
+      body.icons[k] = ir.icons[k]
+    })
+  })
+  return new Response(JSON.stringify(body), {headers:{'Content-Type':'application/json'}})
 }
