@@ -3,7 +3,6 @@ const fs = require('fs')
 const CACHE_ASSETS_CORS = [
   '/',
   'https://code.iconify.design/2/2.2.0/iconify.min.js',
-  'https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@600&display=swap',
   'https://cdn.socket.io/4.4.1/socket.io.min.js'
 ]
 const ICONS = [
