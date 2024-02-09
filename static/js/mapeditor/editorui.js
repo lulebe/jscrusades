@@ -1,6 +1,6 @@
 import EditorCanvas from './editorcanvas.js'
-import GameAssets from '/static/js/gamedata/gameAssets.js'
-import { FIELD, BUILDING, UNIT_TYPES, UNIT_DATA } from '/static/js/gamedata/gameInfo.js'
+import GameAssets from '/js/gamedata/gameAssets.js'
+import { FIELD, BUILDING, UNIT_TYPES, UNIT_DATA } from '/js/gamedata/gameInfo.js'
 import { mapData, resize, saveMap, deleteMap, getShareLink } from './editordata.js'
 
 const drawTool = {

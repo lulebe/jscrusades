@@ -1,5 +1,6 @@
 import { stringToMap, mapToString } from '../gamedata/mapLoader.js'
 import config from '../config.js'
+import renderMapBackground from '../gamedata/rendermapbg.js'
 
 export const mapData = {
   sizeX: 10,
@@ -10,14 +11,14 @@ export const mapData = {
 let storageId = null
 
 export async function getShareLink () {
-  return config.BASE_URL + '/importmap#' + (await mapToString(mapData.fields.flat(), mapData.sizeX, mapData.sizeY))
+  return config.BASE_URL + '/importmap.html#' + (await mapToString(mapData.fields.flat(), mapData.sizeX, mapData.sizeY))
 }
 
 export async function loadMap (sid) {
   storageId = sid
   const storedMap = JSON.parse(window.localStorage.getItem('customMaps'))[storageId].map
   if (!storedMap) return
-  const map = await stringToMap(storedMap)
+  const map = stringToMap(storedMap)
   mapData.sizeX = map.sizeX
   mapData.sizeY = map.sizeY
   mapData.fields = []
@@ -29,16 +30,13 @@ export async function saveMap () {
   const savedMaps = JSON.parse(window.localStorage.getItem('customMaps'))
   if (storageId === null) storageId = savedMaps.length
   const storedMap = await mapToString(mapData.fields.flat(), mapData.sizeX, mapData.sizeY)
-  const thumb = await (await fetch(
-    `/rendermapbg?thumbnail=true`,
-    {method: 'POST', body: JSON.stringify({sizeX: mapData.sizeX, sizeY: mapData.sizeY, data: mapData.fields.flat()}), headers: {'Content-Type': 'application/json'}}
-    )).text()
+  const thumb = await renderMapBackground({sizeX: mapData.sizeX, sizeY: mapData.sizeY, data: mapData.fields.flat()}, true)
   savedMaps[storageId] = {map: storedMap, thumb}
   window.localStorage.setItem('customMaps', JSON.stringify(savedMaps))
 }
 
 export function deleteMap () {
-  if (storageId) {
+  if (storageId !== null) {
     const savedMaps = JSON.parse(window.localStorage.getItem('customMaps'))
     savedMaps.splice(storageId, 1)
     window.localStorage.setItem('customMaps', JSON.stringify(savedMaps))

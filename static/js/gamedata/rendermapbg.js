@@ -1,16 +1,30 @@
-const createCanvas = require('canvas').createCanvas
-const loadImage = require('canvas').loadImage
-const Image = require('canvas').Image
-const joinPath = require('path').join
-
 const TILE_SIZE = 100
 const OVERLAP = 0.3
 const HARBOUR = 7
-const texturePath = './static/imgs/mapTextures/'
+const texturePath = '/imgs/mapTextures/'
 
+function loadImage (src, options) {
+  return new Promise(function (resolve, reject) {
+    const image = Object.assign(document.createElement('img'), options)
+    function cleanup () {
+      image.onload = null
+      image.onerror = null
+    }
+    image.onload = function () { cleanup(); resolve(image) }
+    image.onerror = function () { cleanup(); reject(new Error('Failed to load the image "' + src + '"')) }
 
-module.exports = async function (req, res) {
-  const mapData = req.body
+    image.src = src
+  })
+}
+
+function createCanvas (width, height) {
+  const c = document.createElement('canvas')
+  c.width = width
+  c.height = height
+  return c
+}
+
+export default async function (mapData, thumbnail) {
   const canvas = createCanvas(TILE_SIZE * mapData.sizeX, TILE_SIZE * mapData.sizeY)
   const ctx = canvas.getContext('2d')
   await renderBase(ctx, mapData)
@@ -21,19 +35,17 @@ module.exports = async function (req, res) {
   await renderField(ctx, mapData, 6)
   await renderField(ctx, mapData, 7)
   await renderField(ctx, mapData, 8)
-  if (req.query.thumbnail) {
-    sendThumb(canvas, mapData, res)
-    return
-  }
-  canvas.createJPEGStream().pipe(res)
+  if (thumbnail)
+    return makeThumb(canvas, mapData)
+  return canvas
 }
 
-function sendThumb (canvas, mapData, res) {
+function makeThumb (canvas, mapData) {
   const thumbSize = Math.floor(Math.min(95.0 / mapData.sizeX, 95.0 / mapData.sizeY))
   const thumbCanvas = createCanvas(thumbSize * mapData.sizeX, thumbSize * mapData.sizeY)
   const ctx = thumbCanvas.getContext('2d')
   ctx.drawImage(canvas, 0, 0, thumbSize * mapData.sizeX, thumbSize * mapData.sizeY)
-  res.end(thumbCanvas.toDataURL('image/jpeg', 0.5))
+  return thumbCanvas.toDataURL('image/jpeg', 0.5)
 }
 
 async function perFieldOfType (type, mapData, fn) {
@@ -59,10 +71,11 @@ async function createMasked (texture, maskFn) {
   ctx.drawImage(texture, 0, 0, TILE_SIZE, TILE_SIZE)
   const result = new Image()
   return new Promise(resolve => {
+    result.src = canv.toDataURL('image/png')
     result.onload = () => {
+      result.onload = null
       resolve(result)
     }
-    result.src = canv.toDataURL('image/png')
   })
 }
 
@@ -102,7 +115,7 @@ function surroundingMatches4 (mapData, row, col) {
 }
 
 async function renderBase (ctx, mapData) {
-  const img = await loadImage(joinPath(texturePath, '2.jpg'))
+  const img = await loadImage(texturePath + '2.jpg')
   await perFieldOfType(null, mapData, (row, col) => {
     ctx.drawImage(img, col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE)
   })
@@ -110,7 +123,7 @@ async function renderBase (ctx, mapData) {
 
 async function renderField (ctx, mapData, type) {
   if (type === 7) type = 1
-  const texture = await loadImage(joinPath(texturePath, type+'.jpg'))
+  const texture = await loadImage(texturePath + type+'.jpg')
   await perFieldOfType(type, mapData, async function (row, col) {
     const img = await createMasked (texture, ctx => {
       ctx.fillStyle = 'white'

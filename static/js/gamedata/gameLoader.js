@@ -10,7 +10,7 @@ export async function loadGame (gameData) {
   const mapNum = gameData.mapNum
   const isCustomMap = mapNum > 30
   if (isCustomMap && !gameData.mapData) gameData.mapData = loadCustomMapData(mapNum - 31)
-  const mapData = await stringToMap(isCustomMap ? gameData.mapData : DEFAULT_MAPS[mapNum].data)
+  const mapData = stringToMap(isCustomMap ? gameData.mapData : DEFAULT_MAPS[mapNum].data)
   const map = GameMap.fromData(mapData.data, mapNum, mapData.sizeX, mapData.sizeY)
   const crusaderPlayer = Player.createFromSave(gameData.crusaderPlayer, 1)
   if (!gameData.crusaderPlayer) loadDefaultUnits(mapData, crusaderPlayer)
