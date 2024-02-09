@@ -1,6 +1,7 @@
 const CACHE_NAME = 'cache-v1'
 
 const CACHE_ASSETS = [
+  "/manifest.json",
   "/game.html",
   "/imgs/buildings/1_c.png",
   "/imgs/buildings/1_s.png",
